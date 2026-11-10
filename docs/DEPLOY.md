@@ -31,24 +31,18 @@ Faça isso nos dois domínios. Leva de 5 minutos a algumas horas para valer.
 
 > Os usuários e dados de hoje estão no banco do Lovable Cloud. Migrar esses dados é um passo separado.
 
-## 3. Instalar na VPS
+## 3. Instalar na VPS (EasyPanel)
 
-Entre na VPS por SSH (Hostinger > VPS > Terminal do navegador) e rode:
+A VPS já usa o EasyPanel, então o Shop Center entra como mais um app, sem mexer no outro projeto.
 
-```bash
-git clone https://github.com/nafscontato-ads/shopcenter.git /var/www/shopcenter
-cd /var/www/shopcenter
-cp .env.example .env && nano .env      # preencha as chaves (veja abaixo)
-bash deploy/setup-vps.sh SEU_EMAIL
-```
+1. Abra o EasyPanel (Hostinger > VPS > Gerenciar painel).
+2. **Create Project** com o nome `shopcenter` e, dentro dele, **+ Service > App**.
+3. Em **Source**, escolha **GitHub**, o repositório `nafscontato-ads/shopcenter` e a branch `main`. Em **Build**, deixe **Dockerfile** (o arquivo já está no repositório).
+4. Em **Environment**, cole as variáveis do item 4 abaixo e salve.
+5. Em **Domains**, adicione `shopcenter.cloud`, `www.shopcenter.cloud`, `sistemaelogistica.shop` e `www.sistemaelogistica.shop`, todos com a porta **3000** e HTTPS ligado. O EasyPanel cria o certificado sozinho.
+6. Clique em **Deploy**. Depois de cada mudança no GitHub, basta clicar em Deploy de novo (ou ligar o Auto Deploy).
 
-O script instala Node 22, Nginx, PM2 e o HTTPS (Let's Encrypt) dos dois domínios.
-
-Para atualizar depois de cada mudança no GitHub:
-
-```bash
-bash /var/www/shopcenter/deploy/update.sh
-```
+> Os arquivos em `deploy/` (nginx, pm2, certbot) servem só para uma VPS **sem** EasyPanel. Não rode `setup-vps.sh` nesta VPS, porque ele disputaria as portas 80/443 com o EasyPanel.
 
 ## 4. O que vai no .env
 
