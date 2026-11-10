@@ -5,7 +5,7 @@ import meliPlus from '@/assets/mkt-meli-plus.png.asset.json';
 import shopify from '@/assets/mkt-shopify.png.asset.json';
 import tiktok from '@/assets/mkt-tiktok-shop.png.asset.json';
 
-export type MarketplaceId = 'shopee' | 'mercado-livre' | 'amazon' | 'meli-plus' | 'shopify' | 'tiktok-shop';
+export type MarketplaceId = 'shopee' | 'mercado-livre' | 'amazon' | 'meli-plus' | 'shopify' | 'tiktok-shop' | 'magalu';
 
 export type Marketplace = { id: MarketplaceId; name: string; logo: string };
 
@@ -21,6 +21,7 @@ export const marketplaces: Marketplace[] = [
   { id: 'meli-plus', name: 'Meli+', logo: meliPlus.url },
   { id: 'shopify', name: 'Shopify', logo: shopify.url },
   { id: 'tiktok-shop', name: 'TikTok Shop', logo: tiktok.url },
+  { id: 'magalu', name: 'Magalu', logo: '/marketplaces/magalu.svg' },
 ];
 
 export function isMarketplaceId(value: unknown): value is MarketplaceId {
