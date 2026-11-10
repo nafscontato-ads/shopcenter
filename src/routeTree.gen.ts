@@ -16,6 +16,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CadastroprodutoresespancadoresRouteImport } from './routes/cadastroprodutoresespancadores'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as EnviosRouteImport } from './routes/envios'
 import { Route as FacebookRouteImport } from './routes/facebook'
 import { Route as FinanceiroRouteImport } from './routes/financeiro'
 import { Route as FornecedorRouteImport } from './routes/fornecedor'
@@ -43,6 +44,7 @@ import { Route as AdminAutomaticSalesRouteImport } from './routes/admin.automati
 import { Route as AdminCostsRouteImport } from './routes/admin.costs'
 import { Route as AdminCouponsRouteImport } from './routes/admin.coupons'
 import { Route as AdminCreatorsRouteImport } from './routes/admin.creators'
+import { Route as AdminEnviosRouteImport } from './routes/admin.envios'
 import { Route as AdminFornecedorSitesRouteImport } from './routes/admin.fornecedor-sites'
 import { Route as AdminHealthRouteImport } from './routes/admin.health'
 import { Route as AdminLaunchesRouteImport } from './routes/admin.launches'
@@ -55,6 +57,7 @@ import { Route as AdminSalesRouteImport } from './routes/admin.sales'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminShopeeCheckRouteImport } from './routes/admin.shopee-check'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
+import { Route as ExpedicaoTokenRouteImport } from './routes/expedicao.$token'
 import { Route as FornecedorIndexRouteImport } from './routes/fornecedor.index'
 import { Route as FornecedorSlugRouteImport } from './routes/fornecedor.$slug'
 import { Route as InfluencerIndexRouteImport } from './routes/influencer.index'
@@ -62,7 +65,9 @@ import { Route as InfluencerIdRouteImport } from './routes/influencer.$id'
 import { Route as InfluencerImagemRouteImport } from './routes/influencer.imagem'
 import { Route as InfluencerNovoRouteImport } from './routes/influencer.novo'
 import { Route as AdminUsersIdRouteImport } from './routes/admin.users.$id'
+import { Route as ApiPublicFulfillmentTickRouteImport } from './routes/api.public.fulfillment.tick'
 import { Route as ApiPublicShopeeCallbackRouteImport } from './routes/api.public.shopee.callback'
+import { Route as ApiPublicShopeePushRouteImport } from './routes/api.public.shopee.push'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -98,6 +103,11 @@ const ConfiguracoesRoute = ConfiguracoesRouteImport.update({
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EnviosRoute = EnviosRouteImport.update({
+  id: '/envios',
+  path: '/envios',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FacebookRoute = FacebookRouteImport.update({
@@ -235,6 +245,11 @@ const AdminCreatorsRoute = AdminCreatorsRouteImport.update({
   path: '/creators',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminEnviosRoute = AdminEnviosRouteImport.update({
+  id: '/envios',
+  path: '/envios',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminFornecedorSitesRoute = AdminFornecedorSitesRouteImport.update({
   id: '/fornecedor-sites',
   path: '/fornecedor-sites',
@@ -295,6 +310,11 @@ const AdminUsersRoute = AdminUsersRouteImport.update({
   path: '/users',
   getParentRoute: () => AdminRoute,
 } as any)
+const ExpedicaoTokenRoute = ExpedicaoTokenRouteImport.update({
+  id: '/expedicao/$token',
+  path: '/expedicao/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FornecedorIndexRoute = FornecedorIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -330,9 +350,20 @@ const AdminUsersIdRoute = AdminUsersIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => AdminUsersRoute,
 } as any)
+const ApiPublicFulfillmentTickRoute =
+  ApiPublicFulfillmentTickRouteImport.update({
+    id: '/api/public/fulfillment/tick',
+    path: '/api/public/fulfillment/tick',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicShopeeCallbackRoute = ApiPublicShopeeCallbackRouteImport.update({
   id: '/api/public/shopee/callback',
   path: '/api/public/shopee/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicShopeePushRoute = ApiPublicShopeePushRouteImport.update({
+  id: '/api/public/shopee/push',
+  path: '/api/public/shopee/push',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -344,6 +375,7 @@ export interface FileRoutesByFullPath {
   '/cadastroprodutoresespancadores': typeof CadastroprodutoresespancadoresRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/dashboard': typeof DashboardRoute
+  '/envios': typeof EnviosRoute
   '/facebook': typeof FacebookRoute
   '/financeiro': typeof FinanceiroRoute
   '/fornecedor': typeof FornecedorRouteWithChildren
@@ -369,6 +401,7 @@ export interface FileRoutesByFullPath {
   '/admin/costs': typeof AdminCostsRoute
   '/admin/coupons': typeof AdminCouponsRoute
   '/admin/creators': typeof AdminCreatorsRoute
+  '/admin/envios': typeof AdminEnviosRoute
   '/admin/fornecedor-sites': typeof AdminFornecedorSitesRoute
   '/admin/health': typeof AdminHealthRoute
   '/admin/launches': typeof AdminLaunchesRoute
@@ -381,6 +414,7 @@ export interface FileRoutesByFullPath {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/shopee-check': typeof AdminShopeeCheckRoute
   '/admin/users': typeof AdminUsersRouteWithChildren
+  '/expedicao/$token': typeof ExpedicaoTokenRoute
   '/fornecedor/$slug': typeof FornecedorSlugRoute
   '/influencer/$id': typeof InfluencerIdRoute
   '/influencer/imagem': typeof InfluencerImagemRoute
@@ -390,7 +424,9 @@ export interface FileRoutesByFullPath {
   '/fornecedor/': typeof FornecedorIndexRoute
   '/influencer/': typeof InfluencerIndexRoute
   '/admin/users/$id': typeof AdminUsersIdRoute
+  '/api/public/fulfillment/tick': typeof ApiPublicFulfillmentTickRoute
   '/api/public/shopee/callback': typeof ApiPublicShopeeCallbackRoute
+  '/api/public/shopee/push': typeof ApiPublicShopeePushRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -399,6 +435,7 @@ export interface FileRoutesByTo {
   '/cadastroprodutoresespancadores': typeof CadastroprodutoresespancadoresRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/dashboard': typeof DashboardRoute
+  '/envios': typeof EnviosRoute
   '/facebook': typeof FacebookRoute
   '/financeiro': typeof FinanceiroRoute
   '/fornecedores': typeof FornecedoresRoute
@@ -423,6 +460,7 @@ export interface FileRoutesByTo {
   '/admin/costs': typeof AdminCostsRoute
   '/admin/coupons': typeof AdminCouponsRoute
   '/admin/creators': typeof AdminCreatorsRoute
+  '/admin/envios': typeof AdminEnviosRoute
   '/admin/fornecedor-sites': typeof AdminFornecedorSitesRoute
   '/admin/health': typeof AdminHealthRoute
   '/admin/launches': typeof AdminLaunchesRoute
@@ -435,6 +473,7 @@ export interface FileRoutesByTo {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/shopee-check': typeof AdminShopeeCheckRoute
   '/admin/users': typeof AdminUsersRouteWithChildren
+  '/expedicao/$token': typeof ExpedicaoTokenRoute
   '/fornecedor/$slug': typeof FornecedorSlugRoute
   '/influencer/$id': typeof InfluencerIdRoute
   '/influencer/imagem': typeof InfluencerImagemRoute
@@ -444,7 +483,9 @@ export interface FileRoutesByTo {
   '/fornecedor': typeof FornecedorIndexRoute
   '/influencer': typeof InfluencerIndexRoute
   '/admin/users/$id': typeof AdminUsersIdRoute
+  '/api/public/fulfillment/tick': typeof ApiPublicFulfillmentTickRoute
   '/api/public/shopee/callback': typeof ApiPublicShopeeCallbackRoute
+  '/api/public/shopee/push': typeof ApiPublicShopeePushRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -455,6 +496,7 @@ export interface FileRoutesById {
   '/cadastroprodutoresespancadores': typeof CadastroprodutoresespancadoresRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/dashboard': typeof DashboardRoute
+  '/envios': typeof EnviosRoute
   '/facebook': typeof FacebookRoute
   '/financeiro': typeof FinanceiroRoute
   '/fornecedor': typeof FornecedorRouteWithChildren
@@ -480,6 +522,7 @@ export interface FileRoutesById {
   '/admin/costs': typeof AdminCostsRoute
   '/admin/coupons': typeof AdminCouponsRoute
   '/admin/creators': typeof AdminCreatorsRoute
+  '/admin/envios': typeof AdminEnviosRoute
   '/admin/fornecedor-sites': typeof AdminFornecedorSitesRoute
   '/admin/health': typeof AdminHealthRoute
   '/admin/launches': typeof AdminLaunchesRoute
@@ -492,6 +535,7 @@ export interface FileRoutesById {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/shopee-check': typeof AdminShopeeCheckRoute
   '/admin/users': typeof AdminUsersRouteWithChildren
+  '/expedicao/$token': typeof ExpedicaoTokenRoute
   '/fornecedor/$slug': typeof FornecedorSlugRoute
   '/influencer/$id': typeof InfluencerIdRoute
   '/influencer/imagem': typeof InfluencerImagemRoute
@@ -501,7 +545,9 @@ export interface FileRoutesById {
   '/fornecedor/': typeof FornecedorIndexRoute
   '/influencer/': typeof InfluencerIndexRoute
   '/admin/users/$id': typeof AdminUsersIdRoute
+  '/api/public/fulfillment/tick': typeof ApiPublicFulfillmentTickRoute
   '/api/public/shopee/callback': typeof ApiPublicShopeeCallbackRoute
+  '/api/public/shopee/push': typeof ApiPublicShopeePushRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -513,6 +559,7 @@ export interface FileRouteTypes {
     | '/cadastroprodutoresespancadores'
     | '/configuracoes'
     | '/dashboard'
+    | '/envios'
     | '/facebook'
     | '/financeiro'
     | '/fornecedor'
@@ -538,6 +585,7 @@ export interface FileRouteTypes {
     | '/admin/costs'
     | '/admin/coupons'
     | '/admin/creators'
+    | '/admin/envios'
     | '/admin/fornecedor-sites'
     | '/admin/health'
     | '/admin/launches'
@@ -550,6 +598,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/shopee-check'
     | '/admin/users'
+    | '/expedicao/$token'
     | '/fornecedor/$slug'
     | '/influencer/$id'
     | '/influencer/imagem'
@@ -559,7 +608,9 @@ export interface FileRouteTypes {
     | '/fornecedor/'
     | '/influencer/'
     | '/admin/users/$id'
+    | '/api/public/fulfillment/tick'
     | '/api/public/shopee/callback'
+    | '/api/public/shopee/push'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -568,6 +619,7 @@ export interface FileRouteTypes {
     | '/cadastroprodutoresespancadores'
     | '/configuracoes'
     | '/dashboard'
+    | '/envios'
     | '/facebook'
     | '/financeiro'
     | '/fornecedores'
@@ -592,6 +644,7 @@ export interface FileRouteTypes {
     | '/admin/costs'
     | '/admin/coupons'
     | '/admin/creators'
+    | '/admin/envios'
     | '/admin/fornecedor-sites'
     | '/admin/health'
     | '/admin/launches'
@@ -604,6 +657,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/shopee-check'
     | '/admin/users'
+    | '/expedicao/$token'
     | '/fornecedor/$slug'
     | '/influencer/$id'
     | '/influencer/imagem'
@@ -613,7 +667,9 @@ export interface FileRouteTypes {
     | '/fornecedor'
     | '/influencer'
     | '/admin/users/$id'
+    | '/api/public/fulfillment/tick'
     | '/api/public/shopee/callback'
+    | '/api/public/shopee/push'
   id:
     | '__root__'
     | '/'
@@ -623,6 +679,7 @@ export interface FileRouteTypes {
     | '/cadastroprodutoresespancadores'
     | '/configuracoes'
     | '/dashboard'
+    | '/envios'
     | '/facebook'
     | '/financeiro'
     | '/fornecedor'
@@ -648,6 +705,7 @@ export interface FileRouteTypes {
     | '/admin/costs'
     | '/admin/coupons'
     | '/admin/creators'
+    | '/admin/envios'
     | '/admin/fornecedor-sites'
     | '/admin/health'
     | '/admin/launches'
@@ -660,6 +718,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/shopee-check'
     | '/admin/users'
+    | '/expedicao/$token'
     | '/fornecedor/$slug'
     | '/influencer/$id'
     | '/influencer/imagem'
@@ -669,7 +728,9 @@ export interface FileRouteTypes {
     | '/fornecedor/'
     | '/influencer/'
     | '/admin/users/$id'
+    | '/api/public/fulfillment/tick'
     | '/api/public/shopee/callback'
+    | '/api/public/shopee/push'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -680,6 +741,7 @@ export interface RootRouteChildren {
   CadastroprodutoresespancadoresRoute: typeof CadastroprodutoresespancadoresRoute
   ConfiguracoesRoute: typeof ConfiguracoesRoute
   DashboardRoute: typeof DashboardRoute
+  EnviosRoute: typeof EnviosRoute
   FacebookRoute: typeof FacebookRoute
   FinanceiroRoute: typeof FinanceiroRoute
   FornecedorRoute: typeof FornecedorRouteWithChildren
@@ -700,12 +762,15 @@ export interface RootRouteChildren {
   V3Route: typeof V3Route
   VendasTempoRealRoute: typeof VendasTempoRealRoute
   BLACKSlugRoute: typeof BLACKSlugRoute
+  ExpedicaoTokenRoute: typeof ExpedicaoTokenRoute
   InfluencerIdRoute: typeof InfluencerIdRoute
   InfluencerImagemRoute: typeof InfluencerImagemRoute
   InfluencerNovoRoute: typeof InfluencerNovoRoute
   BLACKIndexRoute: typeof BLACKIndexRoute
   InfluencerIndexRoute: typeof InfluencerIndexRoute
+  ApiPublicFulfillmentTickRoute: typeof ApiPublicFulfillmentTickRoute
   ApiPublicShopeeCallbackRoute: typeof ApiPublicShopeeCallbackRoute
+  ApiPublicShopeePushRoute: typeof ApiPublicShopeePushRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -757,6 +822,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/envios': {
+      id: '/envios'
+      path: '/envios'
+      fullPath: '/envios'
+      preLoaderRoute: typeof EnviosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/facebook': {
@@ -948,6 +1020,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCreatorsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/envios': {
+      id: '/admin/envios'
+      path: '/envios'
+      fullPath: '/admin/envios'
+      preLoaderRoute: typeof AdminEnviosRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/fornecedor-sites': {
       id: '/admin/fornecedor-sites'
       path: '/fornecedor-sites'
@@ -1032,6 +1111,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminUsersRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/expedicao/$token': {
+      id: '/expedicao/$token'
+      path: '/expedicao/$token'
+      fullPath: '/expedicao/$token'
+      preLoaderRoute: typeof ExpedicaoTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/fornecedor/': {
       id: '/fornecedor/'
       path: '/'
@@ -1081,11 +1167,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminUsersIdRouteImport
       parentRoute: typeof AdminUsersRoute
     }
+    '/api/public/fulfillment/tick': {
+      id: '/api/public/fulfillment/tick'
+      path: '/api/public/fulfillment/tick'
+      fullPath: '/api/public/fulfillment/tick'
+      preLoaderRoute: typeof ApiPublicFulfillmentTickRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/shopee/callback': {
       id: '/api/public/shopee/callback'
       path: '/api/public/shopee/callback'
       fullPath: '/api/public/shopee/callback'
       preLoaderRoute: typeof ApiPublicShopeeCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/shopee/push': {
+      id: '/api/public/shopee/push'
+      path: '/api/public/shopee/push'
+      fullPath: '/api/public/shopee/push'
+      preLoaderRoute: typeof ApiPublicShopeePushRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -1109,6 +1209,7 @@ interface AdminRouteChildren {
   AdminCostsRoute: typeof AdminCostsRoute
   AdminCouponsRoute: typeof AdminCouponsRoute
   AdminCreatorsRoute: typeof AdminCreatorsRoute
+  AdminEnviosRoute: typeof AdminEnviosRoute
   AdminFornecedorSitesRoute: typeof AdminFornecedorSitesRoute
   AdminHealthRoute: typeof AdminHealthRoute
   AdminLaunchesRoute: typeof AdminLaunchesRoute
@@ -1130,6 +1231,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminCostsRoute: AdminCostsRoute,
   AdminCouponsRoute: AdminCouponsRoute,
   AdminCreatorsRoute: AdminCreatorsRoute,
+  AdminEnviosRoute: AdminEnviosRoute,
   AdminFornecedorSitesRoute: AdminFornecedorSitesRoute,
   AdminHealthRoute: AdminHealthRoute,
   AdminLaunchesRoute: AdminLaunchesRoute,
@@ -1169,6 +1271,7 @@ const rootRouteChildren: RootRouteChildren = {
   CadastroprodutoresespancadoresRoute: CadastroprodutoresespancadoresRoute,
   ConfiguracoesRoute: ConfiguracoesRoute,
   DashboardRoute: DashboardRoute,
+  EnviosRoute: EnviosRoute,
   FacebookRoute: FacebookRoute,
   FinanceiroRoute: FinanceiroRoute,
   FornecedorRoute: FornecedorRouteWithChildren,
@@ -1189,12 +1292,15 @@ const rootRouteChildren: RootRouteChildren = {
   V3Route: V3Route,
   VendasTempoRealRoute: VendasTempoRealRoute,
   BLACKSlugRoute: BLACKSlugRoute,
+  ExpedicaoTokenRoute: ExpedicaoTokenRoute,
   InfluencerIdRoute: InfluencerIdRoute,
   InfluencerImagemRoute: InfluencerImagemRoute,
   InfluencerNovoRoute: InfluencerNovoRoute,
   BLACKIndexRoute: BLACKIndexRoute,
   InfluencerIndexRoute: InfluencerIndexRoute,
+  ApiPublicFulfillmentTickRoute: ApiPublicFulfillmentTickRoute,
   ApiPublicShopeeCallbackRoute: ApiPublicShopeeCallbackRoute,
+  ApiPublicShopeePushRoute: ApiPublicShopeePushRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -95,7 +95,7 @@ const BRAZIL_CORREIOS_CHANNEL = {
   enabled: true,
 };
 
-async function getFreshConnection(userId: string, connectionId?: string, options: FreshConnectionOptions = {}) {
+export async function getFreshConnection(userId: string, connectionId?: string, options: FreshConnectionOptions = {}) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data: connection, error } = await supabaseAdmin
     .from("shopee_shop_connections")
@@ -152,7 +152,7 @@ async function getFreshConnection(userId: string, connectionId?: string, options
   return { ...current, access_token: accessToken, refresh_token: refreshToken, token_expires_at: tokenExpiresAt };
 }
 
-async function withFreshConnection<T>(
+export async function withFreshConnection<T>(
   userId: string,
   connectionId: string | undefined,
   operation: (connection: ConnectionCredentials) => Promise<T>,
@@ -685,6 +685,9 @@ export const syncShopeeStore = createServerFn({ method: "POST" })
               raw_summary: { pay_time: order["pay_time"] ?? null } as Json, synced_at: new Date().toISOString(),
             })), { onConflict: "connection_id,order_sn" });
             if (orderSaveError) throw new Error("A Shopee retornou os pedidos, mas o Shop Center não conseguiu salvá-los. Tente sincronizar novamente.");
+            // Automatic fulfillment: hand paid orders of catalogue products to their supplier (never fails the sync).
+            const { ingestOrders } = await import("@/lib/fulfillment.server");
+            await ingestOrders(context.userId, connection.id, details.map((order) => ({ order_sn: String(order["order_sn"]), order_status: String(order["order_status"] ?? ""), item_list: (Array.isArray(order["item_list"]) ? order["item_list"] : []) as never[] }))).catch((error) => console.error("fulfillment ingest failed", error instanceof Error ? error.message : error));
           }
         }
       } catch (error) {
@@ -1303,25 +1306,38 @@ export const getShopeeShippingLabel = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { data: order } = await context.supabase.from("shopee_orders").select("order_sn, status").eq("connection_id", data.connectionId).eq("order_sn", data.orderSn).maybeSingle();
     if (!order) throw new Error("Pedido não encontrado nesta loja. Sincronize os pedidos e tente de novo.");
+    return generateShopeeLabel({
+      userId: context.userId, connectionId: data.connectionId, orderSn: data.orderSn, status: order.status,
+      saveStatus: async (status) => { await context.supabase.from("shopee_orders").update({ status }).eq("connection_id", data.connectionId).eq("order_sn", data.orderSn); },
+    });
+  });
+
+/**
+ * Arranges shipment if needed and returns the Shopee label PDF of one order. Shared by the seller
+ * orders list and the supplier panel (automatic fulfillment), which prints labels for the seller's shop.
+ */
+export async function generateShopeeLabel(input: { userId: string; connectionId: string; orderSn: string; status: string; saveStatus: (status: string) => Promise<void>; dropoffOnly?: boolean }) {
     const { LABEL_STATUSES, labelBlock, labelErrorMessage, labelType, planShipment } = await import("@/lib/shopee-shipping");
-    if (!LABEL_STATUSES.has(order.status)) throw new Error("A etiqueta só fica disponível para pedidos pagos que ainda não foram enviados.");
-    return withFreshConnection(context.userId, data.connectionId, async (connection) => {
+    if (!LABEL_STATUSES.has(input.status)) throw new Error("A etiqueta só fica disponível para pedidos pagos que ainda não foram enviados.");
+    return withFreshConnection(input.userId, input.connectionId, async (connection) => {
       const shopee = await import("@/lib/shopee.server");
       const credentials = { shopId: Number(connection.shop_id), accessToken: connection.access_token };
       const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
       // Shopee's own current state wins over our last sync (the buyer may have cancelled since).
-      const live = await shopee.getShopeeOrderPackage(credentials, data.orderSn).catch(() => null);
+      const live = await shopee.getShopeeOrderPackage(credentials, input.orderSn).catch(() => null);
       const block = live ? labelBlock(live) : null;
       if (block) {
-        if (block.status) await context.supabase.from("shopee_orders").update({ status: block.status }).eq("connection_id", data.connectionId).eq("order_sn", data.orderSn);
+        if (block.status) await input.saveStatus(block.status);
         return { ok: false as const, message: block.message };
       }
 
-      let arranged = order.status !== "READY_TO_SHIP";
+      let arranged = input.status !== "READY_TO_SHIP";
       if (!arranged) {
-        const plan = planShipment(data.orderSn, await shopee.getShopeeShippingParameter(credentials, data.orderSn));
+        const plan = planShipment(input.orderSn, await shopee.getShopeeShippingParameter(credentials, input.orderSn));
         if (plan.kind === "manual") return { ok: false as const, message: plan.reason };
+        // A supplier ships from their own address, so a pickup at the seller's address would be wrong.
+        if (input.dropoffOnly && plan.method !== "dropoff") return { ok: false as const, message: "Esta loja só tem coleta no endereço do vendedor. Ative a postagem em agência (drop-off) na Central do Vendedor para o fornecedor poder despachar." };
         try {
           await shopee.shipShopeeOrder(credentials, plan.body);
         } catch (error) {
@@ -1329,20 +1345,20 @@ export const getShopeeShippingLabel = createServerFn({ method: "POST" })
           if (!/already|shipped|processed|arranged/i.test(error instanceof Error ? error.message : "")) throw error;
         }
         arranged = true;
-        await context.supabase.from("shopee_orders").update({ status: "PROCESSED" }).eq("connection_id", data.connectionId).eq("order_sn", data.orderSn);
+        await input.saveStatus("PROCESSED");
       }
 
       let trackingNumber = "";
       for (let attempt = 0; attempt < 6 && !trackingNumber; attempt += 1) {
         if (attempt) await wait(1500);
-        const tracking = await shopee.getShopeeTrackingNumber(credentials, data.orderSn).catch(() => ({}));
+        const tracking = await shopee.getShopeeTrackingNumber(credentials, input.orderSn).catch(() => ({}));
         trackingNumber = String(((tracking as Record<string, unknown>)["response"] as Record<string, unknown> | undefined)?.["tracking_number"] ?? "");
       }
       if (!trackingNumber) return { ok: false as const, pending: true, message: "Envio organizado. A Shopee ainda está gerando o rastreio; tente baixar a etiqueta em 1 minuto." };
 
-      const documentType = labelType(await shopee.getShopeeShippingDocumentParameter(credentials, data.orderSn));
+      const documentType = labelType(await shopee.getShopeeShippingDocumentParameter(credentials, input.orderSn));
       try {
-        await shopee.createShopeeShippingDocument(credentials, { order_sn: data.orderSn, tracking_number: trackingNumber, shipping_document_type: documentType });
+        await shopee.createShopeeShippingDocument(credentials, { order_sn: input.orderSn, tracking_number: trackingNumber, shipping_document_type: documentType });
       } catch (error) {
         const raw = error instanceof Error ? error.message : "";
         // Creating twice is harmless; keep going to the download.
@@ -1350,16 +1366,16 @@ export const getShopeeShippingLabel = createServerFn({ method: "POST" })
       }
       for (let attempt = 0; attempt < 8; attempt += 1) {
         if (attempt) await wait(1500);
-        const result = await shopee.getShopeeShippingDocumentResult(credentials, data.orderSn, documentType);
+        const result = await shopee.getShopeeShippingDocumentResult(credentials, input.orderSn, documentType);
         const first = ((result["response"] as Record<string, unknown> | undefined)?.["result_list"] as Record<string, unknown>[] | undefined)?.[0];
         const status = String(first?.["status"] ?? "");
         if (status === "FAILED") return { ok: false as const, message: "A Shopee não conseguiu gerar a etiqueta deste pedido. Tente pela Central do Vendedor." };
         if (status !== "READY") continue;
-        const pdf = await shopee.downloadShopeeShippingDocument(credentials, data.orderSn, documentType);
+        const pdf = await shopee.downloadShopeeShippingDocument(credentials, input.orderSn, documentType);
         let binary = "";
         for (let i = 0; i < pdf.length; i += 0x8000) binary += String.fromCharCode(...pdf.subarray(i, i + 0x8000));
-        return { ok: true as const, trackingNumber, fileName: `etiqueta-shopee-${data.orderSn}.pdf`, pdfBase64: btoa(binary) };
+        return { ok: true as const, trackingNumber, fileName: `etiqueta-shopee-${input.orderSn}.pdf`, pdfBase64: btoa(binary) };
       }
       return { ok: false as const, pending: true, message: "Envio organizado. A etiqueta ainda está sendo gerada pela Shopee; tente baixar de novo em 1 minuto." };
     });
-  });
+}
