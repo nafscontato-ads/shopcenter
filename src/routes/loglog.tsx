@@ -7,6 +7,8 @@ import { PasLogo } from "@/components/pas/logo";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { useServerFn } from "@tanstack/react-start";
+import { checkPurchaseEmail } from "@/lib/purchase-access.functions";
 
 export const Route = createFileRoute("/loglog")({
   head: () => ({
@@ -48,7 +50,8 @@ function signupMessage(message: string) {
 
 function CustomerSignupPage() {
   const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(() => (typeof window === "undefined" ? "" : new URLSearchParams(window.location.search).get("email") ?? ""));
+  const checkPurchase = useServerFn(checkPurchaseEmail);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -81,6 +84,12 @@ function CustomerSignupPage() {
 
     setBusy(true);
     try {
+      // Só quem comprou cria conta (o banco também bloqueia, isto só avisa antes).
+      const purchase = await checkPurchase({ data: { email: cleanEmail } }).catch(() => ({ allowed: true }));
+      if (!purchase.allowed) {
+        toast.error("Não encontramos compra do Shop Center com este e-mail. Use o mesmo e-mail que você usou na compra, ou fale com o suporte.");
+        return;
+      }
       const { data, error } = await supabase.auth.signUp({
         email: cleanEmail,
         password,

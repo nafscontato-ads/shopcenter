@@ -16,7 +16,9 @@ export const requireActiveUser = createMiddleware({ type: "function" })
       .maybeSingle();
 
     if (error || !profile || profile.status !== "active") {
-      throw new Error("Acesso não liberado. Fale com o responsável pela sua conta.");
+      throw new Error(profile?.status === "pending"
+        ? "Acesso não liberado: não encontramos compra do Shop Center com o e-mail desta conta. Fale com o suporte."
+        : "Acesso não liberado. Fale com o responsável pela sua conta.");
     }
 
     return next({ context });

@@ -70,6 +70,7 @@ import { Route as InfluencerIdRouteImport } from './routes/influencer.$id'
 import { Route as InfluencerImagemRouteImport } from './routes/influencer.imagem'
 import { Route as InfluencerNovoRouteImport } from './routes/influencer.novo'
 import { Route as AdminUsersIdRouteImport } from './routes/admin.users.$id'
+import { Route as ApiPublicApplyfyWebhookRouteImport } from './routes/api.public.applyfy.webhook'
 import { Route as ApiPublicMercadolivreCallbackRouteImport } from './routes/api.public.mercadolivre.callback'
 import { Route as ApiPublicMercadolivreNotificacoesRouteImport } from './routes/api.public.mercadolivre.notificacoes'
 import { Route as ApiPublicShopeeCallbackRouteImport } from './routes/api.public.shopee.callback'
@@ -381,6 +382,11 @@ const AdminUsersIdRoute = AdminUsersIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => AdminUsersRoute,
 } as any)
+const ApiPublicApplyfyWebhookRoute = ApiPublicApplyfyWebhookRouteImport.update({
+  id: '/api/public/applyfy/webhook',
+  path: '/api/public/applyfy/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicMercadolivreCallbackRoute =
   ApiPublicMercadolivreCallbackRouteImport.update({
     id: '/api/public/mercadolivre/callback',
@@ -467,6 +473,7 @@ export interface FileRoutesByFullPath {
   '/fornecedor/': typeof FornecedorIndexRoute
   '/influencer/': typeof InfluencerIndexRoute
   '/admin/users/$id': typeof AdminUsersIdRoute
+  '/api/public/applyfy/webhook': typeof ApiPublicApplyfyWebhookRoute
   '/api/public/mercadolivre/callback': typeof ApiPublicMercadolivreCallbackRoute
   '/api/public/mercadolivre/notificacoes': typeof ApiPublicMercadolivreNotificacoesRoute
   '/api/public/shopee/callback': typeof ApiPublicShopeeCallbackRoute
@@ -532,6 +539,7 @@ export interface FileRoutesByTo {
   '/fornecedor': typeof FornecedorIndexRoute
   '/influencer': typeof InfluencerIndexRoute
   '/admin/users/$id': typeof AdminUsersIdRoute
+  '/api/public/applyfy/webhook': typeof ApiPublicApplyfyWebhookRoute
   '/api/public/mercadolivre/callback': typeof ApiPublicMercadolivreCallbackRoute
   '/api/public/mercadolivre/notificacoes': typeof ApiPublicMercadolivreNotificacoesRoute
   '/api/public/shopee/callback': typeof ApiPublicShopeeCallbackRoute
@@ -600,6 +608,7 @@ export interface FileRoutesById {
   '/fornecedor/': typeof FornecedorIndexRoute
   '/influencer/': typeof InfluencerIndexRoute
   '/admin/users/$id': typeof AdminUsersIdRoute
+  '/api/public/applyfy/webhook': typeof ApiPublicApplyfyWebhookRoute
   '/api/public/mercadolivre/callback': typeof ApiPublicMercadolivreCallbackRoute
   '/api/public/mercadolivre/notificacoes': typeof ApiPublicMercadolivreNotificacoesRoute
   '/api/public/shopee/callback': typeof ApiPublicShopeeCallbackRoute
@@ -669,6 +678,7 @@ export interface FileRouteTypes {
     | '/fornecedor/'
     | '/influencer/'
     | '/admin/users/$id'
+    | '/api/public/applyfy/webhook'
     | '/api/public/mercadolivre/callback'
     | '/api/public/mercadolivre/notificacoes'
     | '/api/public/shopee/callback'
@@ -734,6 +744,7 @@ export interface FileRouteTypes {
     | '/fornecedor'
     | '/influencer'
     | '/admin/users/$id'
+    | '/api/public/applyfy/webhook'
     | '/api/public/mercadolivre/callback'
     | '/api/public/mercadolivre/notificacoes'
     | '/api/public/shopee/callback'
@@ -801,6 +812,7 @@ export interface FileRouteTypes {
     | '/fornecedor/'
     | '/influencer/'
     | '/admin/users/$id'
+    | '/api/public/applyfy/webhook'
     | '/api/public/mercadolivre/callback'
     | '/api/public/mercadolivre/notificacoes'
     | '/api/public/shopee/callback'
@@ -847,6 +859,7 @@ export interface RootRouteChildren {
   InfluencerNovoRoute: typeof InfluencerNovoRoute
   BLACKIndexRoute: typeof BLACKIndexRoute
   InfluencerIndexRoute: typeof InfluencerIndexRoute
+  ApiPublicApplyfyWebhookRoute: typeof ApiPublicApplyfyWebhookRoute
   ApiPublicMercadolivreCallbackRoute: typeof ApiPublicMercadolivreCallbackRoute
   ApiPublicMercadolivreNotificacoesRoute: typeof ApiPublicMercadolivreNotificacoesRoute
   ApiPublicShopeeCallbackRoute: typeof ApiPublicShopeeCallbackRoute
@@ -1282,6 +1295,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminUsersIdRouteImport
       parentRoute: typeof AdminUsersRoute
     }
+    '/api/public/applyfy/webhook': {
+      id: '/api/public/applyfy/webhook'
+      path: '/api/public/applyfy/webhook'
+      fullPath: '/api/public/applyfy/webhook'
+      preLoaderRoute: typeof ApiPublicApplyfyWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/mercadolivre/callback': {
       id: '/api/public/mercadolivre/callback'
       path: '/api/public/mercadolivre/callback'
@@ -1425,6 +1445,7 @@ const rootRouteChildren: RootRouteChildren = {
   InfluencerNovoRoute: InfluencerNovoRoute,
   BLACKIndexRoute: BLACKIndexRoute,
   InfluencerIndexRoute: InfluencerIndexRoute,
+  ApiPublicApplyfyWebhookRoute: ApiPublicApplyfyWebhookRoute,
   ApiPublicMercadolivreCallbackRoute: ApiPublicMercadolivreCallbackRoute,
   ApiPublicMercadolivreNotificacoesRoute:
     ApiPublicMercadolivreNotificacoesRoute,
