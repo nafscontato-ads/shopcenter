@@ -1,3 +1,4 @@
+import { breakdownForPrice, priceForNetMargin } from "@/lib/shopee-pricing";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ThumbImg } from "@/components/pas/thumb-img";
 import { createFileRoute, Link } from "@tanstack/react-router";
@@ -786,8 +787,10 @@ function ListingEditor({ product, listing, connected, configured, connectionId, 
     setForm((current) => ({ ...current, ...changes }));
   };
   const productCost = Math.max(0, Number(form.productCost) || 0);
-  const targetMargin = Math.min(68, Math.max(0, Number(form.targetMargin) || 0));
-  const automaticPrice = productCost > 0 ? productCost / (1 - targetMargin / 100) : Math.max(0, Number(form.price) || 0);
+  const targetMargin = Math.min(300, Math.max(0, Number(form.targetMargin) || 0));
+  // Margem LÍQUIDA: o preço já embute comissão + tarifa fixa da Shopee e o frete pago pelo vendedor.
+  const pricing = productCost > 0 ? priceForNetMargin({ cost: productCost, marginPercent: targetMargin }) : null;
+  const automaticPrice = pricing ? pricing.price : Math.max(0, Number(form.price) || 0);
   const calculatedPrice = Number.isFinite(automaticPrice) && automaticPrice > 0 ? automaticPrice : 0;
   useEffect(() => {
     if (productCost <= 0 || calculatedPrice <= 0) return;
@@ -867,8 +870,9 @@ function ListingEditor({ product, listing, connected, configured, connectionId, 
   ];
   const qualityScore = Math.round((qualityChecks.filter(Boolean).length / qualityChecks.length) * 100);
   const salePrice = productCost > 0 ? calculatedPrice : Math.max(0, Number(form.price) || 0);
-  const estimatedProfit = salePrice - productCost;
-  const estimatedMargin = salePrice > 0 ? (estimatedProfit / salePrice) * 100 : 0;
+  const priceBreakdown = productCost > 0 ? breakdownForPrice(salePrice, { cost: productCost }) : null;
+  const estimatedProfit = priceBreakdown ? priceBreakdown.profit : salePrice - productCost;
+  const estimatedMargin = priceBreakdown ? priceBreakdown.netMarginPercent : salePrice > 0 ? (estimatedProfit / salePrice) * 100 : 0;
 
   if (!product) return null;
   return (
@@ -936,7 +940,7 @@ function ListingEditor({ product, listing, connected, configured, connectionId, 
                  <EditorSectionHeader number="4" title="Preço e estoque" />
                   <div className="bg-primary/10 rounded-md border border-primary/25 p-3 text-xs"><p className="font-semibold">Custo do fornecedor com 35% de redução</p><p className="text-muted-foreground mt-1">Preço no catálogo: {brl(catalogPrice)} · Custo do fornecedor: {brl(suggestedSupplierCost)}</p></div>
                   <label className="bg-elevated flex cursor-pointer items-center justify-between gap-4 rounded-md border border-border p-4"><div><p className="text-sm font-bold">Promover anúncio</p><p className="text-muted-foreground mt-1 text-xs">Os custos de promoção aparecem na aba Financeiro.</p></div><input type="checkbox" checked={form.promoted} onChange={(event) => setForm({ ...form, promoted: event.target.checked })} className="size-5 accent-primary" /></label>
-                  <div className="grid gap-4 sm:grid-cols-2"><Field label="Regra de preço"><select className="input" value="margin" disabled><option value="margin">Margem alvo (%)</option></select></Field><Field label="Margem desejada (%)"><input type="number" min="0" max="68" step="1" value={form.targetMargin} onChange={(e) => updateProfitTarget({ targetMargin: e.target.value })} className="input" /></Field></div>
+                  <div className="grid gap-4 sm:grid-cols-2"><Field label="Regra de preço"><select className="input" value="margin" disabled><option value="margin">Margem líquida (já desconta taxas Shopee)</option></select></Field><Field label="Margem líquida desejada (%)"><input type="number" min="0" max="300" step="1" value={form.targetMargin} onChange={(e) => updateProfitTarget({ targetMargin: e.target.value })} className="input" /></Field></div>
                   <div className="grid gap-4 sm:grid-cols-2"><Field label="Custo do fornecedor (R$)"><input type="number" min="0" step="0.01" value={form.productCost} readOnly className="input" placeholder="0,00" /></Field><Field label="Frete"><input type="text" value="Pago pelo cliente" className="input" readOnly /></Field></div>
                    <div className="grid gap-4 sm:grid-cols-3"><Field label="Preço de venda automático (R$)"><input type="number" value={salePrice ? salePrice.toFixed(2) : ""} className="input" readOnly /></Field><Field label="Estoque programado"><input type="number" value={programmedStock} className="input" readOnly aria-readonly="true" /><p className="text-muted-foreground mt-1 text-[11px]">Definido pelo Shop Center para este produto.</p></Field><Field label="Condição"><select value={form.condition} disabled className="input"><option value="NEW">Novo</option><option value="USED">Usado</option></select></Field></div>
                 <div className="bg-card overflow-hidden rounded-md border border-border">
@@ -945,9 +949,12 @@ function ListingEditor({ product, listing, connected, configured, connectionId, 
                     <div className="flex items-center justify-between gap-4"><span className="text-muted-foreground">Custo do fornecedor</span><span className="font-semibold tabular-nums">{brl(productCost)}</span></div>
                     
                      <div className="flex items-center justify-between gap-4"><span className="text-muted-foreground">Frete <span className="text-primary">· pago pelo cliente</span></span><span className="font-semibold tabular-nums">{brl(0)}</span></div>
+                    {priceBreakdown && <div className="flex items-center justify-between gap-4"><span className="text-muted-foreground">Comissão Shopee <span className="text-primary">· {Math.round(priceBreakdown.tier.rate * 100)}%</span></span><span className="font-semibold tabular-nums">- {brl(priceBreakdown.commission)}</span></div>}
+                    {priceBreakdown && <div className="flex items-center justify-between gap-4"><span className="text-muted-foreground">Tarifa fixa por item</span><span className="font-semibold tabular-nums">- {brl(priceBreakdown.fixedFee)}</span></div>}
+                    {priceBreakdown && <div className="flex items-center justify-between gap-4"><span className="text-muted-foreground">Você recebe da Shopee</span><span className="font-semibold tabular-nums">{brl(priceBreakdown.netReceived)}</span></div>}
                     <div className="flex items-center justify-between gap-4 border-t border-border pt-3"><span className="font-bold">Lucro estimado</span><span className={cn("text-lg font-bold tabular-nums", estimatedProfit >= 0 ? "text-success" : "text-destructive")}>{brl(estimatedProfit)}</span></div>
-                    <div className="bg-elevated flex flex-wrap items-end justify-between gap-3 rounded-md p-3"><div><p className="text-muted-foreground text-[11px]">Preço de venda automático</p><p className="mt-0.5 text-xl font-bold tabular-nums">{brl(salePrice)}</p></div><div className="text-right"><p className={cn("text-xs font-semibold", estimatedMargin >= 20 ? "text-success" : estimatedMargin >= 0 ? "text-warning" : "text-destructive")}>Margem escolhida · {Number(form.targetMargin || 0).toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%</p><p className="text-muted-foreground mt-1 text-[11px]">{Number(form.stock || 0)} unidade(s) disponíveis</p></div></div>
-                    <p className="text-muted-foreground text-[11px]">Estimativa antes das taxas da Shopee, que variam conforme categoria e campanhas.</p>
+                    <div className="bg-elevated flex flex-wrap items-end justify-between gap-3 rounded-md p-3"><div><p className="text-muted-foreground text-[11px]">Preço de venda automático</p><p className="mt-0.5 text-xl font-bold tabular-nums">{brl(salePrice)}</p></div><div className="text-right"><p className={cn("text-xs font-semibold", estimatedMargin >= 1 ? "text-success" : estimatedMargin >= 0 ? "text-warning" : "text-destructive")}>Margem escolhida · {Number(form.targetMargin || 0).toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%</p><p className="text-muted-foreground mt-1 text-[11px]">{Number(form.stock || 0)} unidade(s) disponíveis</p></div></div>
+                    <p className="text-muted-foreground text-[11px]">Lucro limpo: o preço já inclui comissão e tarifa fixa da Shopee. Campanhas e anúncios pagos são à parte.</p>
                   </div>
                 </div>
               </section>
