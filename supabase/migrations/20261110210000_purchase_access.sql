@@ -1,13 +1,20 @@
 -- Só quem comprou (webhook da Applyfy) entra no sistema.
+-- Reembolso/chargeback NÃO corta acesso automaticamente: é decidido à mão pela equipe.
 create table if not exists public.purchase_access (
   email text primary key check (email = lower(email)),
   status text not null default 'active' check (status in ('active', 'revoked')),
   offer text,
   source text not null default 'applyfy',
   last_event text,
+  signup_token_hash text unique,
+  signup_token_expires_at timestamptz,
+  signup_used_at timestamptz,
   purchased_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+alter table public.purchase_access add column if not exists signup_token_hash text unique;
+alter table public.purchase_access add column if not exists signup_token_expires_at timestamptz;
+alter table public.purchase_access add column if not exists signup_used_at timestamptz;
 alter table public.purchase_access enable row level security;
 -- Sem políticas: só o servidor (service_role) lê e grava.
 

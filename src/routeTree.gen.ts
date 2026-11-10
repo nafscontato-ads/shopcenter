@@ -63,6 +63,7 @@ import { Route as AdminSalesRouteImport } from './routes/admin.sales'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminShopeeCheckRouteImport } from './routes/admin.shopee-check'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
+import { Route as CadastroTokenRouteImport } from './routes/cadastro.$token'
 import { Route as FornecedorIndexRouteImport } from './routes/fornecedor.index'
 import { Route as FornecedorSlugRouteImport } from './routes/fornecedor.$slug'
 import { Route as InfluencerIndexRouteImport } from './routes/influencer.index'
@@ -347,6 +348,11 @@ const AdminUsersRoute = AdminUsersRouteImport.update({
   path: '/users',
   getParentRoute: () => AdminRoute,
 } as any)
+const CadastroTokenRoute = CadastroTokenRouteImport.update({
+  id: '/cadastro/$token',
+  path: '/cadastro/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FornecedorIndexRoute = FornecedorIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -464,6 +470,7 @@ export interface FileRoutesByFullPath {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/shopee-check': typeof AdminShopeeCheckRoute
   '/admin/users': typeof AdminUsersRouteWithChildren
+  '/cadastro/$token': typeof CadastroTokenRoute
   '/fornecedor/$slug': typeof FornecedorSlugRoute
   '/influencer/$id': typeof InfluencerIdRoute
   '/influencer/imagem': typeof InfluencerImagemRoute
@@ -530,6 +537,7 @@ export interface FileRoutesByTo {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/shopee-check': typeof AdminShopeeCheckRoute
   '/admin/users': typeof AdminUsersRouteWithChildren
+  '/cadastro/$token': typeof CadastroTokenRoute
   '/fornecedor/$slug': typeof FornecedorSlugRoute
   '/influencer/$id': typeof InfluencerIdRoute
   '/influencer/imagem': typeof InfluencerImagemRoute
@@ -599,6 +607,7 @@ export interface FileRoutesById {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/shopee-check': typeof AdminShopeeCheckRoute
   '/admin/users': typeof AdminUsersRouteWithChildren
+  '/cadastro/$token': typeof CadastroTokenRoute
   '/fornecedor/$slug': typeof FornecedorSlugRoute
   '/influencer/$id': typeof InfluencerIdRoute
   '/influencer/imagem': typeof InfluencerImagemRoute
@@ -669,6 +678,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/shopee-check'
     | '/admin/users'
+    | '/cadastro/$token'
     | '/fornecedor/$slug'
     | '/influencer/$id'
     | '/influencer/imagem'
@@ -735,6 +745,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/shopee-check'
     | '/admin/users'
+    | '/cadastro/$token'
     | '/fornecedor/$slug'
     | '/influencer/$id'
     | '/influencer/imagem'
@@ -803,6 +814,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/shopee-check'
     | '/admin/users'
+    | '/cadastro/$token'
     | '/fornecedor/$slug'
     | '/influencer/$id'
     | '/influencer/imagem'
@@ -854,6 +866,7 @@ export interface RootRouteChildren {
   VendasTempoRealRoute: typeof VendasTempoRealRoute
   VitalicioRoute: typeof VitalicioRoute
   BLACKSlugRoute: typeof BLACKSlugRoute
+  CadastroTokenRoute: typeof CadastroTokenRoute
   InfluencerIdRoute: typeof InfluencerIdRoute
   InfluencerImagemRoute: typeof InfluencerImagemRoute
   InfluencerNovoRoute: typeof InfluencerNovoRoute
@@ -1246,6 +1259,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminUsersRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/cadastro/$token': {
+      id: '/cadastro/$token'
+      path: '/cadastro/$token'
+      fullPath: '/cadastro/$token'
+      preLoaderRoute: typeof CadastroTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/fornecedor/': {
       id: '/fornecedor/'
       path: '/'
@@ -1440,6 +1460,7 @@ const rootRouteChildren: RootRouteChildren = {
   VendasTempoRealRoute: VendasTempoRealRoute,
   VitalicioRoute: VitalicioRoute,
   BLACKSlugRoute: BLACKSlugRoute,
+  CadastroTokenRoute: CadastroTokenRoute,
   InfluencerIdRoute: InfluencerIdRoute,
   InfluencerImagemRoute: InfluencerImagemRoute,
   InfluencerNovoRoute: InfluencerNovoRoute,

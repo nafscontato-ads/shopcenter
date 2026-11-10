@@ -187,8 +187,7 @@ function AuthPage() {
           </div>
         </section>
         <p className="mt-4 text-center text-xs text-neutral-500">
-          Ainda não tem conta?{" "}
-          <Link to="/loglog" className="font-bold text-orange-600 hover:underline">Cadastre-se no Shop Center</Link>.
+          Comprou agora? Crie sua conta pelo link que enviamos no <b>e-mail da compra</b>.
         </p>
       </div>
     </main>
