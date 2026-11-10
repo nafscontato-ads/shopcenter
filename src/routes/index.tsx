@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 
 import { Landing3D } from "@/components/site/landing-3d";
+import { OFFICIAL_CHECKOUT } from "@/lib/checkouts";
 import { salesCatalogOptions } from "@/lib/sales-catalog";
 
 export const Route = createFileRoute("/")({
@@ -22,8 +23,8 @@ export const Route = createFileRoute("/")({
   component: SalesPage,
 });
 
-const MONTHLY_CHECKOUT = "https://checkout.applyfy.com.br/checkout/cmtlsvw6100o201oguljarzka?offer=YOJSS51";
-const LIFETIME_CHECKOUT = "https://checkout.applyfy.com.br/checkout/cmtlsvw6100o201oguljarzka?offer=LCIVT2O";
+const MONTHLY_CHECKOUT = OFFICIAL_CHECKOUT.monthly;
+const LIFETIME_CHECKOUT = OFFICIAL_CHECKOUT.lifetime;
 
 function SalesPage() {
   const { data: catalog } = useQuery(salesCatalogOptions);

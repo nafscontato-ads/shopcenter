@@ -19,12 +19,14 @@ import { Route as ClassicaRouteImport } from './routes/classica'
 import { Route as ClienteRouteImport } from './routes/cliente'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as Dy4ki0hRouteImport } from './routes/dy4ki0h'
 import { Route as FacebookRouteImport } from './routes/facebook'
 import { Route as FinanceiroRouteImport } from './routes/financeiro'
 import { Route as FornecedorRouteImport } from './routes/fornecedor'
 import { Route as FornecedoresRouteImport } from './routes/fornecedores'
 import { Route as LoglogRouteImport } from './routes/loglog'
 import { Route as MarketplacesRouteImport } from './routes/marketplaces'
+import { Route as MensalRouteImport } from './routes/mensal'
 import { Route as PerfilRouteImport } from './routes/perfil'
 import { Route as PersonalizarRouteImport } from './routes/personalizar'
 import { Route as ProdutosRouteImport } from './routes/produtos'
@@ -39,6 +41,7 @@ import { Route as StudioRouteImport } from './routes/studio'
 import { Route as V2RouteImport } from './routes/v2'
 import { Route as V3RouteImport } from './routes/v3'
 import { Route as VendasTempoRealRouteImport } from './routes/vendas-tempo-real'
+import { Route as VitalicioRouteImport } from './routes/vitalicio'
 import { Route as BLACKIndexRouteImport } from './routes/BLACK.index'
 import { Route as BLACKSlugRouteImport } from './routes/BLACK.$slug'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
@@ -120,6 +123,11 @@ const DashboardRoute = DashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const Dy4ki0hRoute = Dy4ki0hRouteImport.update({
+  id: '/dy4ki0h',
+  path: '/dy4ki0h',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FacebookRoute = FacebookRouteImport.update({
   id: '/facebook',
   path: '/facebook',
@@ -148,6 +156,11 @@ const LoglogRoute = LoglogRouteImport.update({
 const MarketplacesRoute = MarketplacesRouteImport.update({
   id: '/marketplaces',
   path: '/marketplaces',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MensalRoute = MensalRouteImport.update({
+  id: '/mensal',
+  path: '/mensal',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PerfilRoute = PerfilRouteImport.update({
@@ -218,6 +231,11 @@ const V3Route = V3RouteImport.update({
 const VendasTempoRealRoute = VendasTempoRealRouteImport.update({
   id: '/vendas-tempo-real',
   path: '/vendas-tempo-real',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VitalicioRoute = VitalicioRouteImport.update({
+  id: '/vitalicio',
+  path: '/vitalicio',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BLACKIndexRoute = BLACKIndexRouteImport.update({
@@ -377,12 +395,14 @@ export interface FileRoutesByFullPath {
   '/cliente': typeof ClienteRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/dashboard': typeof DashboardRoute
+  '/dy4ki0h': typeof Dy4ki0hRoute
   '/facebook': typeof FacebookRoute
   '/financeiro': typeof FinanceiroRoute
   '/fornecedor': typeof FornecedorRouteWithChildren
   '/fornecedores': typeof FornecedoresRoute
   '/loglog': typeof LoglogRoute
   '/marketplaces': typeof MarketplacesRoute
+  '/mensal': typeof MensalRoute
   '/perfil': typeof PerfilRoute
   '/personalizar': typeof PersonalizarRoute
   '/produtos': typeof ProdutosRoute
@@ -397,6 +417,7 @@ export interface FileRoutesByFullPath {
   '/v2': typeof V2Route
   '/v3': typeof V3Route
   '/vendas-tempo-real': typeof VendasTempoRealRoute
+  '/vitalicio': typeof VitalicioRoute
   '/BLACK/$slug': typeof BLACKSlugRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/automatic-sales': typeof AdminAutomaticSalesRoute
@@ -437,11 +458,13 @@ export interface FileRoutesByTo {
   '/cliente': typeof ClienteRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/dashboard': typeof DashboardRoute
+  '/dy4ki0h': typeof Dy4ki0hRoute
   '/facebook': typeof FacebookRoute
   '/financeiro': typeof FinanceiroRoute
   '/fornecedores': typeof FornecedoresRoute
   '/loglog': typeof LoglogRoute
   '/marketplaces': typeof MarketplacesRoute
+  '/mensal': typeof MensalRoute
   '/perfil': typeof PerfilRoute
   '/personalizar': typeof PersonalizarRoute
   '/produtos': typeof ProdutosRoute
@@ -456,6 +479,7 @@ export interface FileRoutesByTo {
   '/v2': typeof V2Route
   '/v3': typeof V3Route
   '/vendas-tempo-real': typeof VendasTempoRealRoute
+  '/vitalicio': typeof VitalicioRoute
   '/BLACK/$slug': typeof BLACKSlugRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/automatic-sales': typeof AdminAutomaticSalesRoute
@@ -498,12 +522,14 @@ export interface FileRoutesById {
   '/cliente': typeof ClienteRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/dashboard': typeof DashboardRoute
+  '/dy4ki0h': typeof Dy4ki0hRoute
   '/facebook': typeof FacebookRoute
   '/financeiro': typeof FinanceiroRoute
   '/fornecedor': typeof FornecedorRouteWithChildren
   '/fornecedores': typeof FornecedoresRoute
   '/loglog': typeof LoglogRoute
   '/marketplaces': typeof MarketplacesRoute
+  '/mensal': typeof MensalRoute
   '/perfil': typeof PerfilRoute
   '/personalizar': typeof PersonalizarRoute
   '/produtos': typeof ProdutosRoute
@@ -518,6 +544,7 @@ export interface FileRoutesById {
   '/v2': typeof V2Route
   '/v3': typeof V3Route
   '/vendas-tempo-real': typeof VendasTempoRealRoute
+  '/vitalicio': typeof VitalicioRoute
   '/BLACK/$slug': typeof BLACKSlugRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/automatic-sales': typeof AdminAutomaticSalesRoute
@@ -561,12 +588,14 @@ export interface FileRouteTypes {
     | '/cliente'
     | '/configuracoes'
     | '/dashboard'
+    | '/dy4ki0h'
     | '/facebook'
     | '/financeiro'
     | '/fornecedor'
     | '/fornecedores'
     | '/loglog'
     | '/marketplaces'
+    | '/mensal'
     | '/perfil'
     | '/personalizar'
     | '/produtos'
@@ -581,6 +610,7 @@ export interface FileRouteTypes {
     | '/v2'
     | '/v3'
     | '/vendas-tempo-real'
+    | '/vitalicio'
     | '/BLACK/$slug'
     | '/admin/analytics'
     | '/admin/automatic-sales'
@@ -621,11 +651,13 @@ export interface FileRouteTypes {
     | '/cliente'
     | '/configuracoes'
     | '/dashboard'
+    | '/dy4ki0h'
     | '/facebook'
     | '/financeiro'
     | '/fornecedores'
     | '/loglog'
     | '/marketplaces'
+    | '/mensal'
     | '/perfil'
     | '/personalizar'
     | '/produtos'
@@ -640,6 +672,7 @@ export interface FileRouteTypes {
     | '/v2'
     | '/v3'
     | '/vendas-tempo-real'
+    | '/vitalicio'
     | '/BLACK/$slug'
     | '/admin/analytics'
     | '/admin/automatic-sales'
@@ -681,12 +714,14 @@ export interface FileRouteTypes {
     | '/cliente'
     | '/configuracoes'
     | '/dashboard'
+    | '/dy4ki0h'
     | '/facebook'
     | '/financeiro'
     | '/fornecedor'
     | '/fornecedores'
     | '/loglog'
     | '/marketplaces'
+    | '/mensal'
     | '/perfil'
     | '/personalizar'
     | '/produtos'
@@ -701,6 +736,7 @@ export interface FileRouteTypes {
     | '/v2'
     | '/v3'
     | '/vendas-tempo-real'
+    | '/vitalicio'
     | '/BLACK/$slug'
     | '/admin/analytics'
     | '/admin/automatic-sales'
@@ -743,12 +779,14 @@ export interface RootRouteChildren {
   ClienteRoute: typeof ClienteRoute
   ConfiguracoesRoute: typeof ConfiguracoesRoute
   DashboardRoute: typeof DashboardRoute
+  Dy4ki0hRoute: typeof Dy4ki0hRoute
   FacebookRoute: typeof FacebookRoute
   FinanceiroRoute: typeof FinanceiroRoute
   FornecedorRoute: typeof FornecedorRouteWithChildren
   FornecedoresRoute: typeof FornecedoresRoute
   LoglogRoute: typeof LoglogRoute
   MarketplacesRoute: typeof MarketplacesRoute
+  MensalRoute: typeof MensalRoute
   PerfilRoute: typeof PerfilRoute
   PersonalizarRoute: typeof PersonalizarRoute
   ProdutosRoute: typeof ProdutosRoute
@@ -763,6 +801,7 @@ export interface RootRouteChildren {
   V2Route: typeof V2Route
   V3Route: typeof V3Route
   VendasTempoRealRoute: typeof VendasTempoRealRoute
+  VitalicioRoute: typeof VitalicioRoute
   BLACKSlugRoute: typeof BLACKSlugRoute
   InfluencerIdRoute: typeof InfluencerIdRoute
   InfluencerImagemRoute: typeof InfluencerImagemRoute
@@ -844,6 +883,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dy4ki0h': {
+      id: '/dy4ki0h'
+      path: '/dy4ki0h'
+      fullPath: '/dy4ki0h'
+      preLoaderRoute: typeof Dy4ki0hRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/facebook': {
       id: '/facebook'
       path: '/facebook'
@@ -884,6 +930,13 @@ declare module '@tanstack/react-router' {
       path: '/marketplaces'
       fullPath: '/marketplaces'
       preLoaderRoute: typeof MarketplacesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mensal': {
+      id: '/mensal'
+      path: '/mensal'
+      fullPath: '/mensal'
+      preLoaderRoute: typeof MensalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/perfil': {
@@ -982,6 +1035,13 @@ declare module '@tanstack/react-router' {
       path: '/vendas-tempo-real'
       fullPath: '/vendas-tempo-real'
       preLoaderRoute: typeof VendasTempoRealRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vitalicio': {
+      id: '/vitalicio'
+      path: '/vitalicio'
+      fullPath: '/vitalicio'
+      preLoaderRoute: typeof VitalicioRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/BLACK/': {
@@ -1273,12 +1333,14 @@ const rootRouteChildren: RootRouteChildren = {
   ClienteRoute: ClienteRoute,
   ConfiguracoesRoute: ConfiguracoesRoute,
   DashboardRoute: DashboardRoute,
+  Dy4ki0hRoute: Dy4ki0hRoute,
   FacebookRoute: FacebookRoute,
   FinanceiroRoute: FinanceiroRoute,
   FornecedorRoute: FornecedorRouteWithChildren,
   FornecedoresRoute: FornecedoresRoute,
   LoglogRoute: LoglogRoute,
   MarketplacesRoute: MarketplacesRoute,
+  MensalRoute: MensalRoute,
   PerfilRoute: PerfilRoute,
   PersonalizarRoute: PersonalizarRoute,
   ProdutosRoute: ProdutosRoute,
@@ -1293,6 +1355,7 @@ const rootRouteChildren: RootRouteChildren = {
   V2Route: V2Route,
   V3Route: V3Route,
   VendasTempoRealRoute: VendasTempoRealRoute,
+  VitalicioRoute: VitalicioRoute,
   BLACKSlugRoute: BLACKSlugRoute,
   InfluencerIdRoute: InfluencerIdRoute,
   InfluencerImagemRoute: InfluencerImagemRoute,
