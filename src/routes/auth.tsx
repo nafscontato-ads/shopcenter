@@ -2,7 +2,8 @@ import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-r
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-import { PasLogo } from "@/components/pas/logo";
+import { PasMark } from "@/components/pas/logo";
+import { InstallAppPrompt } from "@/components/site/install-app-prompt";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -29,7 +30,7 @@ export const Route = createFileRoute("/auth")({
 });
 
 const input =
-  "bg-elevated border-border focus:ring-ring mt-1 w-full rounded-xl border px-3 py-2.5 text-sm outline-none focus:ring-2";
+  "mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm text-neutral-900 outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-200";
 
 function AuthPage() {
   const [mode, setMode] = useState<"signin" | "forgot">("signin");
@@ -96,18 +97,20 @@ function AuthPage() {
       : "Digite seu e-mail e enviaremos um link para criar uma nova senha.";
 
   return (
-    <main className="bg-background flex min-h-screen items-center justify-center px-4 py-10">
+    <div className="flex min-h-screen flex-col bg-white text-neutral-900">
+    <InstallAppPrompt place="auth" />
+    <main className="flex flex-1 items-center justify-center px-4 py-10">
       <div className="w-full max-w-sm">
         <div className="mb-6 flex justify-center">
-          <PasLogo />
+          <a href="/" className="flex items-center gap-2.5"><PasMark className="size-10" /><span className="text-xl font-black tracking-tight">Shop<span className="text-orange-500">Center</span></span></a>
         </div>
-        <section className="card-surface p-6">
-          <h1 className="text-lg font-semibold">{title}</h1>
-          <p className="text-muted-foreground mt-1 text-sm">{subtitle}</p>
+        <section className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-[0_30px_60px_-30px_rgba(0,0,0,0.25)]">
+          <h1 className="text-xl font-black">{title}</h1>
+          <p className="mt-1 text-sm text-neutral-500">{subtitle}</p>
 
           <form onSubmit={submit} className="mt-5 grid gap-3">
             <label className="block">
-              <span className="text-muted-foreground text-xs">E-mail</span>
+              <span className="text-xs font-semibold text-neutral-600">E-mail</span>
               <input
                 type="email"
                 autoComplete="email"
@@ -119,14 +122,14 @@ function AuthPage() {
             </label>
             {mode !== "forgot" && (
               <label className="block">
-                <span className="text-muted-foreground flex items-center justify-between text-xs">
+                <span className="flex items-center justify-between text-xs font-semibold text-neutral-600">
                   Senha
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
                     onClick={() => setShowPass((v) => !v)}
-                    className="hover:text-foreground h-auto p-0 text-[11px]"
+                    className="h-auto p-0 text-[11px] text-neutral-500 hover:bg-transparent hover:text-neutral-900"
                   >
                     {showPass ? "Ocultar" : "Mostrar"}
                   </Button>
@@ -155,7 +158,7 @@ function AuthPage() {
                     )
                     .finally(() => setBusy(false));
                 }}
-                className="border-border text-muted-foreground hover:text-foreground rounded-xl border px-3 py-2 text-xs disabled:opacity-60"
+                className="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 disabled:opacity-60"
               >
                 Enviar link para criar uma nova senha
               </Button>
@@ -164,7 +167,7 @@ function AuthPage() {
             <Button
               type="submit"
               disabled={busy}
-              className="bg-primary text-primary-foreground mt-1 rounded-xl px-4 py-2.5 text-sm font-semibold disabled:opacity-60"
+              className="mt-1 h-11 rounded-xl bg-orange-500 px-4 text-sm font-extrabold text-white hover:bg-orange-600 disabled:opacity-60"
             >
               {busy ? "Aguarde..." : mode === "signin" ? "Entrar" : "Enviar link de recuperação"}
             </Button>
@@ -172,22 +175,22 @@ function AuthPage() {
 
           <div className="mt-4 grid gap-2 text-center text-xs">
             {mode !== "forgot" && (
-              <Button variant="ghost" size="sm" onClick={() => setMode("forgot")} className="text-muted-foreground hover:text-foreground">
+              <Button variant="ghost" size="sm" onClick={() => setMode("forgot")} className="text-neutral-500 hover:bg-neutral-50 hover:text-neutral-900">
                 Esqueci minha senha
               </Button>
             )}
             {mode === "forgot" && (
-              <Button variant="ghost" size="sm" onClick={() => setMode("signin")} className="text-muted-foreground hover:text-foreground">
+              <Button variant="ghost" size="sm" onClick={() => setMode("signin")} className="text-neutral-500 hover:bg-neutral-50 hover:text-neutral-900">
                 Voltar para o login
               </Button>
             )}
           </div>
         </section>
-        <p className="text-muted-foreground mt-4 text-center text-xs">
-          Ainda não tem conta?{" "}
-          <Link to="/loglog" className="text-primary font-semibold hover:underline">Cadastre-se no Shop Center</Link>.
+        <p className="mt-4 text-center text-xs text-neutral-500">
+          Comprou agora? Crie sua conta pelo link que enviamos no <b>e-mail da compra</b>.
         </p>
       </div>
     </main>
+    </div>
   );
 }

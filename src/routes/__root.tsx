@@ -85,7 +85,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "description",
         content:
-          "Plataforma premium para afiliados Shopee: produtos virais, influencers de IA e divulgação rápida.",
+          "Sistema de logística e gestão para vendedores Shopee, Mercado Livre, TikTok Shop, Amazon e Magalu.",
       },
       { property: "og:title", content: "Shop Center — Central de operações para marketplaces" },
       {
@@ -95,8 +95,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "theme-color", content: "#f97316" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-title", content: "Shop Center" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "default" },
     ],
     links: [
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "apple-touch-icon", href: "/icon-192.png" },
       {
         rel: "stylesheet",
         href: appCss,
@@ -121,6 +127,10 @@ function RootShell({ children }: { children: ReactNode }) {
         {children}
         <Toaster />
         <Scripts />
+        <script
+          // Registra o PWA (app instalável) só em produção.
+          dangerouslySetInnerHTML={{ __html: `if('serviceWorker' in navigator && location.hostname!=='localhost' && location.hostname!=='127.0.0.1'){window.addEventListener('load',function(){navigator.serviceWorker.register('/sw.js').catch(function(){})})}` }}
+        />
       </body>
 
     </html>

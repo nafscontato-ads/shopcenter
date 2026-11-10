@@ -145,7 +145,9 @@ insert into public.sales_months (month, gross_brl, commission_brl, items, views,
 ('2026-09-01',18750.00,2330.00,345,286000,22400,true)
 on conflict (month) do nothing;
 
-insert into public.sales_month_products (month, product_id, quantity, unit_price, gross_brl, commission_brl) values
+-- Dados de demonstração: só entram os produtos que existem no banco (num banco novo, nenhum).
+insert into public.sales_month_products (month, product_id, quantity, unit_price, gross_brl, commission_brl)
+select v.month::date, v.product_id::uuid, v.quantity, v.unit_price, v.gross_brl, v.commission_brl from (values
 ('2026-01-01','69292c8d-5591-460c-ba1f-32a195324e2c',67,34.90,2338.30,584.58),
 ('2026-01-01','f49e560f-b0fb-45f2-a0cf-304b92d871b3',320,24.90,7968.00,2151.36),
 ('2026-01-01','80c3f914-2afb-4282-ae1e-2f98bd9a733c',355,29.90,10614.50,2759.77),
@@ -218,4 +220,6 @@ insert into public.sales_month_products (month, product_id, quantity, unit_price
 ('2026-09-01','66e56a21-3188-48da-b6da-94f4a55974bf',37,44.90,1661.30,365.49),
 ('2026-09-01','45ce6faf-afb8-4ba7-a74f-a4f1951b3151',79,79.90,6316.60,1515.98),
 ('2026-09-01','20516dbe-ac55-47dc-87d3-0f2628c12e6f',47,79.90,3755.30,751.06)
+) as v(month, product_id, quantity, unit_price, gross_brl, commission_brl)
+where exists (select 1 from public.products p where p.id = v.product_id::uuid)
 on conflict (month, product_id) do nothing;

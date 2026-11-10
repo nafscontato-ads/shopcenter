@@ -6,9 +6,10 @@
  * product cost + platform fee is debited from the seller's wallet → the supplier sees the
  * order in their panel, prints the Shopee label and ships.
  */
+import { SHOP_CENTER_ORDER_FEE_BRL } from "./shopee-pricing";
 
 /** Fixed platform fee per fulfilled order (owner decision: "pelo menos 2 reais por pedido"). */
-export const FULFILLMENT_FEE_BRL = 2;
+export const FULFILLMENT_FEE_BRL = SHOP_CENTER_ORDER_FEE_BRL;
 
 /** Shopee states in which the order is paid and still has to be shipped. */
 export const SHIPPABLE_STATUSES = new Set(["READY_TO_SHIP", "PROCESSED", "RETRY_SHIP"]);

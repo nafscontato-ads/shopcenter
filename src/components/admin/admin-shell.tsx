@@ -56,6 +56,7 @@ const groups: { title: string; items: Item[] }[] = [
       { to: "/admin/shopee-check", label: "Checagem Shopee", icon: ClipboardCheck },
       { to: "/admin/fornecedor-sites", label: "Sites de fornecedor", icon: Store },
       { to: "/admin/sales", label: "Pedidos/Vendas", icon: ShoppingCart },
+      { to: "/admin/refunds", label: "Reembolsos", icon: ClipboardCheck },
       { to: "/admin/creators", label: "Creators", icon: Sparkles },
       { to: "/admin/partners", label: "Parceiros", icon: Handshake },
     ],

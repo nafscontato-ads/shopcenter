@@ -1,12 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 
-import { SellerSalesPage } from "@/components/pas/seller-sales-page";
+import { Landing3D } from "@/components/site/landing-3d";
+import { OFFICIAL_CHECKOUT } from "@/lib/checkouts";
 import { salesCatalogOptions } from "@/lib/sales-catalog";
-import heroImage from "@/assets/hero-logistics.webp";
 
 export const Route = createFileRoute("/")({
-  loader: async ({ context }) => { await context.queryClient.ensureQueryData(salesCatalogOptions); },
+  // A página de vendas nunca cai se o catálogo falhar: mostra sem a vitrine.
+  loader: async ({ context }) => { await context.queryClient.ensureQueryData(salesCatalogOptions).catch(() => null); },
   errorComponent: () => <main className="grid min-h-screen place-items-center bg-background px-5 text-foreground"><p>Não foi possível carregar o catálogo. Atualize a página para tentar novamente.</p></main>,
   notFoundComponent: () => <main className="p-8">Página Shop Center não encontrada.</main>,
   head: () => ({
@@ -18,15 +19,14 @@ export const Route = createFileRoute("/")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-    links: [{ rel: "preload", as: "image", href: heroImage, type: "image/webp", fetchPriority: "high" }],
   }),
   component: SalesPage,
 });
 
-const MONTHLY_CHECKOUT = "https://checkout.applyfy.com.br/checkout/cmtlsvw6100o201oguljarzka?offer=YOJSS51";
-const LIFETIME_CHECKOUT = "https://checkout.applyfy.com.br/checkout/cmtlsvw6100o201oguljarzka?offer=LCIVT2O";
+const MONTHLY_CHECKOUT = OFFICIAL_CHECKOUT.monthly;
+const LIFETIME_CHECKOUT = OFFICIAL_CHECKOUT.lifetime;
 
 function SalesPage() {
-  const { data: catalog } = useSuspenseQuery(salesCatalogOptions);
-  return <SellerSalesPage products={catalog.products} productCount={catalog.total} monthlyCheckout={MONTHLY_CHECKOUT} lifetimeCheckout={LIFETIME_CHECKOUT} />;
+  const { data: catalog } = useQuery(salesCatalogOptions);
+  return <Landing3D products={catalog?.products ?? []} productCount={catalog?.total ?? 0} monthlyCheckout={MONTHLY_CHECKOUT} lifetimeCheckout={LIFETIME_CHECKOUT} />;
 }
