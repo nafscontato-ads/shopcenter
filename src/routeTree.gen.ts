@@ -70,6 +70,7 @@ import { Route as InfluencerIndexRouteImport } from './routes/influencer.index'
 import { Route as InfluencerIdRouteImport } from './routes/influencer.$id'
 import { Route as InfluencerImagemRouteImport } from './routes/influencer.imagem'
 import { Route as InfluencerNovoRouteImport } from './routes/influencer.novo'
+import { Route as RCodeRouteImport } from './routes/r.$code'
 import { Route as AdminUsersIdRouteImport } from './routes/admin.users.$id'
 import { Route as ApiPublicSaudeRouteImport } from './routes/api.public.saude'
 import { Route as ApiPublicApplyfyWebhookRouteImport } from './routes/api.public.applyfy.webhook'
@@ -384,6 +385,11 @@ const InfluencerNovoRoute = InfluencerNovoRouteImport.update({
   path: '/influencer/novo',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RCodeRoute = RCodeRouteImport.update({
+  id: '/r/$code',
+  path: '/r/$code',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminUsersIdRoute = AdminUsersIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -481,6 +487,7 @@ export interface FileRoutesByFullPath {
   '/influencer/$id': typeof InfluencerIdRoute
   '/influencer/imagem': typeof InfluencerImagemRoute
   '/influencer/novo': typeof InfluencerNovoRoute
+  '/r/$code': typeof RCodeRoute
   '/BLACK/': typeof BLACKIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/fornecedor/': typeof FornecedorIndexRoute
@@ -549,6 +556,7 @@ export interface FileRoutesByTo {
   '/influencer/$id': typeof InfluencerIdRoute
   '/influencer/imagem': typeof InfluencerImagemRoute
   '/influencer/novo': typeof InfluencerNovoRoute
+  '/r/$code': typeof RCodeRoute
   '/BLACK': typeof BLACKIndexRoute
   '/admin': typeof AdminIndexRoute
   '/fornecedor': typeof FornecedorIndexRoute
@@ -620,6 +628,7 @@ export interface FileRoutesById {
   '/influencer/$id': typeof InfluencerIdRoute
   '/influencer/imagem': typeof InfluencerImagemRoute
   '/influencer/novo': typeof InfluencerNovoRoute
+  '/r/$code': typeof RCodeRoute
   '/BLACK/': typeof BLACKIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/fornecedor/': typeof FornecedorIndexRoute
@@ -692,6 +701,7 @@ export interface FileRouteTypes {
     | '/influencer/$id'
     | '/influencer/imagem'
     | '/influencer/novo'
+    | '/r/$code'
     | '/BLACK/'
     | '/admin/'
     | '/fornecedor/'
@@ -760,6 +770,7 @@ export interface FileRouteTypes {
     | '/influencer/$id'
     | '/influencer/imagem'
     | '/influencer/novo'
+    | '/r/$code'
     | '/BLACK'
     | '/admin'
     | '/fornecedor'
@@ -830,6 +841,7 @@ export interface FileRouteTypes {
     | '/influencer/$id'
     | '/influencer/imagem'
     | '/influencer/novo'
+    | '/r/$code'
     | '/BLACK/'
     | '/admin/'
     | '/fornecedor/'
@@ -882,6 +894,7 @@ export interface RootRouteChildren {
   InfluencerIdRoute: typeof InfluencerIdRoute
   InfluencerImagemRoute: typeof InfluencerImagemRoute
   InfluencerNovoRoute: typeof InfluencerNovoRoute
+  RCodeRoute: typeof RCodeRoute
   BLACKIndexRoute: typeof BLACKIndexRoute
   InfluencerIndexRoute: typeof InfluencerIndexRoute
   ApiPublicSaudeRoute: typeof ApiPublicSaudeRoute
@@ -1321,6 +1334,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InfluencerNovoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/r/$code': {
+      id: '/r/$code'
+      path: '/r/$code'
+      fullPath: '/r/$code'
+      preLoaderRoute: typeof RCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/users/$id': {
       id: '/admin/users/$id'
       path: '/$id'
@@ -1484,6 +1504,7 @@ const rootRouteChildren: RootRouteChildren = {
   InfluencerIdRoute: InfluencerIdRoute,
   InfluencerImagemRoute: InfluencerImagemRoute,
   InfluencerNovoRoute: InfluencerNovoRoute,
+  RCodeRoute: RCodeRoute,
   BLACKIndexRoute: BLACKIndexRoute,
   InfluencerIndexRoute: InfluencerIndexRoute,
   ApiPublicSaudeRoute: ApiPublicSaudeRoute,
