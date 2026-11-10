@@ -13,20 +13,22 @@ const STATUS: Record<string, string> = { em_analise: "Em análise", aprovado: "A
 
 function AdminRefunds() {
   const [status, setStatus] = useState("");
+  const [page, setPage] = useState(1);
   const listFn = useServerFn(listRefundRequests);
   const updateFn = useServerFn(updateRefundRequest);
   const qc = useQueryClient();
-  const list = useQuery({ queryKey: ["admin-refunds", status], queryFn: () => listFn({ data: status ? { status } : {} }) });
+  const list = useQuery({ queryKey: ["admin-refunds", status, page], queryFn: () => listFn({ data: { page, ...(status ? { status } : {}) } }) });
   const update = useMutation({
     mutationFn: (v: { id: string; status: "em_analise" | "aprovado" | "recusado" | "pago" }) => updateFn({ data: v }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-refunds"] }),
   });
   const rows = list.data?.rows ?? [];
+  const totalPages = Math.max(1, Math.ceil((list.data?.total ?? 0) / (list.data?.pageSize ?? 50)));
   return (
     <>
       <AdminPageHeader title="Reembolsos" subtitle="Pedidos enviados pela página /reembolso." />
       <div className="mb-4 flex gap-2">
-        <select className="input h-10 max-w-60" value={status} onChange={(e) => setStatus(e.target.value)}>
+        <select className="input h-10 max-w-60" value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); }}>
           <option value="">Todos</option>
           {Object.entries(STATUS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
         </select>
@@ -57,6 +59,13 @@ function AdminRefunds() {
             </tbody>
           </table>
         </TableWrap>
+      )}
+      {totalPages > 1 && (
+        <div className="mt-4 flex items-center justify-end gap-3 text-sm">
+          <button type="button" className="rounded-md border border-border px-3 py-1.5 disabled:opacity-40" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>Anterior</button>
+          <span className="text-muted-foreground">Página {page} de {totalPages}</span>
+          <button type="button" className="rounded-md border border-border px-3 py-1.5 disabled:opacity-40" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>Próxima</button>
+        </div>
       )}
     </>
   );

@@ -89,14 +89,20 @@ export const submitRefundRequest = createServerFn({ method: "POST" })
 
 export const listRefundRequests = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
-  .inputValidator((input: unknown) => z.object({ status: z.string().optional() }).parse(input ?? {}))
+  .inputValidator((input: unknown) => z.object({ status: z.string().optional(), page: z.number().int().min(1).optional() }).parse(input ?? {}))
   .handler(async ({ data }) => {
     const client = await db();
-    let query = client.from("refund_requests").select("*").order("created_at", { ascending: false }).limit(300);
+    const pageSize = 50;
+    const page = data.page ?? 1;
+    let query = client
+      .from("refund_requests")
+      .select("*", { count: "exact" })
+      .order("created_at", { ascending: false })
+      .range((page - 1) * pageSize, page * pageSize - 1);
     if (data.status) query = query.eq("status", data.status);
-    const { data: rows, error } = await query;
+    const { data: rows, error, count } = await query;
     if (error) throw new Error(error.message);
-    return { rows: (rows ?? []) as RefundRow[] };
+    return { rows: (rows ?? []) as RefundRow[], total: (count ?? 0) as number, page, pageSize };
   });
 
 export const updateRefundRequest = createServerFn({ method: "POST" })
