@@ -334,6 +334,15 @@ function ShopeeWorkspaceContent() {
           <div className="card-surface bg-elevated/60 mb-6 h-[95px] animate-pulse" />
         </div>
       ) : (<>
+      {workspace.isError && (
+        <div role="alert" className="border-destructive/40 bg-destructive/10 mb-4 flex flex-col gap-3 rounded-lg border p-4 text-sm sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-destructive font-semibold">Não foi possível carregar suas lojas agora.</p>
+            <p className="text-muted-foreground mt-1 break-words text-xs">Detalhe: {workspace.error instanceof Error ? workspace.error.message : String(workspace.error)}</p>
+          </div>
+          <Button variant="outline" size="sm" className="shrink-0" disabled={workspace.isFetching} onClick={() => void workspace.refetch()}><RefreshCw className={cn(workspace.isFetching && "animate-spin")} />Tentar de novo</Button>
+        </div>
+      )}
       <section className="mb-6 grid gap-4 lg:grid-cols-[1.4fr_1fr]">
         <div className="card-surface relative overflow-hidden p-5 md:p-6">
           <div className="bg-primary-soft absolute inset-y-0 left-0 w-1" />

@@ -336,7 +336,10 @@ export const getShopeeWorkspace = createServerFn({ method: "GET" })
       context.supabase.from("shopee_orders").select("id, connection_id, order_sn, status, total_amount, currency, buyer_label, items, created_time, updated_time, completed_time, synced_at").order("created_time", { ascending: false }).limit(500),
       context.supabase.from("shopee_sync_logs").select("id, connection_id, operation, status, processed_count, changed_count, error_count, message, started_at, finished_at").order("created_at", { ascending: false }).limit(30),
     ]);
-    if (connectionError) throw new Error(connectionError.message);
+    if (connectionError) {
+      console.error("[shopee-workspace] lojas:", connectionError.message, connectionError.details ?? "");
+      throw new Error(`Lojas: ${connectionError.message}`);
+    }
     if (listingsError) throw new Error(listingsError.message);
     // A publish request that died midway (closed tab, timeout) leaves "publishing" forever; release it so the seller can retry.
     const staleBefore = Date.now() - STALE_PUBLISHING_MS;

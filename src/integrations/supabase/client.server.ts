@@ -25,7 +25,8 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
     }
 
     headers.set('apikey', supabaseKey);
-    return fetch(input, { ...init, headers });
+    // Never hang a page forever: a stuck call becomes a visible error after 20s.
+    return fetch(input, { ...init, headers, signal: init?.signal ?? AbortSignal.timeout(20_000) });
   };
 }
 
