@@ -64,7 +64,7 @@ import { customerMessage } from "@/lib/shopee-compliance";
 import { listShopeePublications } from "@/lib/shopee-compliance.functions";
 import { useUnavailableProducts } from "@/hooks/use-shopee-availability";
 import { cn } from "@/lib/utils";
-import { MarketplacePicker } from "@/components/pas/marketplace-picker";
+import { MarketplaceConnections } from "@/components/pas/marketplace-connections";
 
 const searchSchema = z.object({
   product: z.string().uuid().optional(),
@@ -364,7 +364,6 @@ function ShopeeWorkspaceContent() {
                     <a href="https://seller.shopee.com.br" target="_blank" rel="noopener noreferrer" className="text-primary mt-2 inline-flex items-center gap-1 font-semibold hover:underline"><ExternalLink className="size-3.5" />Entrar na Central do Vendedor</a>
                   </div>
                 )}
-                <MarketplacePicker chosen={search.marketplace} />
               </div>
             </div>
             <div className="flex flex-wrap gap-2">{connections.length > 1 && <select aria-label="Selecionar loja" value={connection?.id ?? ""} onChange={(event) => setSelectedConnectionId(event.target.value)} className="input h-11 min-w-48">{connections.map((shop) => <option key={shop.id} value={shop.id}>{shop.shop_name || `Loja ${shop.shop_id}`}</option>)}</select>}{connection ? <Button variant="outline" onClick={() => window.confirm("Deseja desconectar esta loja Shopee?") && disconnect.mutate(connection.id)} disabled={disconnect.isPending} className="h-11 shrink-0"><Unplug />{disconnect.isPending ? "Desconectando..." : "Desconectar"}</Button> : null}{connection && connections.filter((shop) => shop.status === "active").length < 3 && <Button variant="secondary" onClick={() => connect.mutate()} disabled={connect.isPending || !workspace.data?.configured} className="h-11 shrink-0"><Link2 /> {connect.isPending ? "Abrindo Shopee..." : `Adicionar outra loja (${connections.filter((shop) => shop.status === "active").length}/3)`}</Button>}{connection ? null : <Button onClick={() => connect.mutate()} disabled={connect.isPending || !workspace.data?.configured} className="h-11 shrink-0"><Link2 /> {connect.isPending ? "Abrindo Shopee..." : "Integrar minha Shopee"}</Button>}</div>
@@ -388,6 +387,8 @@ function ShopeeWorkspaceContent() {
         <img src={shopeeBag.url} alt="Shopee" className="size-6 rounded-full object-cover" />
         Ainda não tem conta? Criar painel de vendedor Shopee
       </a>
+
+      <MarketplaceConnections />
 
       {!connection && credentialStatus === "sandbox" && (
         <div className="bg-warning/10 text-warning mb-6 flex items-start gap-3 rounded-lg border border-warning/30 p-4 text-sm">
