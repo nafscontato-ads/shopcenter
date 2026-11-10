@@ -14,8 +14,11 @@ export const FULFILLMENT_FEE_BRL = 2;
 export const SHIPPABLE_STATUSES = new Set(["READY_TO_SHIP", "PROCESSED", "RETRY_SHIP"]);
 /** Shopee states that mean the parcel already left. */
 export const SHIPPED_STATUSES = new Set(["SHIPPED", "TO_CONFIRM_RECEIVE", "COMPLETED"]);
-/** Shopee states that end the order without shipping. */
-export const CANCELLED_STATUSES = new Set(["CANCELLED", "IN_CANCEL", "TO_RETURN"]);
+/**
+ * Shopee states that end the order without shipping. IN_CANCEL is only a buyer request the
+ * seller may still reject, so it keeps the order (and its debit) as it is.
+ */
+export const CANCELLED_STATUSES = new Set(["CANCELLED", "TO_RETURN"]);
 
 export type FulfillmentStatus = "unmatched" | "needs_attention" | "awaiting_funds" | "queued" | "shipped" | "cancelled";
 

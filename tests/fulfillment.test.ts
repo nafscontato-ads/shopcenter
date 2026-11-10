@@ -49,7 +49,10 @@ describe("wallet", () => {
 describe("reactToShopeeStatus", () => {
   it("refunds a paid order cancelled before shipping", () => {
     expect(reactToShopeeStatus("queued", "CANCELLED")).toEqual({ status: "cancelled", refund: true });
-    expect(reactToShopeeStatus("awaiting_funds", "IN_CANCEL")).toEqual({ status: "cancelled", refund: false });
+    expect(reactToShopeeStatus("awaiting_funds", "CANCELLED")).toEqual({ status: "cancelled", refund: false });
+  });
+  it("keeps an order whose cancellation is only requested", () => {
+    expect(reactToShopeeStatus("queued", "IN_CANCEL")).toBeNull();
   });
   it("marks queued orders shipped when Shopee says so, and never reopens final states", () => {
     expect(reactToShopeeStatus("queued", "SHIPPED")).toEqual({ status: "shipped", refund: false });

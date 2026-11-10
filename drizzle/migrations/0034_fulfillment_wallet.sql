@@ -126,3 +126,36 @@ END;
 $$;
 REVOKE ALL ON FUNCTION public.wallet_book(uuid, numeric, text, text, text, uuid) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.wallet_book(uuid, numeric, text, text, text, uuid) TO service_role;
+
+-- Pays one waiting order: locks the order row, books the debit and moves it to the supplier queue
+-- in one transaction, so concurrent workers (cron, push, sync) can never double-debit or refund wrongly.
+-- Returns 'paid', 'insufficient' (nothing booked) or 'skipped' (not awaiting funds anymore).
+CREATE OR REPLACE FUNCTION public.fulfillment_debit(_id uuid)
+RETURNS text
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  o public.fulfillment_orders%ROWTYPE;
+  _total numeric(12,2);
+  _balance numeric;
+BEGIN
+  SELECT * INTO o FROM public.fulfillment_orders WHERE id = _id FOR UPDATE;
+  IF NOT FOUND OR o.status <> 'awaiting_funds' THEN
+    RETURN 'skipped';
+  END IF;
+  _total := o.goods_cost + o.platform_fee;
+  _balance := public.wallet_book(o.user_id, -_total, 'order_debit', 'fulfillment:' || _id::text, 'Pedido ' || o.order_sn, NULL);
+  IF _balance IS NULL THEN
+    UPDATE public.fulfillment_orders
+      SET last_error = 'Saldo insuficiente: este pedido precisa de R$ ' || to_char(_total, 'FM999990.00') || '. Recarregue a carteira.', updated_at = now()
+      WHERE id = _id;
+    RETURN 'insufficient';
+  END IF;
+  UPDATE public.fulfillment_orders SET status = 'queued', debited_amount = _total, last_error = NULL, updated_at = now() WHERE id = _id;
+  RETURN 'paid';
+END;
+$$;
+REVOKE ALL ON FUNCTION public.fulfillment_debit(uuid) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.fulfillment_debit(uuid) TO service_role;

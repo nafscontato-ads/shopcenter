@@ -104,21 +104,12 @@ export async function ingestOrders(userId: string, connectionId: string, orders:
 /** Debits one waiting order. Returns true when it was paid and handed to the supplier. */
 export async function fundOrder(userId: string, fulfillmentId: string) {
   const client = await db();
-  const { data: order } = await client.from("fulfillment_orders").select("id, order_sn, status, goods_cost, platform_fee").eq("id", fulfillmentId).eq("user_id", userId).maybeSingle();
-  if (!order || order["status"] !== "awaiting_funds") return false;
-  const total = Number(order["goods_cost"]) + Number(order["platform_fee"]);
-  const balance = await bookWallet(userId, -total, "order_debit", `fulfillment:${fulfillmentId}`, `Pedido ${order["order_sn"]}`, null);
-  if (balance === null) {
-    await client.from("fulfillment_orders").update({ last_error: `Saldo insuficiente: este pedido precisa de R$ ${total.toFixed(2)}. Recarregue a carteira.`, updated_at: new Date().toISOString() }).eq("id", fulfillmentId);
-    return false;
-  }
-  const { data: moved } = await client.from("fulfillment_orders").update({ status: "queued", debited_amount: total, last_error: null, updated_at: new Date().toISOString() }).eq("id", fulfillmentId).eq("status", "awaiting_funds").select("id").maybeSingle();
-  if (!moved) {
-    // Another worker moved it first (cancelled meanwhile): give the money back.
-    await bookWallet(userId, total, "order_refund", `fulfillment:${fulfillmentId}`, `Estorno ${order["order_sn"]}`, null);
-    return false;
-  }
-  return true;
+  const { data: owned } = await client.from("fulfillment_orders").select("id").eq("id", fulfillmentId).eq("user_id", userId).maybeSingle();
+  if (!owned) return false;
+  // Lock, debit and status change happen in one SQL transaction (fulfillment_debit).
+  const { data, error } = await client.rpc("fulfillment_debit", { _id: fulfillmentId });
+  if (error) throw new Error("Não foi possível pagar o pedido com a carteira. Tente de novo.");
+  return data === "paid";
 }
 
 /** Tries to pay every waiting order of a seller, oldest first (after a recharge). */

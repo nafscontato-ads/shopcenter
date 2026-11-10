@@ -51,27 +51,32 @@ export async function runFulfillmentTick(maxShops = 50) {
   const { withFreshConnection } = await import("@/lib/shopee.functions");
   const { fundWaitingOrders } = await import("@/lib/fulfillment.server");
   const now = Math.floor(Date.now() / 1000);
-  const report: Array<{ connectionId: string; orders: number; created: number; updated: number; error?: string }> = [];
+  const report: Array<{ connectionId: string; orders: number; created: number; updated: number; incomplete?: boolean; error?: string }> = [];
   for (const shop of shops ?? []) {
     const userId = String(shop["user_id"]);
     const connectionId = String(shop["id"]);
     try {
       const sns: string[] = [];
+      let incomplete = false;
       await withFreshConnection(userId, connectionId, async (connection) => {
         const credentials = { shopId: Number(connection.shop_id), accessToken: connection.access_token };
         let cursor = "";
-        for (let page = 0; page < 10; page += 1) {
+        // Page until Shopee says there is no more (500 pages = 25k orders in 3 days is the safety stop).
+        for (let page = 0; ; page += 1) {
           const result = await shopee.getShopeeOrderList(credentials, now - 3 * 24 * 60 * 60, now, cursor);
           const response = result["response"] as Record<string, unknown> | undefined;
           for (const item of Array.isArray(response?.["order_list"]) ? (response["order_list"] as Record<string, unknown>[]) : []) sns.push(String(item["order_sn"]));
-          if (!response?.["more"] || !response["next_cursor"]) break;
-          cursor = String(response["next_cursor"]);
+          const next = String(response?.["next_cursor"] ?? "");
+          if (!response?.["more"]) break;
+          if (!next || next === cursor || page >= 499) { incomplete = true; break; }
+          cursor = next;
         }
       });
       const result = await pullOrders(userId, connectionId, [...new Set(sns)]);
       await fundWaitingOrders(userId);
       await client.from("shopee_shop_connections").update({ last_synced_at: new Date().toISOString() }).eq("id", connectionId);
-      report.push({ connectionId, orders: sns.length, ...result });
+      if (incomplete) console.warn("fulfillment tick: order list incomplete", connectionId);
+      report.push({ connectionId, orders: sns.length, ...result, ...(incomplete ? { incomplete } : {}) });
     } catch (error) {
       report.push({ connectionId, orders: 0, created: 0, updated: 0, error: error instanceof Error ? error.message : "erro" });
     }
