@@ -11,9 +11,12 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as AfiliadoRouteImport } from './routes/afiliado'
 import { Route as AtivarAcessoRouteImport } from './routes/ativar-acesso'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CadastroprodutoresespancadoresRouteImport } from './routes/cadastroprodutoresespancadores'
+import { Route as ClassicaRouteImport } from './routes/classica'
+import { Route as ClienteRouteImport } from './routes/cliente'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as FacebookRouteImport } from './routes/facebook'
@@ -76,6 +79,11 @@ const AdminRoute = AdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AfiliadoRoute = AfiliadoRouteImport.update({
+  id: '/afiliado',
+  path: '/afiliado',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AtivarAcessoRoute = AtivarAcessoRouteImport.update({
   id: '/ativar-acesso',
   path: '/ativar-acesso',
@@ -92,6 +100,16 @@ const CadastroprodutoresespancadoresRoute =
     path: '/cadastroprodutoresespancadores',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ClassicaRoute = ClassicaRouteImport.update({
+  id: '/classica',
+  path: '/classica',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClienteRoute = ClienteRouteImport.update({
+  id: '/cliente',
+  path: '/cliente',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ConfiguracoesRoute = ConfiguracoesRouteImport.update({
   id: '/configuracoes',
   path: '/configuracoes',
@@ -351,9 +369,12 @@ const ApiPublicShopeeCallbackRoute = ApiPublicShopeeCallbackRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/afiliado': typeof AfiliadoRoute
   '/ativar-acesso': typeof AtivarAcessoRoute
   '/auth': typeof AuthRoute
   '/cadastroprodutoresespancadores': typeof CadastroprodutoresespancadoresRoute
+  '/classica': typeof ClassicaRoute
+  '/cliente': typeof ClienteRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/dashboard': typeof DashboardRoute
   '/facebook': typeof FacebookRoute
@@ -408,9 +429,12 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/afiliado': typeof AfiliadoRoute
   '/ativar-acesso': typeof AtivarAcessoRoute
   '/auth': typeof AuthRoute
   '/cadastroprodutoresespancadores': typeof CadastroprodutoresespancadoresRoute
+  '/classica': typeof ClassicaRoute
+  '/cliente': typeof ClienteRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/dashboard': typeof DashboardRoute
   '/facebook': typeof FacebookRoute
@@ -466,9 +490,12 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/afiliado': typeof AfiliadoRoute
   '/ativar-acesso': typeof AtivarAcessoRoute
   '/auth': typeof AuthRoute
   '/cadastroprodutoresespancadores': typeof CadastroprodutoresespancadoresRoute
+  '/classica': typeof ClassicaRoute
+  '/cliente': typeof ClienteRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/dashboard': typeof DashboardRoute
   '/facebook': typeof FacebookRoute
@@ -526,9 +553,12 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/afiliado'
     | '/ativar-acesso'
     | '/auth'
     | '/cadastroprodutoresespancadores'
+    | '/classica'
+    | '/cliente'
     | '/configuracoes'
     | '/dashboard'
     | '/facebook'
@@ -583,9 +613,12 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/afiliado'
     | '/ativar-acesso'
     | '/auth'
     | '/cadastroprodutoresespancadores'
+    | '/classica'
+    | '/cliente'
     | '/configuracoes'
     | '/dashboard'
     | '/facebook'
@@ -640,9 +673,12 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/admin'
+    | '/afiliado'
     | '/ativar-acesso'
     | '/auth'
     | '/cadastroprodutoresespancadores'
+    | '/classica'
+    | '/cliente'
     | '/configuracoes'
     | '/dashboard'
     | '/facebook'
@@ -699,9 +735,12 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
+  AfiliadoRoute: typeof AfiliadoRoute
   AtivarAcessoRoute: typeof AtivarAcessoRoute
   AuthRoute: typeof AuthRoute
   CadastroprodutoresespancadoresRoute: typeof CadastroprodutoresespancadoresRoute
+  ClassicaRoute: typeof ClassicaRoute
+  ClienteRoute: typeof ClienteRoute
   ConfiguracoesRoute: typeof ConfiguracoesRoute
   DashboardRoute: typeof DashboardRoute
   FacebookRoute: typeof FacebookRoute
@@ -749,6 +788,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/afiliado': {
+      id: '/afiliado'
+      path: '/afiliado'
+      fullPath: '/afiliado'
+      preLoaderRoute: typeof AfiliadoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/ativar-acesso': {
       id: '/ativar-acesso'
       path: '/ativar-acesso'
@@ -768,6 +814,20 @@ declare module '@tanstack/react-router' {
       path: '/cadastroprodutoresespancadores'
       fullPath: '/cadastroprodutoresespancadores'
       preLoaderRoute: typeof CadastroprodutoresespancadoresRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/classica': {
+      id: '/classica'
+      path: '/classica'
+      fullPath: '/classica'
+      preLoaderRoute: typeof ClassicaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cliente': {
+      id: '/cliente'
+      path: '/cliente'
+      fullPath: '/cliente'
+      preLoaderRoute: typeof ClienteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/configuracoes': {
@@ -1205,9 +1265,12 @@ const FornecedorRouteWithChildren = FornecedorRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
+  AfiliadoRoute: AfiliadoRoute,
   AtivarAcessoRoute: AtivarAcessoRoute,
   AuthRoute: AuthRoute,
   CadastroprodutoresespancadoresRoute: CadastroprodutoresespancadoresRoute,
+  ClassicaRoute: ClassicaRoute,
+  ClienteRoute: ClienteRoute,
   ConfiguracoesRoute: ConfiguracoesRoute,
   DashboardRoute: DashboardRoute,
   FacebookRoute: FacebookRoute,
