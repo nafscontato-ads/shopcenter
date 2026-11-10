@@ -3,7 +3,11 @@ import { record } from "@/lib/shopee-publishing";
 
 const SHOPEE_BASE_URL = "https://openplatform.shopee.com.br";
 const SHOPEE_SANDBOX_URL = "https://openplatform.sandbox.test-stable.shopee.sg";
-export const SHOPEE_CALLBACK_URL = "https://sistemapas.online/api/public/shopee/callback";
+/** Domínio público do site (ex.: https://shopcenter.cloud). Precisa estar cadastrado no app da Shopee. */
+export const PUBLIC_SITE_URL = (process.env["PUBLIC_SITE_URL"] || "https://sistemapas.online").replace(/\/+$/, "");
+export const SHOPEE_CALLBACK_URL = `${PUBLIC_SITE_URL}/api/public/shopee/callback`;
+/** Quantas lojas Shopee ativas um mesmo usuário pode conectar. */
+export const MAX_SHOPEE_STORES_PER_USER = 3;
 
 type ShopCredentials = {
   shopId: number;

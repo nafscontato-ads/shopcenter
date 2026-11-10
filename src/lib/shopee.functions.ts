@@ -364,7 +364,14 @@ export const getShopeeWorkspace = createServerFn({ method: "GET" })
 export const beginShopeeConnection = createServerFn({ method: "POST" })
   .middleware([requireActiveUser])
   .handler(async ({ context }) => {
-    const { buildShopeeAuthUrl, createOAuthState, inspectShopeeCredentials } = await import("@/lib/shopee.server");
+    const { buildShopeeAuthUrl, createOAuthState, inspectShopeeCredentials, MAX_SHOPEE_STORES_PER_USER } = await import("@/lib/shopee.server");
+    {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { count } = await supabaseAdmin.from("shopee_shop_connections").select("id", { count: "exact", head: true }).eq("user_id", context.userId).eq("status", "active");
+      if ((count ?? 0) >= MAX_SHOPEE_STORES_PER_USER) {
+        throw new Error(`Você já conectou ${MAX_SHOPEE_STORES_PER_USER} lojas Shopee, o limite por conta. Desconecte uma para conectar outra.`);
+      }
+    }
     const credentials = await inspectShopeeCredentials();
     if (credentials.status === "sandbox") {
       throw new Error("Este aplicativo Shopee ainda está no ambiente de testes. Ative as credenciais de produção para conectar lojas reais.");

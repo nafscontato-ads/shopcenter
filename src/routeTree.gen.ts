@@ -27,6 +27,7 @@ import { Route as PersonalizarRouteImport } from './routes/personalizar'
 import { Route as ProdutosRouteImport } from './routes/produtos'
 import { Route as ProdutosSalvosRouteImport } from './routes/produtos-salvos'
 import { Route as PromocaoRouteImport } from './routes/promocao'
+import { Route as ReembolsoRouteImport } from './routes/reembolso'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RoadmapShopeeRouteImport } from './routes/roadmap-shopee'
 import { Route as RoadmapTiktokRouteImport } from './routes/roadmap-tiktok'
@@ -51,6 +52,7 @@ import { Route as AdminPartnersRouteImport } from './routes/admin.partners'
 import { Route as AdminProductsRouteImport } from './routes/admin.products'
 import { Route as AdminPromotionsRouteImport } from './routes/admin.promotions'
 import { Route as AdminRechargesRouteImport } from './routes/admin.recharges'
+import { Route as AdminRefundsRouteImport } from './routes/admin.refunds'
 import { Route as AdminSalesRouteImport } from './routes/admin.sales'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminShopeeCheckRouteImport } from './routes/admin.shopee-check'
@@ -153,6 +155,11 @@ const ProdutosSalvosRoute = ProdutosSalvosRouteImport.update({
 const PromocaoRoute = PromocaoRouteImport.update({
   id: '/promocao',
   path: '/promocao',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReembolsoRoute = ReembolsoRouteImport.update({
+  id: '/reembolso',
+  path: '/reembolso',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -275,6 +282,11 @@ const AdminRechargesRoute = AdminRechargesRouteImport.update({
   path: '/recharges',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminRefundsRoute = AdminRefundsRouteImport.update({
+  id: '/refunds',
+  path: '/refunds',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminSalesRoute = AdminSalesRouteImport.update({
   id: '/sales',
   path: '/sales',
@@ -355,6 +367,7 @@ export interface FileRoutesByFullPath {
   '/produtos': typeof ProdutosRoute
   '/produtos-salvos': typeof ProdutosSalvosRoute
   '/promocao': typeof PromocaoRoute
+  '/reembolso': typeof ReembolsoRoute
   '/reset-password': typeof ResetPasswordRoute
   '/roadmap-shopee': typeof RoadmapShopeeRoute
   '/roadmap-tiktok': typeof RoadmapTiktokRoute
@@ -377,6 +390,7 @@ export interface FileRoutesByFullPath {
   '/admin/products': typeof AdminProductsRoute
   '/admin/promotions': typeof AdminPromotionsRoute
   '/admin/recharges': typeof AdminRechargesRoute
+  '/admin/refunds': typeof AdminRefundsRoute
   '/admin/sales': typeof AdminSalesRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/shopee-check': typeof AdminShopeeCheckRoute
@@ -409,6 +423,7 @@ export interface FileRoutesByTo {
   '/produtos': typeof ProdutosRoute
   '/produtos-salvos': typeof ProdutosSalvosRoute
   '/promocao': typeof PromocaoRoute
+  '/reembolso': typeof ReembolsoRoute
   '/reset-password': typeof ResetPasswordRoute
   '/roadmap-shopee': typeof RoadmapShopeeRoute
   '/roadmap-tiktok': typeof RoadmapTiktokRoute
@@ -431,6 +446,7 @@ export interface FileRoutesByTo {
   '/admin/products': typeof AdminProductsRoute
   '/admin/promotions': typeof AdminPromotionsRoute
   '/admin/recharges': typeof AdminRechargesRoute
+  '/admin/refunds': typeof AdminRefundsRoute
   '/admin/sales': typeof AdminSalesRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/shopee-check': typeof AdminShopeeCheckRoute
@@ -466,6 +482,7 @@ export interface FileRoutesById {
   '/produtos': typeof ProdutosRoute
   '/produtos-salvos': typeof ProdutosSalvosRoute
   '/promocao': typeof PromocaoRoute
+  '/reembolso': typeof ReembolsoRoute
   '/reset-password': typeof ResetPasswordRoute
   '/roadmap-shopee': typeof RoadmapShopeeRoute
   '/roadmap-tiktok': typeof RoadmapTiktokRoute
@@ -488,6 +505,7 @@ export interface FileRoutesById {
   '/admin/products': typeof AdminProductsRoute
   '/admin/promotions': typeof AdminPromotionsRoute
   '/admin/recharges': typeof AdminRechargesRoute
+  '/admin/refunds': typeof AdminRefundsRoute
   '/admin/sales': typeof AdminSalesRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/shopee-check': typeof AdminShopeeCheckRoute
@@ -524,6 +542,7 @@ export interface FileRouteTypes {
     | '/produtos'
     | '/produtos-salvos'
     | '/promocao'
+    | '/reembolso'
     | '/reset-password'
     | '/roadmap-shopee'
     | '/roadmap-tiktok'
@@ -546,6 +565,7 @@ export interface FileRouteTypes {
     | '/admin/products'
     | '/admin/promotions'
     | '/admin/recharges'
+    | '/admin/refunds'
     | '/admin/sales'
     | '/admin/settings'
     | '/admin/shopee-check'
@@ -578,6 +598,7 @@ export interface FileRouteTypes {
     | '/produtos'
     | '/produtos-salvos'
     | '/promocao'
+    | '/reembolso'
     | '/reset-password'
     | '/roadmap-shopee'
     | '/roadmap-tiktok'
@@ -600,6 +621,7 @@ export interface FileRouteTypes {
     | '/admin/products'
     | '/admin/promotions'
     | '/admin/recharges'
+    | '/admin/refunds'
     | '/admin/sales'
     | '/admin/settings'
     | '/admin/shopee-check'
@@ -634,6 +656,7 @@ export interface FileRouteTypes {
     | '/produtos'
     | '/produtos-salvos'
     | '/promocao'
+    | '/reembolso'
     | '/reset-password'
     | '/roadmap-shopee'
     | '/roadmap-tiktok'
@@ -656,6 +679,7 @@ export interface FileRouteTypes {
     | '/admin/products'
     | '/admin/promotions'
     | '/admin/recharges'
+    | '/admin/refunds'
     | '/admin/sales'
     | '/admin/settings'
     | '/admin/shopee-check'
@@ -691,6 +715,7 @@ export interface RootRouteChildren {
   ProdutosRoute: typeof ProdutosRoute
   ProdutosSalvosRoute: typeof ProdutosSalvosRoute
   PromocaoRoute: typeof PromocaoRoute
+  ReembolsoRoute: typeof ReembolsoRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   RoadmapShopeeRoute: typeof RoadmapShopeeRoute
   RoadmapTiktokRoute: typeof RoadmapTiktokRoute
@@ -834,6 +859,13 @@ declare module '@tanstack/react-router' {
       path: '/promocao'
       fullPath: '/promocao'
       preLoaderRoute: typeof PromocaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reembolso': {
+      id: '/reembolso'
+      path: '/reembolso'
+      fullPath: '/reembolso'
+      preLoaderRoute: typeof ReembolsoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reset-password': {
@@ -1004,6 +1036,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminRechargesRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/refunds': {
+      id: '/admin/refunds'
+      path: '/refunds'
+      fullPath: '/admin/refunds'
+      preLoaderRoute: typeof AdminRefundsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/sales': {
       id: '/admin/sales'
       path: '/sales'
@@ -1117,6 +1156,7 @@ interface AdminRouteChildren {
   AdminProductsRoute: typeof AdminProductsRoute
   AdminPromotionsRoute: typeof AdminPromotionsRoute
   AdminRechargesRoute: typeof AdminRechargesRoute
+  AdminRefundsRoute: typeof AdminRefundsRoute
   AdminSalesRoute: typeof AdminSalesRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminShopeeCheckRoute: typeof AdminShopeeCheckRoute
@@ -1138,6 +1178,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminProductsRoute: AdminProductsRoute,
   AdminPromotionsRoute: AdminPromotionsRoute,
   AdminRechargesRoute: AdminRechargesRoute,
+  AdminRefundsRoute: AdminRefundsRoute,
   AdminSalesRoute: AdminSalesRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminShopeeCheckRoute: AdminShopeeCheckRoute,
@@ -1180,6 +1221,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProdutosRoute: ProdutosRoute,
   ProdutosSalvosRoute: ProdutosSalvosRoute,
   PromocaoRoute: PromocaoRoute,
+  ReembolsoRoute: ReembolsoRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   RoadmapShopeeRoute: RoadmapShopeeRoute,
   RoadmapTiktokRoute: RoadmapTiktokRoute,

@@ -62,7 +62,7 @@ export type ShopeePriceBreakdown = {
 const roundUpCents = (value: number) => Math.ceil(value * 100 - 1e-6) / 100;
 
 function feesFor(price: number, tiers: ShopeeFeeTier[]) {
-  const tier = tiers.find((t) => price >= t.min && price < t.max) ?? tiers[tiers.length - 1];
+  const tier = tiers.find((t) => price >= t.min && price < t.max) ?? tiers[tiers.length - 1]!;
   const commission = Math.min(price * tier.rate, SHOPEE_COMMISSION_CAP);
   return { tier, commission, fixedFee: tier.fixed };
 }
