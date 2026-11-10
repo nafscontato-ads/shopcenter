@@ -10,9 +10,9 @@ export type MarketplaceId = 'shopee' | 'mercado-livre' | 'amazon' | 'meli-plus' 
 export type Marketplace = { id: MarketplaceId; name: string; logo: string };
 
 /**
- * Every "Integrar" opens the PAS integration page, where the real store
- * connection is the Shopee authorization. Selecting other marketplaces there
- * is visual only (owner decision) and does not publish anywhere.
+ * Marketplaces mostrados na página de vendas e na tela Integração.
+ * Shopee tem o painel próprio; os demais conectam pela API oficial em
+ * marketplace-connect (Meli+ usa a mesma conta do Mercado Livre).
  */
 export const marketplaces: Marketplace[] = [
   { id: 'shopee', name: 'Shopee', logo: shopee.url },
@@ -26,12 +26,4 @@ export const marketplaces: Marketplace[] = [
 
 export function isMarketplaceId(value: unknown): value is MarketplaceId {
   return typeof value === 'string' && marketplaces.some(m => m.id === value);
-}
-
-/** Visual selection on the integration page: Shopee is always on; the chosen one is added. */
-export function initialMarketplaceSelection(stored: unknown, chosen?: unknown): MarketplaceId[] {
-  const base = Array.isArray(stored) ? stored.filter(isMarketplaceId) : [];
-  const set = new Set<MarketplaceId>(['shopee', ...base]);
-  if (isMarketplaceId(chosen)) set.add(chosen);
-  return marketplaces.map(m => m.id).filter(id => set.has(id));
 }

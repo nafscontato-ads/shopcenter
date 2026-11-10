@@ -70,7 +70,10 @@ import { Route as InfluencerIdRouteImport } from './routes/influencer.$id'
 import { Route as InfluencerImagemRouteImport } from './routes/influencer.imagem'
 import { Route as InfluencerNovoRouteImport } from './routes/influencer.novo'
 import { Route as AdminUsersIdRouteImport } from './routes/admin.users.$id'
+import { Route as ApiPublicMercadolivreCallbackRouteImport } from './routes/api.public.mercadolivre.callback'
+import { Route as ApiPublicMercadolivreNotificacoesRouteImport } from './routes/api.public.mercadolivre.notificacoes'
 import { Route as ApiPublicShopeeCallbackRouteImport } from './routes/api.public.shopee.callback'
+import { Route as ApiPublicMarketplacesProviderCallbackRouteImport } from './routes/api.public.marketplaces.$provider.callback'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -378,11 +381,29 @@ const AdminUsersIdRoute = AdminUsersIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => AdminUsersRoute,
 } as any)
+const ApiPublicMercadolivreCallbackRoute =
+  ApiPublicMercadolivreCallbackRouteImport.update({
+    id: '/api/public/mercadolivre/callback',
+    path: '/api/public/mercadolivre/callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicMercadolivreNotificacoesRoute =
+  ApiPublicMercadolivreNotificacoesRouteImport.update({
+    id: '/api/public/mercadolivre/notificacoes',
+    path: '/api/public/mercadolivre/notificacoes',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicShopeeCallbackRoute = ApiPublicShopeeCallbackRouteImport.update({
   id: '/api/public/shopee/callback',
   path: '/api/public/shopee/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicMarketplacesProviderCallbackRoute =
+  ApiPublicMarketplacesProviderCallbackRouteImport.update({
+    id: '/api/public/marketplaces/$provider/callback',
+    path: '/api/public/marketplaces/$provider/callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -446,7 +467,10 @@ export interface FileRoutesByFullPath {
   '/fornecedor/': typeof FornecedorIndexRoute
   '/influencer/': typeof InfluencerIndexRoute
   '/admin/users/$id': typeof AdminUsersIdRoute
+  '/api/public/mercadolivre/callback': typeof ApiPublicMercadolivreCallbackRoute
+  '/api/public/mercadolivre/notificacoes': typeof ApiPublicMercadolivreNotificacoesRoute
   '/api/public/shopee/callback': typeof ApiPublicShopeeCallbackRoute
+  '/api/public/marketplaces/$provider/callback': typeof ApiPublicMarketplacesProviderCallbackRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -508,7 +532,10 @@ export interface FileRoutesByTo {
   '/fornecedor': typeof FornecedorIndexRoute
   '/influencer': typeof InfluencerIndexRoute
   '/admin/users/$id': typeof AdminUsersIdRoute
+  '/api/public/mercadolivre/callback': typeof ApiPublicMercadolivreCallbackRoute
+  '/api/public/mercadolivre/notificacoes': typeof ApiPublicMercadolivreNotificacoesRoute
   '/api/public/shopee/callback': typeof ApiPublicShopeeCallbackRoute
+  '/api/public/marketplaces/$provider/callback': typeof ApiPublicMarketplacesProviderCallbackRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -573,7 +600,10 @@ export interface FileRoutesById {
   '/fornecedor/': typeof FornecedorIndexRoute
   '/influencer/': typeof InfluencerIndexRoute
   '/admin/users/$id': typeof AdminUsersIdRoute
+  '/api/public/mercadolivre/callback': typeof ApiPublicMercadolivreCallbackRoute
+  '/api/public/mercadolivre/notificacoes': typeof ApiPublicMercadolivreNotificacoesRoute
   '/api/public/shopee/callback': typeof ApiPublicShopeeCallbackRoute
+  '/api/public/marketplaces/$provider/callback': typeof ApiPublicMarketplacesProviderCallbackRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -639,7 +669,10 @@ export interface FileRouteTypes {
     | '/fornecedor/'
     | '/influencer/'
     | '/admin/users/$id'
+    | '/api/public/mercadolivre/callback'
+    | '/api/public/mercadolivre/notificacoes'
     | '/api/public/shopee/callback'
+    | '/api/public/marketplaces/$provider/callback'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -701,7 +734,10 @@ export interface FileRouteTypes {
     | '/fornecedor'
     | '/influencer'
     | '/admin/users/$id'
+    | '/api/public/mercadolivre/callback'
+    | '/api/public/mercadolivre/notificacoes'
     | '/api/public/shopee/callback'
+    | '/api/public/marketplaces/$provider/callback'
   id:
     | '__root__'
     | '/'
@@ -765,7 +801,10 @@ export interface FileRouteTypes {
     | '/fornecedor/'
     | '/influencer/'
     | '/admin/users/$id'
+    | '/api/public/mercadolivre/callback'
+    | '/api/public/mercadolivre/notificacoes'
     | '/api/public/shopee/callback'
+    | '/api/public/marketplaces/$provider/callback'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -808,7 +847,10 @@ export interface RootRouteChildren {
   InfluencerNovoRoute: typeof InfluencerNovoRoute
   BLACKIndexRoute: typeof BLACKIndexRoute
   InfluencerIndexRoute: typeof InfluencerIndexRoute
+  ApiPublicMercadolivreCallbackRoute: typeof ApiPublicMercadolivreCallbackRoute
+  ApiPublicMercadolivreNotificacoesRoute: typeof ApiPublicMercadolivreNotificacoesRoute
   ApiPublicShopeeCallbackRoute: typeof ApiPublicShopeeCallbackRoute
+  ApiPublicMarketplacesProviderCallbackRoute: typeof ApiPublicMarketplacesProviderCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1240,11 +1282,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminUsersIdRouteImport
       parentRoute: typeof AdminUsersRoute
     }
+    '/api/public/mercadolivre/callback': {
+      id: '/api/public/mercadolivre/callback'
+      path: '/api/public/mercadolivre/callback'
+      fullPath: '/api/public/mercadolivre/callback'
+      preLoaderRoute: typeof ApiPublicMercadolivreCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/mercadolivre/notificacoes': {
+      id: '/api/public/mercadolivre/notificacoes'
+      path: '/api/public/mercadolivre/notificacoes'
+      fullPath: '/api/public/mercadolivre/notificacoes'
+      preLoaderRoute: typeof ApiPublicMercadolivreNotificacoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/shopee/callback': {
       id: '/api/public/shopee/callback'
       path: '/api/public/shopee/callback'
       fullPath: '/api/public/shopee/callback'
       preLoaderRoute: typeof ApiPublicShopeeCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/marketplaces/$provider/callback': {
+      id: '/api/public/marketplaces/$provider/callback'
+      path: '/api/public/marketplaces/$provider/callback'
+      fullPath: '/api/public/marketplaces/$provider/callback'
+      preLoaderRoute: typeof ApiPublicMarketplacesProviderCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -1362,7 +1425,12 @@ const rootRouteChildren: RootRouteChildren = {
   InfluencerNovoRoute: InfluencerNovoRoute,
   BLACKIndexRoute: BLACKIndexRoute,
   InfluencerIndexRoute: InfluencerIndexRoute,
+  ApiPublicMercadolivreCallbackRoute: ApiPublicMercadolivreCallbackRoute,
+  ApiPublicMercadolivreNotificacoesRoute:
+    ApiPublicMercadolivreNotificacoesRoute,
   ApiPublicShopeeCallbackRoute: ApiPublicShopeeCallbackRoute,
+  ApiPublicMarketplacesProviderCallbackRoute:
+    ApiPublicMarketplacesProviderCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
