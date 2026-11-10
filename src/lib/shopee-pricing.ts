@@ -67,6 +67,9 @@ function feesFor(price: number, tiers: ShopeeFeeTier[]) {
   return { tier, commission, fixedFee: tier.fixed };
 }
 
+/** Taxa do envio automático por pedido (FULFILLMENT_FEE_BRL), já somada ao preço. */
+export const SHOP_CENTER_ORDER_FEE_BRL = 2;
+
 export function breakdownForPrice(
   price: number,
   input: Omit<ShopeePriceInput, "marginPercent">,
