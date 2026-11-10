@@ -325,6 +325,7 @@ function AppShellInner({ children, appearance }: { children: ReactNode; appearan
       )}
 
       <div className="flex min-w-0 flex-1 flex-col">
+        <InstallAppPrompt place="app" />
         <header className="sc-app-header border-border bg-background/85 sticky top-0 z-40 flex h-16 items-center gap-3 border-b px-4 backdrop-blur md:px-8">
           <button
             className="text-muted-foreground md:hidden"
@@ -458,7 +459,6 @@ function AppShellInner({ children, appearance }: { children: ReactNode; appearan
         <main className="mx-auto w-full max-w-[1240px] flex-1 px-4 py-6 md:px-8 md:py-8">
           {retiredPage ? null : children}
         </main>
-        <InstallAppPrompt place="app" />
       </div>
     </div>
   );

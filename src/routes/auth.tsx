@@ -97,7 +97,9 @@ function AuthPage() {
       : "Digite seu e-mail e enviaremos um link para criar uma nova senha.";
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-white px-4 py-10 text-neutral-900">
+    <div className="flex min-h-screen flex-col bg-white text-neutral-900">
+    <InstallAppPrompt place="auth" />
+    <main className="flex flex-1 items-center justify-center px-4 py-10">
       <div className="w-full max-w-sm">
         <div className="mb-6 flex justify-center">
           <a href="/" className="flex items-center gap-2.5"><PasMark className="size-10" /><span className="text-xl font-black tracking-tight">Shop<span className="text-orange-500">Center</span></span></a>
@@ -189,7 +191,7 @@ function AuthPage() {
           <Link to="/loglog" className="font-bold text-orange-600 hover:underline">Cadastre-se no Shop Center</Link>.
         </p>
       </div>
-      <InstallAppPrompt place="auth" />
     </main>
+    </div>
   );
 }
