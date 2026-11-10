@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 
-import { advanceFloat, canFund, planFulfillment, reactToShopeeStatus, resolveLines, supplierFor, whatsappLink } from "../src/lib/fulfillment";
+import { advanceFloat, canFund, confirmsRecharge, isValidPixRecharge, nextReputationTier, reputationCredit, planFulfillment, reactToShopeeStatus, resolveLines, supplierFor, whatsappLink } from "../src/lib/fulfillment";
 
 const suppliers = [{ id: "s1", sources: ["casabella"], active: true }, { id: "s2", sources: ["petmix"], active: true }, { id: "s3", sources: ["off"], active: false }];
 const products = [
@@ -68,5 +68,32 @@ describe("helpers", () => {
   it("computes the advance float", () => {
     const r = advanceFloat({ ordersPerDay: 100, avgGoodsCost: 40, cycleDays: 20, lossRate: 0.02 });
     expect(r).toEqual({ float: 80000, monthlyFees: 6000, monthlyLosses: 2400, monthlyNet: 3600 });
+  });
+});
+
+describe("reputation credit", () => {
+  it("starts prepaid and grows with delivered orders", () => {
+    expect(reputationCredit(0)).toBe(0);
+    expect(reputationCredit(9)).toBe(0);
+    expect(reputationCredit(10)).toBe(100);
+    expect(reputationCredit(30)).toBe(200);
+    expect(reputationCredit(250)).toBe(300);
+    expect(nextReputationTier(4)).toEqual({ missing: 6, credit: 100 });
+    expect(nextReputationTier(100)).toBeNull();
+  });
+});
+
+describe("pix recharge", () => {
+  const recharge = { id: "r1", amount: 100 };
+  it("only an approved payment of ours with the same amount credits the wallet", () => {
+    expect(confirmsRecharge({ status: "approved", external_reference: "r1", transaction_amount: 100 }, recharge)).toBe(true);
+    expect(confirmsRecharge({ status: "pending", external_reference: "r1", transaction_amount: 100 }, recharge)).toBe(false);
+    expect(confirmsRecharge({ status: "approved", external_reference: "r2", transaction_amount: 100 }, recharge)).toBe(false);
+    expect(confirmsRecharge({ status: "approved", external_reference: "r1", transaction_amount: 10 }, recharge)).toBe(false);
+  });
+  it("validates amounts", () => {
+    expect(isValidPixRecharge(100)).toBe(true);
+    expect(isValidPixRecharge(10)).toBe(false);
+    expect(isValidPixRecharge(100.005)).toBe(false);
   });
 });

@@ -66,6 +66,7 @@ import { Route as InfluencerImagemRouteImport } from './routes/influencer.imagem
 import { Route as InfluencerNovoRouteImport } from './routes/influencer.novo'
 import { Route as AdminUsersIdRouteImport } from './routes/admin.users.$id'
 import { Route as ApiPublicFulfillmentTickRouteImport } from './routes/api.public.fulfillment.tick'
+import { Route as ApiPublicPagamentosMercadopagoRouteImport } from './routes/api.public.pagamentos.mercadopago'
 import { Route as ApiPublicShopeeCallbackRouteImport } from './routes/api.public.shopee.callback'
 import { Route as ApiPublicShopeePushRouteImport } from './routes/api.public.shopee.push'
 
@@ -356,6 +357,12 @@ const ApiPublicFulfillmentTickRoute =
     path: '/api/public/fulfillment/tick',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicPagamentosMercadopagoRoute =
+  ApiPublicPagamentosMercadopagoRouteImport.update({
+    id: '/api/public/pagamentos/mercadopago',
+    path: '/api/public/pagamentos/mercadopago',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicShopeeCallbackRoute = ApiPublicShopeeCallbackRouteImport.update({
   id: '/api/public/shopee/callback',
   path: '/api/public/shopee/callback',
@@ -425,6 +432,7 @@ export interface FileRoutesByFullPath {
   '/influencer/': typeof InfluencerIndexRoute
   '/admin/users/$id': typeof AdminUsersIdRoute
   '/api/public/fulfillment/tick': typeof ApiPublicFulfillmentTickRoute
+  '/api/public/pagamentos/mercadopago': typeof ApiPublicPagamentosMercadopagoRoute
   '/api/public/shopee/callback': typeof ApiPublicShopeeCallbackRoute
   '/api/public/shopee/push': typeof ApiPublicShopeePushRoute
 }
@@ -484,6 +492,7 @@ export interface FileRoutesByTo {
   '/influencer': typeof InfluencerIndexRoute
   '/admin/users/$id': typeof AdminUsersIdRoute
   '/api/public/fulfillment/tick': typeof ApiPublicFulfillmentTickRoute
+  '/api/public/pagamentos/mercadopago': typeof ApiPublicPagamentosMercadopagoRoute
   '/api/public/shopee/callback': typeof ApiPublicShopeeCallbackRoute
   '/api/public/shopee/push': typeof ApiPublicShopeePushRoute
 }
@@ -546,6 +555,7 @@ export interface FileRoutesById {
   '/influencer/': typeof InfluencerIndexRoute
   '/admin/users/$id': typeof AdminUsersIdRoute
   '/api/public/fulfillment/tick': typeof ApiPublicFulfillmentTickRoute
+  '/api/public/pagamentos/mercadopago': typeof ApiPublicPagamentosMercadopagoRoute
   '/api/public/shopee/callback': typeof ApiPublicShopeeCallbackRoute
   '/api/public/shopee/push': typeof ApiPublicShopeePushRoute
 }
@@ -609,6 +619,7 @@ export interface FileRouteTypes {
     | '/influencer/'
     | '/admin/users/$id'
     | '/api/public/fulfillment/tick'
+    | '/api/public/pagamentos/mercadopago'
     | '/api/public/shopee/callback'
     | '/api/public/shopee/push'
   fileRoutesByTo: FileRoutesByTo
@@ -668,6 +679,7 @@ export interface FileRouteTypes {
     | '/influencer'
     | '/admin/users/$id'
     | '/api/public/fulfillment/tick'
+    | '/api/public/pagamentos/mercadopago'
     | '/api/public/shopee/callback'
     | '/api/public/shopee/push'
   id:
@@ -729,6 +741,7 @@ export interface FileRouteTypes {
     | '/influencer/'
     | '/admin/users/$id'
     | '/api/public/fulfillment/tick'
+    | '/api/public/pagamentos/mercadopago'
     | '/api/public/shopee/callback'
     | '/api/public/shopee/push'
   fileRoutesById: FileRoutesById
@@ -769,6 +782,7 @@ export interface RootRouteChildren {
   BLACKIndexRoute: typeof BLACKIndexRoute
   InfluencerIndexRoute: typeof InfluencerIndexRoute
   ApiPublicFulfillmentTickRoute: typeof ApiPublicFulfillmentTickRoute
+  ApiPublicPagamentosMercadopagoRoute: typeof ApiPublicPagamentosMercadopagoRoute
   ApiPublicShopeeCallbackRoute: typeof ApiPublicShopeeCallbackRoute
   ApiPublicShopeePushRoute: typeof ApiPublicShopeePushRoute
 }
@@ -1174,6 +1188,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicFulfillmentTickRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/pagamentos/mercadopago': {
+      id: '/api/public/pagamentos/mercadopago'
+      path: '/api/public/pagamentos/mercadopago'
+      fullPath: '/api/public/pagamentos/mercadopago'
+      preLoaderRoute: typeof ApiPublicPagamentosMercadopagoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/shopee/callback': {
       id: '/api/public/shopee/callback'
       path: '/api/public/shopee/callback'
@@ -1299,6 +1320,7 @@ const rootRouteChildren: RootRouteChildren = {
   BLACKIndexRoute: BLACKIndexRoute,
   InfluencerIndexRoute: InfluencerIndexRoute,
   ApiPublicFulfillmentTickRoute: ApiPublicFulfillmentTickRoute,
+  ApiPublicPagamentosMercadopagoRoute: ApiPublicPagamentosMercadopagoRoute,
   ApiPublicShopeeCallbackRoute: ApiPublicShopeeCallbackRoute,
   ApiPublicShopeePushRoute: ApiPublicShopeePushRoute,
 }

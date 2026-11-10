@@ -112,8 +112,23 @@ export async function fundOrder(userId: string, fulfillmentId: string) {
   return data === "paid";
 }
 
+/**
+ * Raises the automatic credit limit as the seller's delivered orders grow (never lowers it, so a
+ * negative balance always stays inside the limit). An admin override replaces the automatic value.
+ */
+export async function refreshCreditLimit(userId: string) {
+  const client = await db();
+  const { reputationCredit } = await import("@/lib/fulfillment");
+  const { count } = await client.from("fulfillment_orders").select("id", { count: "exact", head: true }).eq("user_id", userId).eq("status", "shipped");
+  const credit = reputationCredit(count ?? 0);
+  await client.from("seller_wallets").upsert({ user_id: userId }, { onConflict: "user_id", ignoreDuplicates: true });
+  await client.from("seller_wallets").update({ credit_limit: credit, updated_at: new Date().toISOString() }).eq("user_id", userId).is("credit_override", null).lt("credit_limit", credit);
+  return { shipped: count ?? 0, credit };
+}
+
 /** Tries to pay every waiting order of a seller, oldest first (after a recharge). */
 export async function fundWaitingOrders(userId: string) {
+  await refreshCreditLimit(userId);
   const client = await db();
   const { data } = await client.from("fulfillment_orders").select("id").eq("user_id", userId).eq("status", "awaiting_funds").order("created_at", { ascending: true }).limit(200);
   let paid = 0;
@@ -169,7 +184,8 @@ export async function markLabel(fulfillmentId: string, trackingNumber: string) {
 
 export async function markShipped(fulfillmentId: string) {
   const client = await db();
-  const { data } = await client.from("fulfillment_orders").update({ status: "shipped", shipped_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq("id", fulfillmentId).eq("status", "queued").select("id").maybeSingle();
+  const { data } = await client.from("fulfillment_orders").update({ status: "shipped", shipped_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq("id", fulfillmentId).eq("status", "queued").select("id, user_id").maybeSingle();
+  if (data) await refreshCreditLimit(String(data["user_id"]));
   return Boolean(data);
 }
 

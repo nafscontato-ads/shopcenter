@@ -42,6 +42,8 @@ export const getMyFulfillment = createServerFn({ method: "GET" })
       creditLimit: Number(wallet.data?.["credit_limit"] ?? 0),
       pendingAmount: Math.round(pending * 100) / 100,
       pixKey: process.env["FULFILLMENT_PIX_KEY"] ?? null,
+      pixAutomatic: Boolean(process.env["MP_ACCESS_TOKEN"]),
+      shippedCount: (orders.data ?? []).filter((row) => row["status"] === "shipped").length,
       shops: (shops.data ?? []).map((shop) => ({ id: shop.id, name: shop.shop_name ?? `Loja ${shop.shop_id}`, autoFulfillment: auto.get(shop.id) ?? false })),
       ledger: (ledger.data ?? []).map((row) => ({ id: String(row["id"]), amount: Number(row["amount"]), kind: String(row["kind"]), note: (row["note"] as string | null) ?? null, balanceAfter: Number(row["balance_after"]), at: String(row["created_at"]) })),
       orders: (orders.data ?? []).map((row): MyFulfillmentOrder => ({
@@ -135,7 +137,8 @@ export const adminSetCreditLimit = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const client = await admin();
     await client.from("seller_wallets").upsert({ user_id: data.userId }, { onConflict: "user_id", ignoreDuplicates: true });
-    const { error } = await client.from("seller_wallets").update({ credit_limit: data.creditLimit, updated_at: new Date().toISOString() }).eq("user_id", data.userId);
+    // A manual limit replaces the automatic reputation limit for this seller.
+    const { error } = await client.from("seller_wallets").update({ credit_limit: data.creditLimit, credit_override: data.creditLimit, updated_at: new Date().toISOString() }).eq("user_id", data.userId);
     if (error) throw new Error("Não foi possível alterar o limite (o saldo atual pode estar abaixo do novo limite).");
     const { fundWaitingOrders } = await import("@/lib/fulfillment.server");
     return { paid: await fundWaitingOrders(data.userId) };
@@ -176,4 +179,44 @@ export const adminSaveSupplier = createServerFn({ method: "POST" })
     const { data: saved, error } = await query;
     if (error || !saved) throw new Error("Não foi possível salvar o fornecedor (o identificador pode já existir).");
     return { id: String(saved["id"]), panelToken: token?.raw ?? null };
+  });
+
+/* ------------------------------- PIX recharge ------------------------------- */
+
+/** Creates a PIX charge; the wallet is credited by itself when Mercado Pago confirms it. */
+export const createPixRecharge = createServerFn({ method: "POST" })
+  .middleware([requireActiveUser])
+  .validator((input: unknown) => z.object({ amount: z.number() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { isValidPixRecharge, PIX_RECHARGE_MAX_BRL, PIX_RECHARGE_MIN_BRL } = await import("@/lib/fulfillment");
+    if (!isValidPixRecharge(data.amount)) throw new Error(`Escolha um valor entre R$ ${PIX_RECHARGE_MIN_BRL} e R$ ${PIX_RECHARGE_MAX_BRL}.`);
+    const client = await admin();
+    const { data: user } = await client.auth.admin.getUserById(context.userId);
+    const email = user?.user?.email;
+    if (!email) throw new Error("Sua conta não tem e-mail cadastrado para o PIX.");
+    const { data: row, error } = await client.from("wallet_recharges").insert({ user_id: context.userId, amount: data.amount }).select("id").single();
+    if (error || !row) throw new Error("Não foi possível iniciar a recarga. Tente de novo.");
+    const { createPixCharge } = await import("@/lib/pix.server");
+    const base = process.env["PUBLIC_SITE_URL"];
+    try {
+      const charge = await createPixCharge({ rechargeId: String(row["id"]), amount: data.amount, email, notificationUrl: base ? `${base.replace(/\/$/, "")}/api/public/pagamentos/mercadopago` : null });
+      await client.from("wallet_recharges").update({ provider_payment_id: charge.paymentId, qr_code: charge.qrCode, qr_code_base64: charge.qrCodeBase64, ticket_url: charge.ticketUrl, updated_at: new Date().toISOString() }).eq("id", row["id"]);
+      return { id: String(row["id"]), amount: data.amount, ...charge };
+    } catch (failure) {
+      await client.from("wallet_recharges").update({ status: "failed", updated_at: new Date().toISOString() }).eq("id", row["id"]);
+      throw failure;
+    }
+  });
+
+/** Polled by the recharge screen: settles the PIX as soon as Mercado Pago confirms it (backup for the webhook). */
+export const checkPixRecharge = createServerFn({ method: "POST" })
+  .middleware([requireActiveUser])
+  .validator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const client = await admin();
+    const { data: row } = await client.from("wallet_recharges").select("status, provider_payment_id").eq("id", data.id).eq("user_id", context.userId).maybeSingle();
+    if (!row) throw new Error("Recarga não encontrada.");
+    if (row["status"] !== "pending" || !row["provider_payment_id"]) return { status: String(row["status"]) };
+    const { settleRecharge } = await import("@/lib/pix.server");
+    return settleRecharge(String(row["provider_payment_id"]));
   });

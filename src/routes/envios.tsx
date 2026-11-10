@@ -2,13 +2,14 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { Truck } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 
 import { AppShell, PageHeader } from "@/components/pas/app-shell";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { FULFILLMENT_FEE_BRL, type FulfillmentStatus } from "@/lib/fulfillment";
-import { getMyFulfillment, payWaitingOrders, setAutoFulfillment } from "@/lib/fulfillment.functions";
+import { FULFILLMENT_FEE_BRL, isValidPixRecharge, nextReputationTier, PIX_RECHARGE_MAX_BRL, PIX_RECHARGE_MIN_BRL, type FulfillmentStatus } from "@/lib/fulfillment";
+import { checkPixRecharge, createPixRecharge, getMyFulfillment, payWaitingOrders, setAutoFulfillment } from "@/lib/fulfillment.functions";
 import { brl } from "@/lib/pas-data";
 import { cn } from "@/lib/utils";
 
@@ -52,7 +53,8 @@ function EnviosPage() {
         <article className="card-surface p-5">
           <p className="text-muted-foreground text-xs">Saldo da carteira</p>
           <p className={cn("mt-2 text-3xl font-bold tabular-nums", (data?.balance ?? 0) < 0 && "text-destructive")}>{query.isLoading ? "…" : brl(data?.balance ?? 0)}</p>
-          {data?.creditLimit ? <p className="text-muted-foreground mt-1 text-[11px]">Limite de adiantamento: {brl(data.creditLimit)} (disponível {brl(available)})</p> : null}
+          {data?.creditLimit ? <p className="text-muted-foreground mt-1 text-[11px]">Crédito Shop Center: {brl(data.creditLimit)} (disponível {brl(available)})</p> : null}
+          {data ? <ReputationLine shipped={data.shippedCount} /> : null}
         </article>
         <article className="card-surface p-5">
           <p className="text-muted-foreground text-xs">Pedidos aguardando saldo</p>
@@ -61,7 +63,9 @@ function EnviosPage() {
         </article>
         <article className="card-surface p-5">
           <p className="text-muted-foreground text-xs">Recarregar</p>
-          <p className="mt-2 text-sm">{data?.pixKey ? <>Envie um PIX para <b className="select-all">{data.pixKey}</b> e mande o comprovante no WhatsApp de suporte. O saldo entra assim que confirmarmos.</> : "Fale com o suporte para recarregar sua carteira."}</p>
+          {data?.pixAutomatic ? <PixRecharge onPaid={refresh} /> : (
+            <p className="mt-2 text-sm">{data?.pixKey ? <>Envie um PIX para <b className="select-all">{data.pixKey}</b> e mande o comprovante no WhatsApp de suporte.</> : "Fale com o suporte para recarregar sua carteira."}</p>
+          )}
         </article>
       </section>
 
@@ -115,5 +119,55 @@ function EnviosPage() {
         </ul>
       </section>
     </AppShell>
+  );
+}
+
+function ReputationLine({ shipped }: { shipped: number }) {
+  const next = nextReputationTier(shipped);
+  return (
+    <p className="text-muted-foreground mt-1 text-[11px]">
+      {shipped} pedido(s) entregue(s).{next ? ` Faltam ${next.missing} para liberar ${brl(next.credit)} de crédito.` : " Crédito máximo liberado."}
+    </p>
+  );
+}
+
+const QUICK = [50, 100, 200, 500];
+
+function PixRecharge({ onPaid }: { onPaid: () => void }) {
+  const createFn = useServerFn(createPixRecharge);
+  const checkFn = useServerFn(checkPixRecharge);
+  const [amount, setAmount] = useState("100");
+  const [charge, setCharge] = useState<{ id: string; amount: number; qrCode: string | null; qrCodeBase64: string | null } | null>(null);
+  const value = Number(amount.replace(",", "."));
+  const create = useMutation({ mutationFn: () => createFn({ data: { amount: value } }), onSuccess: setCharge, onError: (e: Error) => toast.error(e.message) });
+  useQuery({
+    queryKey: ["pix-recharge", charge?.id],
+    enabled: Boolean(charge),
+    refetchInterval: 5000,
+    queryFn: async () => {
+      const result = await checkFn({ data: { id: charge!.id } });
+      if (result.status === "paid") { toast.success("PIX confirmado. Saldo adicionado."); setCharge(null); onPaid(); }
+      if (result.status === "failed" || result.status === "expired") { toast.error("Este PIX expirou. Gere outro."); setCharge(null); }
+      return result;
+    },
+  });
+
+  if (charge) {
+    return (
+      <div className="mt-2 space-y-2 text-sm">
+        <p>Pague {brl(charge.amount)} no app do seu banco. O saldo entra sozinho em segundos.</p>
+        {charge.qrCodeBase64 ? <img alt="QR Code PIX" className="mx-auto h-40 w-40" src={`data:image/png;base64,${charge.qrCodeBase64}`} /> : null}
+        {charge.qrCode ? <Button size="sm" variant="outline" className="w-full" onClick={() => { void navigator.clipboard.writeText(charge.qrCode!); toast.success("Código PIX copiado."); }}>Copiar PIX copia e cola</Button> : null}
+        <button type="button" className="text-muted-foreground text-xs underline" onClick={() => setCharge(null)}>Gerar outro valor</button>
+      </div>
+    );
+  }
+  return (
+    <div className="mt-2 space-y-2">
+      <div className="flex flex-wrap gap-1">{QUICK.map((q) => <Button key={q} size="sm" variant={value === q ? "default" : "outline"} onClick={() => setAmount(String(q))}>{brl(q)}</Button>)}</div>
+      <input className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} aria-label="Valor da recarga" />
+      <Button size="sm" className="w-full" disabled={!isValidPixRecharge(value) || create.isPending} onClick={() => create.mutate()}>{create.isPending ? "Gerando PIX…" : "Gerar PIX"}</Button>
+      <p className="text-muted-foreground text-[11px]">De {brl(PIX_RECHARGE_MIN_BRL)} a {brl(PIX_RECHARGE_MAX_BRL)}. Sem aprovação manual.</p>
+    </div>
   );
 }

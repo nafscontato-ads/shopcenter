@@ -149,3 +149,41 @@ export function advanceFloat(input: FloatInput) {
   const monthlyLosses = money(monthlyOrders * input.avgGoodsCost * input.lossRate);
   return { float, monthlyFees, monthlyLosses, monthlyNet: money(monthlyFees - monthlyLosses) };
 }
+
+/** Recharge limits for the automatic PIX (owner decision: same range as the Financeiro tab). */
+export const PIX_RECHARGE_MIN_BRL = 20;
+export const PIX_RECHARGE_MAX_BRL = 5000;
+
+export function isValidPixRecharge(amount: number) {
+  return Number.isFinite(amount) && Math.round(amount * 100) === amount * 100 && amount >= PIX_RECHARGE_MIN_BRL && amount <= PIX_RECHARGE_MAX_BRL;
+}
+
+/**
+ * Credit the platform advances a seller automatically, by delivered (shipped) orders.
+ * New sellers are fully prepaid; reputation unlocks a short advance so sales never stall.
+ */
+export const REPUTATION_TIERS: ReadonlyArray<{ shipped: number; credit: number }> = [
+  { shipped: 100, credit: 300 },
+  { shipped: 30, credit: 200 },
+  { shipped: 10, credit: 100 },
+];
+
+export function reputationCredit(shippedOrders: number) {
+  return REPUTATION_TIERS.find((tier) => shippedOrders >= tier.shipped)?.credit ?? 0;
+}
+
+/** Next tier the seller can reach, for the progress line in the wallet screen. */
+export function nextReputationTier(shippedOrders: number) {
+  const next = [...REPUTATION_TIERS].reverse().find((tier) => shippedOrders < tier.shipped);
+  return next ? { missing: next.shipped - shippedOrders, credit: next.credit } : null;
+}
+
+/**
+ * Whether a Mercado Pago payment confirms our recharge: approved, ours, same amount.
+ * The payment is always re-read from Mercado Pago with our token, never taken from the webhook body.
+ */
+export function confirmsRecharge(payment: { status?: unknown; external_reference?: unknown; transaction_amount?: unknown }, recharge: { id: string; amount: number }) {
+  return payment.status === "approved"
+    && String(payment.external_reference ?? "") === recharge.id
+    && Math.round(Number(payment.transaction_amount) * 100) === Math.round(recharge.amount * 100);
+}
