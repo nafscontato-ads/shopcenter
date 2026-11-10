@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
-import { ArrowRight, BadgeCheck, Bell, Boxes, Calculator, Check, ChevronDown, Link2, LogIn, PackageCheck, Printer, ShieldCheck, Store, Truck, Zap } from "lucide-react";
+import { ArrowRight, BadgeCheck, Clock, Bell, Boxes, Calculator, Check, ChevronDown, Link2, LogIn, PackageCheck, Printer, ShieldCheck, Store, Truck, Zap } from "lucide-react";
 
 import { PasMark } from "@/components/pas/logo";
 import { ThumbImg } from "@/components/pas/thumb-img";
 import { WhatsAppButton } from "@/components/site/whatsapp-button";
 import { company, whatsappLink } from "@/lib/company";
+import { marketplaces as marketplaceList } from "@/lib/marketplaces";
 import { brl, type Product } from "@/lib/pas-data";
 import { cn } from "@/lib/utils";
 
@@ -139,6 +140,83 @@ const features = [
   [ShieldCheck, "API oficial", "Conexão autorizada por você, pela API oficial de cada marketplace."],
 ] as const;
 
+
+/* ------------------------------------------------------------------ */
+/* Contador da oferta Black: conta até uma data real (VITE_OFFER_ENDS_AT) */
+/* ------------------------------------------------------------------ */
+
+const OFFER_ENDS_AT = Date.parse(((import.meta.env as Record<string, string | undefined>)["VITE_OFFER_ENDS_AT"] || "2026-11-30T23:59:59-03:00").trim());
+const pad = (n: number) => String(n).padStart(2, "0");
+
+function OfferCountdown() {
+  const [left, setLeft] = useState<number | null>(null);
+  useEffect(() => {
+    const tick = () => setLeft(Math.max(0, OFFER_ENDS_AT - Date.now()));
+    tick();
+    const id = window.setInterval(tick, 1000);
+    return () => window.clearInterval(id);
+  }, []);
+  if (!Number.isFinite(OFFER_ENDS_AT) || left === 0) return null;
+  const total = Math.floor((left ?? 0) / 1000);
+  const d = Math.floor(total / 86400), h = Math.floor((total % 86400) / 3600), m = Math.floor((total % 3600) / 60), sec = total % 60;
+  const units: [string, string][] = [...(d > 0 ? [[String(d), d === 1 ? "dia" : "dias"] as [string, string]] : []), [pad(h), "h"], [pad(m), "min"], [pad(sec), "s"]];
+  return (
+    <a href="#planos" className="block bg-neutral-950 text-white">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-3 gap-y-1 px-4 py-2 text-xs font-bold sm:text-sm">
+        <span className="inline-flex items-center gap-1.5"><Clock className="size-4 text-orange-400" />Oferta <span className="text-orange-400">Black Shop Center</span> termina em</span>
+        <span className="inline-flex items-center gap-1 tabular-nums" aria-live="off">
+          {left === null ? <span className="opacity-60">--:--:--</span> : units.map(([v, l], i) => <span key={l} className="inline-flex items-baseline gap-0.5">{i > 0 && <span className="px-0.5 text-orange-400">:</span>}<span className="rounded-md bg-orange-500 px-1.5 py-0.5 font-black">{v}</span><span className="text-[10px] font-semibold text-neutral-400">{l}</span></span>)}
+        </span>
+      </div>
+    </a>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Carrossel de marketplaces (cards passando para o lado)              */
+/* ------------------------------------------------------------------ */
+
+const MARKETPLACE_CARDS: { id: string; text: string }[] = [
+  { id: "shopee", text: "Conecte até 3 lojas e publique em 1 clique." },
+  { id: "mercado-livre", text: "Anúncios e pedidos no mesmo painel." },
+  { id: "amazon", text: "Catálogo pronto para levar à Amazon." },
+  { id: "magalu", text: "Venda no Magalu sem montar estoque." },
+  { id: "tiktok-shop", text: "Produtos prontos para vender no TikTok Shop." },
+];
+
+function MarketplaceMarquee() {
+  const cards = MARKETPLACE_CARDS.map((c) => ({ ...c, m: marketplaceList.find((m) => m.id === c.id) })).filter((c) => c.m);
+  const loop = [...cards, ...cards];
+  return (
+    <section className="overflow-hidden bg-white py-16" aria-label="Marketplaces">
+      <p className="text-center text-xs font-black uppercase tracking-[0.2em] text-orange-600">Onde você vende</p>
+      <h2 className="mx-auto mt-3 max-w-2xl px-4 text-center text-3xl font-black sm:text-4xl">Um painel para os maiores marketplaces do Brasil.</h2>
+      <div className="sc3d-marquee mt-10">
+        <div className="sc3d-marquee-track">
+          {loop.map((c, i) => (
+            <article key={`${c.id}-${i}`} aria-hidden={i >= cards.length} className="w-64 shrink-0 overflow-hidden rounded-3xl border border-orange-100 bg-[#fffaf5] sm:w-72">
+              <div className="grid h-36 place-items-center bg-gradient-to-b from-orange-50 to-white"><span className="grid size-24 place-items-center overflow-hidden rounded-3xl bg-white shadow-[0_18px_40px_-20px_rgba(234,88,12,0.6)]"><img src={c.m!.logo} alt={c.m!.name} width={96} height={96} loading="lazy" className="h-full w-full object-contain p-2" /></span></div>
+              <div className="p-5"><h3 className="text-lg font-black">{c.m!.name}</h3><p className="mt-1 text-sm text-neutral-600">{c.text}</p></div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* Vitrine usada enquanto o catálogo do banco novo ainda está vazio. */
+const SHOWCASE_PRODUCTS: { name: string; category: string; price: number; image: string }[] = [
+  { name: "Frigideira Naturalle Vermelha 28cm Brinox", category: "Cozinha", price: 46.08, image: "https://minipreco.vteximg.com.br/arquivos/ids/218092-300-300/c5420773-4a13-4df8-8d21-5b4dfd0170b3.jpg?v=638985489091630000" },
+  { name: "Edredom Blend Queen Comfort Plush 220x230cm Altenburg", category: "Cama, mesa e banho", price: 184.6, image: "https://minipreco.vteximg.com.br/arquivos/ids/214144-300-300/9095afce-b8dc-4c7e-8eb3-6ff0c2f70ed7.jpg?v=638776093045400000" },
+  { name: "Pote Vac Freezer Redondo Baixo 640ml Sanremo", category: "Utilidades domésticas", price: 9.15, image: "https://minipreco.vteximg.com.br/arquivos/ids/196146-300-300/436db5dd-e05e-49d8-8302-090ea08c2878.jpg?v=638496610345370000" },
+  { name: "Jarra Quartzo Borossilicato 1,2L Tuut", category: "Cozinha", price: 46.14, image: "https://minipreco.vteximg.com.br/arquivos/ids/218657-300-300/95ebd59b-cfaf-413b-b2a2-30849ca664bd.jpg?v=639072081706370000" },
+  { name: "Enfeite Pendente Boneco de Natal Sentado 11cm Xadrez", category: "Sazonal", price: 12.29, image: "https://dcduh12ikx9w9.cloudfront.net/img/p/2/2/7/2/3/9/227239-home_default.jpg" },
+  { name: "Escorredor de Louça Basic Preto Coza", category: "Utilidades domésticas", price: 46, image: "https://minipreco.vteximg.com.br/arquivos/ids/216212-300-300/3d19a1eb-207a-4b0b-acae-a6a9b9170c1d.jpg?v=638852649437230000" },
+  { name: "Fone de Ouvido com Fio Tipo C Som Estéreo", category: "Eletrônicos", price: 23.06, image: "https://dcduh12ikx9w9.cloudfront.net/img/p/2/3/3/6/6/6/233666-home_default.jpg" },
+  { name: "Escova Pente para Cabelo Pata Pata Oval", category: "Beleza", price: 3.06, image: "https://dcduh12ikx9w9.cloudfront.net/img/p/2/3/9/5/7/4/239574-home_default.jpg" },
+];
+
 type Plan = { name: string; price: string; note: string; href: string; featured?: boolean };
 
 export type Landing3DProps = {
@@ -152,7 +230,10 @@ export type Landing3DProps = {
 
 export function Landing3D({ products, productCount, monthlyCheckout, lifetimeCheckout, monthlyPrice = 179.9, lifetimePrice = 295.9 }: Landing3DProps) {
   const heroRef = useParallax();
-  const previews = useMemo(() => products.filter((p) => p.image).slice(0, 8), [products]);
+  const previews = useMemo(() => {
+    const real = products.filter((p) => p.image).slice(0, 8).map((p) => ({ key: p.id, name: p.name, category: p.category, price: p.promoPrice ?? p.price, image: p.image as string }));
+    return real.length >= 4 ? real : SHOWCASE_PRODUCTS.map((p) => ({ key: p.name, ...p }));
+  }, [products]);
   const support = whatsappLink();
   const plans: Plan[] = [
     { name: "Mensal", price: brl(monthlyPrice), note: "por mês · cancele quando quiser", href: monthlyCheckout },
@@ -170,6 +251,7 @@ export function Landing3D({ products, productCount, monthlyCheckout, lifetimeChe
   return (
     <div className="sc3d min-h-screen overflow-x-hidden bg-[#fffaf5] text-neutral-900">
       <header className="sticky top-0 z-50 border-b border-orange-100/70 bg-white/80 backdrop-blur-lg">
+        <OfferCountdown />
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4 sm:px-6">
           <a href="#topo" className="flex items-center gap-2.5"><PasMark className="size-9" /><span className="text-lg font-black tracking-tight">Shop<span className="text-orange-500">Center</span></span></a>
           <nav className="ml-auto hidden items-center gap-7 text-sm font-semibold text-neutral-600 md:flex"><a href="#como">Como funciona</a><a href="#catalogo">Produtos</a><a href="#planos">Planos</a><a href="#faq">Dúvidas</a></nav>
@@ -208,6 +290,8 @@ export function Landing3D({ products, productCount, monthlyCheckout, lifetimeChe
             ))}
           </div>
         </section>
+
+        <MarketplaceMarquee />
 
         {/* ANTES x DEPOIS */}
         <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
@@ -251,14 +335,14 @@ export function Landing3D({ products, productCount, monthlyCheckout, lifetimeChe
         {previews.length > 0 && (
           <section id="catalogo" className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
             <div className="flex flex-wrap items-end justify-between gap-4">
-              <div><p className="text-xs font-black uppercase tracking-[0.2em] text-orange-600">Catálogo liberado</p><h2 className="mt-3 text-3xl font-black sm:text-5xl"><span className="tabular-nums">{productCount.toLocaleString("pt-BR")}</span> produtos prontos</h2></div>
+              <div><p className="text-xs font-black uppercase tracking-[0.2em] text-orange-600">Catálogo liberado</p><h2 className="mt-3 text-3xl font-black sm:text-5xl">{productCount > 0 ? <><span className="tabular-nums">{productCount.toLocaleString("pt-BR")}</span> produtos prontos</> : "Produtos prontos para vender"}</h2></div>
               <span className="rounded-full bg-orange-100 px-4 py-2 text-sm font-bold text-orange-700">Custo do fornecedor à vista</span>
             </div>
             <div className="mt-10 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
               {previews.map((p, i) => (
-                <article key={p.id} className="sc3d-card group overflow-hidden rounded-3xl border border-orange-100 bg-white" style={{ "--d": `${i * 0.05}s` } as CSSProperties}>
+                <article key={p.key} className="sc3d-card group overflow-hidden rounded-3xl border border-orange-100 bg-white" style={{ "--d": `${i * 0.05}s` } as CSSProperties}>
                   <div className="aspect-square bg-gradient-to-b from-orange-50 to-white"><ThumbImg src={p.image} alt={p.name} width={300} height={300} className="h-full w-full object-contain p-4 transition-transform duration-500 group-hover:scale-105" /></div>
-                  <div className="border-t border-orange-50 p-4"><p className="truncate text-[10px] font-black uppercase tracking-widest text-orange-500">{p.category}</p><h3 className="mt-1 line-clamp-2 min-h-10 text-[13px] font-bold">{p.name}</h3><p className="mt-2 text-xl font-black tabular-nums">{brl(p.promoPrice ?? p.price)}</p></div>
+                  <div className="border-t border-orange-50 p-4"><p className="truncate text-[10px] font-black uppercase tracking-widest text-orange-500">{p.category}</p><h3 className="mt-1 line-clamp-2 min-h-10 text-[13px] font-bold">{p.name}</h3><p className="mt-2 text-[10px] font-bold uppercase text-neutral-400">Custo do fornecedor</p><p className="text-xl font-black tabular-nums">{brl(p.price)}</p></div>
                 </article>
               ))}
             </div>

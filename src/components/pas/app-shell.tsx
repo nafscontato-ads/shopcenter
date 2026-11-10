@@ -25,6 +25,7 @@ import { BrandWordmark, PasLogo, PasMark } from "@/components/pas/logo";
 import { usePartnerBranding } from "@/hooks/use-partner-branding";
 import { ensureFont, themeIsLight, themeVars, type PartnerTheme } from "@/lib/partner-theme";
 import { SalesBell } from "@/components/pas/sales-bell";
+import { InstallAppPrompt } from "@/components/site/install-app-prompt";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -457,6 +458,7 @@ function AppShellInner({ children, appearance }: { children: ReactNode; appearan
         <main className="mx-auto w-full max-w-[1240px] flex-1 px-4 py-6 md:px-8 md:py-8">
           {retiredPage ? null : children}
         </main>
+        <InstallAppPrompt place="app" />
       </div>
     </div>
   );
