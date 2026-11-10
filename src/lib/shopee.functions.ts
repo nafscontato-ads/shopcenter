@@ -496,11 +496,14 @@ export const getSupplierProductPhotos = createServerFn({ method: "POST" })
   .middleware([requireActiveUser])
   .validator((input: unknown) => supplierPhotosInput.parse(input))
   .handler(async ({ data, context }) => {
-    const { data: product, error } = await context.supabase
+    // supplier_url não é legível pelo aluno direto no banco; lê no servidor com a mesma regra de antes.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const isOwner = await isOwnerAccount(context.supabase, context.userId);
+    const { data: product, error } = await supabaseAdmin
       .from("products")
       .select("primary_image, gallery_images, url, supplier_source, supplier_url")
       .eq("id", data.productId)
-      .in("status", ["active", OWNER_EXCLUSIVE_STATUS])
+      .in("status", isOwner ? ["active", OWNER_EXCLUSIVE_STATUS] : ["active"])
       .maybeSingle();
     if (error || !product) throw new Error("Produto não encontrado no catálogo.");
 
