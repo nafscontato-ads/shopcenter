@@ -1,0 +1,2 @@
+CREATE INDEX IF NOT EXISTS products_active_viral_idx ON public.products (viral_score DESC, id) WHERE status = 'active';
+CREATE INDEX IF NOT EXISTS shopee_listings_updated_idx ON public.shopee_listings (updated_at DESC);

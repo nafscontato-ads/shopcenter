@@ -1,0 +1,1 @@
+ALTER TABLE public.shopee_listings ADD COLUMN IF NOT EXISTS size_chart_url text;

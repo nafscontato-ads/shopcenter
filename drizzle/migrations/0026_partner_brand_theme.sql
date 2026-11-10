@@ -1,0 +1,2 @@
+ALTER TABLE public.partner_profiles ADD COLUMN IF NOT EXISTS brand_theme jsonb NOT NULL DEFAULT '{}'::jsonb;
+ALTER TABLE public.partner_profiles ADD CONSTRAINT partner_brand_theme_size CHECK (pg_column_size(brand_theme) <= 20000);

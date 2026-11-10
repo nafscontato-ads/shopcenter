@@ -1,0 +1,244 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1789958106720,
+      "tag": "0000_expand_shopee_management_hub",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790045768948,
+      "tag": "0001_limit_influencers_per_user",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790200711396,
+      "tag": "0002_create_shared_influencer_catalog",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1790201099700,
+      "tag": "0003_remove_influencer_and_generation_limits",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1790264430874,
+      "tag": "0004_add_private_shopee_listing_media",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1790376126264,
+      "tag": "0005_add_shopee_max_ad_preference",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790476528337,
+      "tag": "0006_add_product_video_and_catalog_media_policies",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1790476758794,
+      "tag": "0007_allow_admin_sign_catalog_media",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1790793697982,
+      "tag": "0008_partner_sales_page_slugs",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1791502103832,
+      "tag": "0009_supplier_free_activation",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1791502198326,
+      "tag": "0010_read_supplier_activation_clock",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1791844113754,
+      "tag": "0011_shopee_listing_size_chart",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1792552054777,
+      "tag": "0012_shopee_publications_and_catalog_compliance",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1792552080576,
+      "tag": "0013_grant_shopee_publications_and_compliance",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1792552909043,
+      "tag": "0014_shopee_publications_owner_read",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1792553164162,
+      "tag": "0015_shopee_publications_owner_read_fn",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1792584128900,
+      "tag": "0016_catalog_compliance_shopee_reference",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1793246042591,
+      "tag": "0017_black_friday_coupons",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1793247039048,
+      "tag": "0018_black_partner_slots",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1793247410301,
+      "tag": "0019_remove_black_coupon_functions",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1793321705190,
+      "tag": "0020_supplier_site_products",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1793323515945,
+      "tag": "0021_products_supplier_link",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1793326281835,
+      "tag": "0022_listing_promotion",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1793628401963,
+      "tag": "0023_owner_exclusive_christmas_tree",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1793631454000,
+      "tag": "0024_christmas_tree_cost",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1793892688320,
+      "tag": "0025_partner_branding",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1793893323842,
+      "tag": "0026_partner_brand_theme",
+      "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1794171512994,
+      "tag": "0027_partner_logistica_slugs",
+      "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1794271943115,
+      "tag": "0028_catalog_order_indexes",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1794272059200,
+      "tag": "0029_close_open_reads",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1794272349707,
+      "tag": "0030_supplier_sync_min_cost",
+      "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1794273144092,
+      "tag": "0031_community_listing_candidates",
+      "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1794273242507,
+      "tag": "0032_community_candidates_fast",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1794273447372,
+      "tag": "0033_catalog_snapshot",
+      "breakpoints": true
+    }
+  ]
+}

@@ -1,0 +1,2 @@
+ALTER TABLE public.catalog_product_compliance ADD COLUMN IF NOT EXISTS shopee_reference jsonb;
+COMMENT ON COLUMN public.catalog_product_compliance.shopee_reference IS 'Admin-pasted Shopee product details (category path, labelled fields, description) used as product facts when publishing.';
