@@ -78,8 +78,13 @@ export function safeStateMatch(raw: string, expectedHash: string) {
   return actual.length === expected.length && timingSafeEqual(actual, expected);
 }
 
+// Endereço mundial da Shopee. O login de autorização passa por ele quando o endereço do Brasil ainda
+// não recebeu uma mudança feita no painel (ex.: troca do domínio de redirecionamento).
+const SHOPEE_GLOBAL_URL = "https://partner.shopeemobile.com";
+let authBaseUrl = SHOPEE_BASE_URL;
+
 export function buildShopeeAuthUrl(state: string) {
-  return authUrl(SHOPEE_BASE_URL, state);
+  return authUrl(authBaseUrl, state);
 }
 
 async function inspectAuthUrl(baseUrl: string) {
@@ -100,13 +105,28 @@ export async function diagnoseShopeeAuth() {
   const url = authUrl(SHOPEE_BASE_URL, "pas-credential-check");
   const response = await fetch(url!, { redirect: "manual", signal: AbortSignal.timeout(15_000) });
   const body = response.status >= 300 && response.status < 400 ? "redireciona (aceito)" : (await response.text()).slice(0, 300);
-  return `${shape}; HTTP ${response.status}; ${body}`;
+  let global = "";
+  if (!body.startsWith("redireciona")) {
+    const other = await fetch(authUrl(SHOPEE_GLOBAL_URL, "pas-credential-check")!, { redirect: "manual", signal: AbortSignal.timeout(15_000) }).catch(() => null);
+    global = `; endereço mundial: ${other ? (other.status >= 300 && other.status < 400 ? "redireciona (aceito)" : `HTTP ${other.status} ${(await other.text()).slice(0, 160)}`) : "sem resposta"}`;
+  }
+  return `${shape}; HTTP ${response.status}; ${body}${global}`;
 }
 
 export async function inspectShopeeCredentials() {
   if (!partnerConfig()) return { status: "not_configured" as const };
   const production = await inspectAuthUrl(SHOPEE_BASE_URL);
-  if (production.accepted) return { status: "production" as const };
+  if (production.accepted) {
+    authBaseUrl = SHOPEE_BASE_URL;
+    return { status: "production" as const };
+  }
+  if (production.error === "error_param") {
+    const global = await inspectAuthUrl(SHOPEE_GLOBAL_URL).catch(() => ({ accepted: false, error: "unreachable" }));
+    if (global.accepted) {
+      authBaseUrl = SHOPEE_GLOBAL_URL;
+      return { status: "production" as const };
+    }
+  }
   if (production.error === "invalid_partner_id") {
     const sandbox = await inspectAuthUrl(SHOPEE_SANDBOX_URL);
     if (sandbox.accepted) return { status: "sandbox" as const };
@@ -114,7 +134,7 @@ export async function inspectShopeeCredentials() {
   return { status: "invalid" as const };
 }
 
-async function publicShopeePost(path: string, body: Record<string, unknown>) {
+async function publicShopeePost(path: string, body: Record<string, unknown>, baseUrl = SHOPEE_BASE_URL) {
   const config = partnerConfig();
   if (!config) throw new Error("A integração oficial da Shopee ainda não foi ativada.");
   const timestamp = unixTime();
@@ -124,7 +144,7 @@ async function publicShopeePost(path: string, body: Record<string, unknown>) {
     timestamp: String(timestamp),
     sign,
   });
-  const response = await fetch(`${SHOPEE_BASE_URL}${path}?${query}`, {
+  const response = await fetch(`${baseUrl}${path}?${query}`, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ partner_id: config.partnerId, ...body }),
@@ -137,7 +157,12 @@ async function publicShopeePost(path: string, body: Record<string, unknown>) {
 }
 
 export async function exchangeShopeeCode(code: string, shopId: number) {
-  return publicShopeePost("/api/v2/auth/token/get", { code, shop_id: shopId });
+  try {
+    return await publicShopeePost("/api/v2/auth/token/get", { code, shop_id: shopId });
+  } catch (error) {
+    // Autorização feita pelo endereço mundial: o código é trocado por lá.
+    return await publicShopeePost("/api/v2/auth/token/get", { code, shop_id: shopId }, SHOPEE_GLOBAL_URL).catch(() => { throw error; });
+  }
 }
 
 export function readShopeeTokenPayload(result: Record<string, unknown>): ShopeeTokenPayload {

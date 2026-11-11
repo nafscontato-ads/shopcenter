@@ -15,7 +15,7 @@ export const Route = createFileRoute("/api/public/saude")({
           shopee_partner: process.env["SHOPEE_PARTNER_ID"] ? "ok" : "faltando",
           applyfy_token: process.env["APPLYFY_WEBHOOK_TOKEN"] ? "ok" : "faltando",
           resend: process.env["RESEND_API_KEY"] ? "ok" : "faltando",
-          versao: "cadastro-cpf+shopee-diag",
+          versao: "shopee-endereco-mundial",
           hora_do_servidor: new Date().toISOString(),
         };
         try {
