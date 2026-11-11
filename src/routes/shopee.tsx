@@ -392,9 +392,11 @@ function ShopeeWorkspaceContent() {
       </section>
       </>)}
 
-      <a href="https://seller.shopee.com.br/register/form" target="_blank" rel="noopener noreferrer" className="border-border bg-card hover:border-primary/50 text-muted-foreground hover:text-foreground mb-6 -mt-3 inline-flex items-center gap-2 rounded-full border py-1 pr-3 pl-1 text-xs transition-colors">
+      <a href="https://seller.shopee.com.br/register/form" target="_blank" rel="noopener noreferrer" className={connection
+        ? "border-border bg-card hover:border-primary/50 text-muted-foreground hover:text-foreground mb-6 -mt-3 inline-flex items-center gap-2 rounded-full border py-1 pr-3 pl-1 text-xs transition-colors"
+        : "bg-primary text-primary-foreground hover:bg-primary/90 mb-6 -mt-3 flex w-full items-center justify-center gap-2.5 rounded-xl px-5 py-3 text-sm font-bold shadow-sm transition-colors sm:inline-flex sm:w-auto"}>
         <img src={shopeeBag.url} alt="Shopee" className="size-6 rounded-full object-cover" />
-        Ainda não tem conta? Criar painel de vendedor Shopee
+        {connection ? "Criar outra loja na Shopee" : "Ainda não tem loja? Criar minha loja na Shopee"}
       </a>
 
       <MarketplaceConnections />
