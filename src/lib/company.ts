@@ -9,6 +9,9 @@ const env = (key: string) => {
   return typeof value === "string" ? value.trim() : "";
 };
 
+/** Suporte oficial (dono, 2026-11-11). Vale quando a variável do painel está vazia. */
+const SUPPORT_WHATSAPP_DEFAULT = "5592920025017";
+
 export const company = {
   brand: "Shop Center",
   /** Razão social ou nome do MEI, exatamente como no cartão CNPJ. */
@@ -20,7 +23,7 @@ export const company = {
   city: env("VITE_COMPANY_CITY"),
   email: env("VITE_SUPPORT_EMAIL"),
   /** WhatsApp oficial de suporte, só números com DDI: 5511999999999 */
-  whatsapp: env("VITE_SUPPORT_WHATSAPP").replace(/\D/g, ""),
+  whatsapp: (env("VITE_SUPPORT_WHATSAPP").replace(/\D/g, "") || SUPPORT_WHATSAPP_DEFAULT),
   instagram: env("VITE_SUPPORT_INSTAGRAM").replace(/^@/, ""),
 };
 
