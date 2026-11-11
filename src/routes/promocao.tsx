@@ -73,7 +73,13 @@ function PromocaoContent() {
         <p className="text-muted-foreground mt-1 text-sm">
           Compartilhe seu endereço individual. As compras usam diretamente os seus checkouts.
         </p>
-        {access.salesPageSlug ? (
+        {access.affiliateCode ? (
+          <Button asChild size="sm" className="mt-4">
+            <Link to="/r/$code" params={{ code: access.affiliateCode }} target="_blank">
+              <ExternalLink /> Abrir minha página
+            </Link>
+          </Button>
+        ) : access.salesPageSlug ? (
           <Button asChild size="sm" className="mt-4">
             <Link to="/fornecedor/$slug" params={{ slug: access.salesPageSlug }} target="_blank">
               <ExternalLink /> Abrir minha página
