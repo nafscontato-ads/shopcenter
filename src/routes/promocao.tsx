@@ -79,6 +79,12 @@ function PromocaoContent() {
               <ExternalLink /> Abrir minha página
             </Link>
           </Button>
+        ) : access.ownsOfficialOffer ? (
+          <Button asChild size="sm" className="mt-4">
+            <Link to="/" target="_blank">
+              <ExternalLink /> Abrir minha página
+            </Link>
+          </Button>
         ) : access.salesPageSlug ? (
           <Button asChild size="sm" className="mt-4">
             <Link to="/fornecedor/$slug" params={{ slug: access.salesPageSlug }} target="_blank">

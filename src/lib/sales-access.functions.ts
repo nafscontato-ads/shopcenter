@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireActiveUser } from "@/lib/access-control";
+import { OFFICIAL_CHECKOUT } from "@/lib/checkouts";
 
 export type SalesAccess = {
   allowed: boolean;
@@ -10,6 +11,8 @@ export type SalesAccess = {
   salesPageSlug: string | null;
   /** Código de afiliado na Applyfy (do checkout do parceiro): abre a página nova em /r/CODIGO. */
   affiliateCode: string | null;
+  /** Dono da oferta: o checkout dele é o oficial, então a página de vendas dele é a oficial (/). */
+  ownsOfficialOffer: boolean;
   status: string | null;
 };
 
@@ -83,6 +86,7 @@ export const getSalesAccess = createServerFn({ method: "GET" })
       partnerName: partner?.name ?? null,
       salesPageSlug: partner?.slug ?? null,
       affiliateCode: affiliateCodeOf(partner?.checkout_lifetime_url) ?? affiliateCodeOf(partner?.checkout_monthly_url),
+      ownsOfficialOffer: partner?.checkout_lifetime_url?.trim() === OFFICIAL_CHECKOUT.lifetime || partner?.checkout_monthly_url?.trim() === OFFICIAL_CHECKOUT.monthly,
       status: partner?.status ?? null,
     };
   });

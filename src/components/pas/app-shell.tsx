@@ -92,10 +92,12 @@ const NavList = memo(function NavList({ collapsed, onNavigate, theme, horizontal
 
   return (
     <nav className={horizontal ? "scrollbar-slim mx-auto flex max-w-[1240px] items-center gap-1 overflow-x-auto px-4 py-1.5 md:px-8 [&>div]:flex [&>div]:mb-0 [&>div]:gap-1 [&_a]:mt-0 [&_a]:whitespace-nowrap" : "scrollbar-slim flex-1 overflow-y-auto px-3 py-2"}>
-      {access?.role === "partner" && (access.affiliateCode || access.salesPageSlug) && (
+      {access?.role === "partner" && (access.affiliateCode || access.ownsOfficialOffer || access.salesPageSlug) && (
         <Link
           {...(access.affiliateCode
             ? { to: "/r/$code" as const, params: { code: access.affiliateCode } }
+            : access.ownsOfficialOffer
+            ? { to: "/" as const }
             : { to: "/fornecedor/$slug" as const, params: { slug: access.salesPageSlug ?? "" } })}
           onClick={onNavigate}
           title={collapsed ? "Minha página de vendas" : undefined}
