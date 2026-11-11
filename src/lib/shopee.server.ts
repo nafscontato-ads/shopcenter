@@ -91,6 +91,18 @@ async function inspectAuthUrl(baseUrl: string) {
   return { accepted: false, error: String(result["error"] ?? "unknown") };
 }
 
+/** Diagnóstico sem segredos: o que a Shopee responde ao link de autorização montado com as credenciais do servidor. */
+export async function diagnoseShopeeAuth() {
+  const config = partnerConfig();
+  if (!config) return "credenciais faltando";
+  const key = process.env["SHOPEE_PARTNER_KEY"] ?? "";
+  const shape = `partner_id ${config.partnerId}; chave com ${key.length} caracteres${/\s/.test(key) ? ", TEM ESPAÇO" : ""}${/^[\x21-\x7e]+$/.test(key) ? "" : ", TEM CARACTERE INVÁLIDO"}${key.startsWith("shpk") ? ", começa com shpk" : ""}; redirect ${SHOPEE_CALLBACK_URL}`;
+  const url = authUrl(SHOPEE_BASE_URL, "pas-credential-check");
+  const response = await fetch(url!, { redirect: "manual", signal: AbortSignal.timeout(15_000) });
+  const body = response.status >= 300 && response.status < 400 ? "redireciona (aceito)" : (await response.text()).slice(0, 300);
+  return `${shape}; HTTP ${response.status}; ${body}`;
+}
+
 export async function inspectShopeeCredentials() {
   if (!partnerConfig()) return { status: "not_configured" as const };
   const production = await inspectAuthUrl(SHOPEE_BASE_URL);

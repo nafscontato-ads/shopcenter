@@ -63,6 +63,7 @@ import { Route as AdminSalesRouteImport } from './routes/admin.sales'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminShopeeCheckRouteImport } from './routes/admin.shopee-check'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
+import { Route as CadastroIndexRouteImport } from './routes/cadastro.index'
 import { Route as CadastroTokenRouteImport } from './routes/cadastro.$token'
 import { Route as FornecedorIndexRouteImport } from './routes/fornecedor.index'
 import { Route as FornecedorSlugRouteImport } from './routes/fornecedor.$slug'
@@ -350,6 +351,11 @@ const AdminUsersRoute = AdminUsersRouteImport.update({
   path: '/users',
   getParentRoute: () => AdminRoute,
 } as any)
+const CadastroIndexRoute = CadastroIndexRouteImport.update({
+  id: '/cadastro/',
+  path: '/cadastro/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CadastroTokenRoute = CadastroTokenRouteImport.update({
   id: '/cadastro/$token',
   path: '/cadastro/$token',
@@ -490,6 +496,7 @@ export interface FileRoutesByFullPath {
   '/r/$code': typeof RCodeRoute
   '/BLACK/': typeof BLACKIndexRoute
   '/admin/': typeof AdminIndexRoute
+  '/cadastro/': typeof CadastroIndexRoute
   '/fornecedor/': typeof FornecedorIndexRoute
   '/influencer/': typeof InfluencerIndexRoute
   '/admin/users/$id': typeof AdminUsersIdRoute
@@ -559,6 +566,7 @@ export interface FileRoutesByTo {
   '/r/$code': typeof RCodeRoute
   '/BLACK': typeof BLACKIndexRoute
   '/admin': typeof AdminIndexRoute
+  '/cadastro': typeof CadastroIndexRoute
   '/fornecedor': typeof FornecedorIndexRoute
   '/influencer': typeof InfluencerIndexRoute
   '/admin/users/$id': typeof AdminUsersIdRoute
@@ -631,6 +639,7 @@ export interface FileRoutesById {
   '/r/$code': typeof RCodeRoute
   '/BLACK/': typeof BLACKIndexRoute
   '/admin/': typeof AdminIndexRoute
+  '/cadastro/': typeof CadastroIndexRoute
   '/fornecedor/': typeof FornecedorIndexRoute
   '/influencer/': typeof InfluencerIndexRoute
   '/admin/users/$id': typeof AdminUsersIdRoute
@@ -704,6 +713,7 @@ export interface FileRouteTypes {
     | '/r/$code'
     | '/BLACK/'
     | '/admin/'
+    | '/cadastro/'
     | '/fornecedor/'
     | '/influencer/'
     | '/admin/users/$id'
@@ -773,6 +783,7 @@ export interface FileRouteTypes {
     | '/r/$code'
     | '/BLACK'
     | '/admin'
+    | '/cadastro'
     | '/fornecedor'
     | '/influencer'
     | '/admin/users/$id'
@@ -844,6 +855,7 @@ export interface FileRouteTypes {
     | '/r/$code'
     | '/BLACK/'
     | '/admin/'
+    | '/cadastro/'
     | '/fornecedor/'
     | '/influencer/'
     | '/admin/users/$id'
@@ -896,6 +908,7 @@ export interface RootRouteChildren {
   InfluencerNovoRoute: typeof InfluencerNovoRoute
   RCodeRoute: typeof RCodeRoute
   BLACKIndexRoute: typeof BLACKIndexRoute
+  CadastroIndexRoute: typeof CadastroIndexRoute
   InfluencerIndexRoute: typeof InfluencerIndexRoute
   ApiPublicSaudeRoute: typeof ApiPublicSaudeRoute
   ApiPublicApplyfyWebhookRoute: typeof ApiPublicApplyfyWebhookRoute
@@ -1285,6 +1298,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminUsersRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/cadastro/': {
+      id: '/cadastro/'
+      path: '/cadastro'
+      fullPath: '/cadastro/'
+      preLoaderRoute: typeof CadastroIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/cadastro/$token': {
       id: '/cadastro/$token'
       path: '/cadastro/$token'
@@ -1506,6 +1526,7 @@ const rootRouteChildren: RootRouteChildren = {
   InfluencerNovoRoute: InfluencerNovoRoute,
   RCodeRoute: RCodeRoute,
   BLACKIndexRoute: BLACKIndexRoute,
+  CadastroIndexRoute: CadastroIndexRoute,
   InfluencerIndexRoute: InfluencerIndexRoute,
   ApiPublicSaudeRoute: ApiPublicSaudeRoute,
   ApiPublicApplyfyWebhookRoute: ApiPublicApplyfyWebhookRoute,

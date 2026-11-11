@@ -15,7 +15,8 @@ export const Route = createFileRoute("/api/public/saude")({
           shopee_partner: process.env["SHOPEE_PARTNER_ID"] ? "ok" : "faltando",
           applyfy_token: process.env["APPLYFY_WEBHOOK_TOKEN"] ? "ok" : "faltando",
           resend: process.env["RESEND_API_KEY"] ? "ok" : "faltando",
-          versao: "e0f316d+saude",
+          versao: "cadastro-cpf+shopee-diag",
+          hora_do_servidor: new Date().toISOString(),
         };
         try {
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -23,6 +24,12 @@ export const Route = createFileRoute("/api/public/saude")({
           out["banco_com_chave_de_servico"] = error ? `ERRO: ${error.message} ${error.details ?? ""}`.trim() : `ok (${count} lojas)`;
         } catch (error) {
           out["banco_com_chave_de_servico"] = `ERRO: ${error instanceof Error ? `${error.message} ${(error as { cause?: Error }).cause?.message ?? ""}` : String(error)}`;
+        }
+        try {
+          const { diagnoseShopeeAuth } = await import("@/lib/shopee.server");
+          out["shopee_producao"] = await diagnoseShopeeAuth();
+        } catch (error) {
+          out["shopee_producao"] = `ERRO: ${error instanceof Error ? `${error.message} ${(error as { cause?: Error }).cause?.message ?? ""}` : String(error)}`;
         }
         return Response.json(out, { headers: { "cache-control": "no-store" } });
       },

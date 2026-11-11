@@ -187,7 +187,7 @@ function AuthPage() {
           </div>
         </section>
         <p className="mt-4 text-center text-xs text-neutral-500">
-          Comprou agora? Crie sua conta pelo link que enviamos no <b>e-mail da compra</b>.
+          Comprou agora e ainda não tem conta? <a href="/cadastro" className="font-semibold text-orange-600">Criar minha conta</a>
         </p>
       </div>
     </main>
