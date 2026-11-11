@@ -1,6 +1,6 @@
-import { describe, expect, it } from "bun:test";
+import { describe, expect, it, test } from "bun:test";
 
-import { advanceFloat, canFund, confirmsRecharge, isValidPixRecharge, nextReputationTier, reputationCredit, planFulfillment, reactToShopeeStatus, resolveLines, supplierFor, whatsappLink } from "../src/lib/fulfillment";
+import { advanceFloat, canFund, confirmsAsaasRecharge, confirmsRecharge, normalizeCpfCnpj, pixKeyInfo, isValidPixRecharge, nextReputationTier, reputationCredit, planFulfillment, reactToShopeeStatus, resolveLines, supplierFor, whatsappLink } from "../src/lib/fulfillment";
 
 const suppliers = [{ id: "s1", sources: ["casabella"], active: true }, { id: "s2", sources: ["petmix"], active: true }, { id: "s3", sources: ["off"], active: false }];
 const products = [
@@ -95,5 +95,29 @@ describe("pix recharge", () => {
     expect(isValidPixRecharge(100)).toBe(true);
     expect(isValidPixRecharge(10)).toBe(false);
     expect(isValidPixRecharge(100.005)).toBe(false);
+  });
+});
+
+describe("asaas helpers", () => {
+  test("validates CPF and CNPJ check digits", () => {
+    expect(normalizeCpfCnpj("529.982.247-25")).toBe("52998224725");
+    expect(normalizeCpfCnpj("529.982.247-24")).toBeNull();
+    expect(normalizeCpfCnpj("111.111.111-11")).toBeNull();
+    expect(normalizeCpfCnpj("11.222.333/0001-81")).toBe("11222333000181");
+    expect(normalizeCpfCnpj("11.222.333/0001-80")).toBeNull();
+  });
+  test("detects PIX key types", () => {
+    expect(pixKeyInfo("Fornecedor@Exemplo.com")).toEqual({ key: "fornecedor@exemplo.com", type: "EMAIL" });
+    expect(pixKeyInfo("+55 (16) 99399-9500")).toEqual({ key: "+5516993999500", type: "PHONE" });
+    expect(pixKeyInfo("11.222.333/0001-81")).toEqual({ key: "11222333000181", type: "CNPJ" });
+    expect(pixKeyInfo("123e4567-e89b-12d3-a456-426614174000")?.type).toBe("EVP");
+    expect(pixKeyInfo("abc")).toBeNull();
+  });
+  test("only a received payment of the same recharge and amount confirms it", () => {
+    const recharge = { id: "r1", amount: 100 };
+    expect(confirmsAsaasRecharge({ status: "RECEIVED", externalReference: "r1", value: 100 }, recharge)).toBe(true);
+    expect(confirmsAsaasRecharge({ status: "PENDING", externalReference: "r1", value: 100 }, recharge)).toBe(false);
+    expect(confirmsAsaasRecharge({ status: "RECEIVED", externalReference: "r2", value: 100 }, recharge)).toBe(false);
+    expect(confirmsAsaasRecharge({ status: "RECEIVED", externalReference: "r1", value: 99.99 }, recharge)).toBe(false);
   });
 });

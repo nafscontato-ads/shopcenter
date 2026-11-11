@@ -80,6 +80,7 @@ import { Route as ApiPublicApplyfyWebhookRouteImport } from './routes/api.public
 import { Route as ApiPublicFulfillmentTickRouteImport } from './routes/api.public.fulfillment.tick'
 import { Route as ApiPublicMercadolivreCallbackRouteImport } from './routes/api.public.mercadolivre.callback'
 import { Route as ApiPublicMercadolivreNotificacoesRouteImport } from './routes/api.public.mercadolivre.notificacoes'
+import { Route as ApiPublicPagamentosAsaasRouteImport } from './routes/api.public.pagamentos.asaas'
 import { Route as ApiPublicPagamentosMercadopagoRouteImport } from './routes/api.public.pagamentos.mercadopago'
 import { Route as ApiPublicShopeeCallbackRouteImport } from './routes/api.public.shopee.callback'
 import { Route as ApiPublicShopeePushRouteImport } from './routes/api.public.shopee.push'
@@ -444,6 +445,12 @@ const ApiPublicMercadolivreNotificacoesRoute =
     path: '/api/public/mercadolivre/notificacoes',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicPagamentosAsaasRoute =
+  ApiPublicPagamentosAsaasRouteImport.update({
+    id: '/api/public/pagamentos/asaas',
+    path: '/api/public/pagamentos/asaas',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicPagamentosMercadopagoRoute =
   ApiPublicPagamentosMercadopagoRouteImport.update({
     id: '/api/public/pagamentos/mercadopago',
@@ -539,6 +546,7 @@ export interface FileRoutesByFullPath {
   '/api/public/fulfillment/tick': typeof ApiPublicFulfillmentTickRoute
   '/api/public/mercadolivre/callback': typeof ApiPublicMercadolivreCallbackRoute
   '/api/public/mercadolivre/notificacoes': typeof ApiPublicMercadolivreNotificacoesRoute
+  '/api/public/pagamentos/asaas': typeof ApiPublicPagamentosAsaasRoute
   '/api/public/pagamentos/mercadopago': typeof ApiPublicPagamentosMercadopagoRoute
   '/api/public/shopee/callback': typeof ApiPublicShopeeCallbackRoute
   '/api/public/shopee/push': typeof ApiPublicShopeePushRoute
@@ -614,6 +622,7 @@ export interface FileRoutesByTo {
   '/api/public/fulfillment/tick': typeof ApiPublicFulfillmentTickRoute
   '/api/public/mercadolivre/callback': typeof ApiPublicMercadolivreCallbackRoute
   '/api/public/mercadolivre/notificacoes': typeof ApiPublicMercadolivreNotificacoesRoute
+  '/api/public/pagamentos/asaas': typeof ApiPublicPagamentosAsaasRoute
   '/api/public/pagamentos/mercadopago': typeof ApiPublicPagamentosMercadopagoRoute
   '/api/public/shopee/callback': typeof ApiPublicShopeeCallbackRoute
   '/api/public/shopee/push': typeof ApiPublicShopeePushRoute
@@ -692,6 +701,7 @@ export interface FileRoutesById {
   '/api/public/fulfillment/tick': typeof ApiPublicFulfillmentTickRoute
   '/api/public/mercadolivre/callback': typeof ApiPublicMercadolivreCallbackRoute
   '/api/public/mercadolivre/notificacoes': typeof ApiPublicMercadolivreNotificacoesRoute
+  '/api/public/pagamentos/asaas': typeof ApiPublicPagamentosAsaasRoute
   '/api/public/pagamentos/mercadopago': typeof ApiPublicPagamentosMercadopagoRoute
   '/api/public/shopee/callback': typeof ApiPublicShopeeCallbackRoute
   '/api/public/shopee/push': typeof ApiPublicShopeePushRoute
@@ -771,6 +781,7 @@ export interface FileRouteTypes {
     | '/api/public/fulfillment/tick'
     | '/api/public/mercadolivre/callback'
     | '/api/public/mercadolivre/notificacoes'
+    | '/api/public/pagamentos/asaas'
     | '/api/public/pagamentos/mercadopago'
     | '/api/public/shopee/callback'
     | '/api/public/shopee/push'
@@ -846,6 +857,7 @@ export interface FileRouteTypes {
     | '/api/public/fulfillment/tick'
     | '/api/public/mercadolivre/callback'
     | '/api/public/mercadolivre/notificacoes'
+    | '/api/public/pagamentos/asaas'
     | '/api/public/pagamentos/mercadopago'
     | '/api/public/shopee/callback'
     | '/api/public/shopee/push'
@@ -923,6 +935,7 @@ export interface FileRouteTypes {
     | '/api/public/fulfillment/tick'
     | '/api/public/mercadolivre/callback'
     | '/api/public/mercadolivre/notificacoes'
+    | '/api/public/pagamentos/asaas'
     | '/api/public/pagamentos/mercadopago'
     | '/api/public/shopee/callback'
     | '/api/public/shopee/push'
@@ -978,6 +991,7 @@ export interface RootRouteChildren {
   ApiPublicFulfillmentTickRoute: typeof ApiPublicFulfillmentTickRoute
   ApiPublicMercadolivreCallbackRoute: typeof ApiPublicMercadolivreCallbackRoute
   ApiPublicMercadolivreNotificacoesRoute: typeof ApiPublicMercadolivreNotificacoesRoute
+  ApiPublicPagamentosAsaasRoute: typeof ApiPublicPagamentosAsaasRoute
   ApiPublicPagamentosMercadopagoRoute: typeof ApiPublicPagamentosMercadopagoRoute
   ApiPublicShopeeCallbackRoute: typeof ApiPublicShopeeCallbackRoute
   ApiPublicShopeePushRoute: typeof ApiPublicShopeePushRoute
@@ -1483,6 +1497,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicMercadolivreNotificacoesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/pagamentos/asaas': {
+      id: '/api/public/pagamentos/asaas'
+      path: '/api/public/pagamentos/asaas'
+      fullPath: '/api/public/pagamentos/asaas'
+      preLoaderRoute: typeof ApiPublicPagamentosAsaasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/pagamentos/mercadopago': {
       id: '/api/public/pagamentos/mercadopago'
       path: '/api/public/pagamentos/mercadopago'
@@ -1638,6 +1659,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicMercadolivreCallbackRoute: ApiPublicMercadolivreCallbackRoute,
   ApiPublicMercadolivreNotificacoesRoute:
     ApiPublicMercadolivreNotificacoesRoute,
+  ApiPublicPagamentosAsaasRoute: ApiPublicPagamentosAsaasRoute,
   ApiPublicPagamentosMercadopagoRoute: ApiPublicPagamentosMercadopagoRoute,
   ApiPublicShopeeCallbackRoute: ApiPublicShopeeCallbackRoute,
   ApiPublicShopeePushRoute: ApiPublicShopeePushRoute,

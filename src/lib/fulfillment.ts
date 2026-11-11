@@ -188,3 +188,51 @@ export function confirmsRecharge(payment: { status?: unknown; external_reference
     && String(payment.external_reference ?? "") === recharge.id
     && Math.round(Number(payment.transaction_amount) * 100) === Math.round(recharge.amount * 100);
 }
+
+/* ------------------------------ Asaas (PIX) ------------------------------ */
+
+/** Whether an Asaas payment confirms our recharge: received, ours, same amount (always re-read from Asaas). */
+export function confirmsAsaasRecharge(payment: { status?: unknown; externalReference?: unknown; value?: unknown }, recharge: { id: string; amount: number }) {
+  return (payment.status === "RECEIVED" || payment.status === "CONFIRMED" || payment.status === "RECEIVED_IN_CASH")
+    && String(payment.externalReference ?? "") === recharge.id
+    && Math.round(Number(payment.value) * 100) === Math.round(recharge.amount * 100);
+}
+
+function checkDigits(digits: number[], weights: number[]) {
+  const sum = digits.reduce((total, digit, index) => total + digit * weights[index]!, 0);
+  const rest = sum % 11;
+  return rest < 2 ? 0 : 11 - rest;
+}
+
+/** Validates a CPF (11 digits) or CNPJ (14 digits) by its check digits; returns the bare digits or null. */
+export function normalizeCpfCnpj(value: string): string | null {
+  const digits = value.replace(/\D/g, "");
+  if (!/^(\d{11}|\d{14})$/.test(digits) || /^(\d)\1+$/.test(digits)) return null;
+  const n = digits.split("").map(Number);
+  if (digits.length === 11) {
+    const d1 = (() => { const s = n.slice(0, 9).reduce((t, d, i) => t + d * (10 - i), 0); const r = (s * 10) % 11; return r === 10 ? 0 : r; })();
+    const d2 = (() => { const s = n.slice(0, 10).reduce((t, d, i) => t + d * (11 - i), 0); const r = (s * 10) % 11; return r === 10 ? 0 : r; })();
+    return d1 === n[9] && d2 === n[10] ? digits : null;
+  }
+  const d1 = checkDigits(n.slice(0, 12), [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]);
+  const d2 = checkDigits(n.slice(0, 13), [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]);
+  return d1 === n[12] && d2 === n[13] ? digits : null;
+}
+
+export type PixKeyType = "CPF" | "CNPJ" | "EMAIL" | "PHONE" | "EVP";
+
+/** Guesses the Asaas pixAddressKeyType of a PIX key and returns it normalized, or null when it is not a valid key. */
+export function pixKeyInfo(raw: string): { key: string; type: PixKeyType } | null {
+  const value = raw.trim();
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)) return { key: value.toLowerCase(), type: "EVP" };
+  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return { key: value.toLowerCase(), type: "EMAIL" };
+  if (value.startsWith("+")) {
+    const digits = value.replace(/\D/g, "");
+    return /^55\d{10,11}$/.test(digits) ? { key: `+${digits}`, type: "PHONE" } : null;
+  }
+  const document = normalizeCpfCnpj(value);
+  if (document) return { key: document, type: document.length === 11 ? "CPF" : "CNPJ" };
+  const digits = value.replace(/\D/g, "");
+  if (/^\d{10,11}$/.test(digits)) return { key: `+55${digits}`, type: "PHONE" };
+  return null;
+}

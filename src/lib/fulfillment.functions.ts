@@ -23,7 +23,7 @@ export const getMyFulfillment = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const client = context.supabase as unknown as SupabaseClient;
     const [wallet, ledger, orders, shops] = await Promise.all([
-      client.from("seller_wallets").select("balance, credit_limit").eq("user_id", context.userId).maybeSingle(),
+      (await admin()).from("seller_wallets").select("balance, credit_limit, asaas_customer_id").eq("user_id", context.userId).maybeSingle(),
       client.from("wallet_ledger").select("id, amount, kind, note, balance_after, created_at").eq("user_id", context.userId).order("created_at", { ascending: false }).limit(50),
       client.from("fulfillment_orders").select("id, order_sn, status, lines, goods_cost, platform_fee, debited_amount, last_error, tracking_number, created_at, supplier_id").eq("user_id", context.userId).order("created_at", { ascending: false }).limit(200),
       context.supabase.from("shopee_shop_connections").select("id, shop_name, shop_id, status").eq("user_id", context.userId).eq("status", "active"),
@@ -42,7 +42,9 @@ export const getMyFulfillment = createServerFn({ method: "GET" })
       creditLimit: Number(wallet.data?.["credit_limit"] ?? 0),
       pendingAmount: Math.round(pending * 100) / 100,
       pixKey: process.env["FULFILLMENT_PIX_KEY"] ?? null,
-      pixAutomatic: Boolean(process.env["MP_ACCESS_TOKEN"]),
+      pixAutomatic: Boolean(process.env["ASAAS_API_KEY"] || process.env["MP_ACCESS_TOKEN"]),
+      // Asaas needs the seller's CPF/CNPJ once, on the first recharge.
+      pixNeedsDocument: Boolean(process.env["ASAAS_API_KEY"]) && !wallet.data?.["asaas_customer_id"],
       shippedCount: (orders.data ?? []).filter((row) => row["status"] === "shipped").length,
       shops: (shops.data ?? []).map((shop) => ({ id: shop.id, name: shop.shop_name ?? `Loja ${shop.shop_id}`, autoFulfillment: auto.get(shop.id) ?? false })),
       ledger: (ledger.data ?? []).map((row) => ({ id: String(row["id"]), amount: Number(row["amount"]), kind: String(row["kind"]), note: (row["note"] as string | null) ?? null, balanceAfter: Number(row["balance_after"]), at: String(row["created_at"]) })),
@@ -148,13 +150,16 @@ export const adminListSuppliers = createServerFn({ method: "GET" })
   .middleware([requireAdmin])
   .handler(async () => {
     const client = await admin();
-    const { data } = await client.from("suppliers").select("id, slug, name, whatsapp, email, pix_key, sources, active, panel_token_hash").order("name");
+    const { data } = await client.from("suppliers").select("id, slug, name, whatsapp, email, pix_key, pix_key_type, auto_payout, sources, active, panel_token_hash").order("name");
     const { data: queued } = await client.from("fulfillment_orders").select("supplier_id, status").in("status", ["queued", "needs_attention", "awaiting_funds"]);
     const counts = new Map<string, number>();
     for (const row of queued ?? []) if (row["status"] === "queued" && row["supplier_id"]) counts.set(String(row["supplier_id"]), (counts.get(String(row["supplier_id"])) ?? 0) + 1);
+    const { data: payouts } = await client.from("supplier_payouts").select("id, supplier_id, amount, order_count, payout_day, status, last_error").order("created_at", { ascending: false }).limit(30);
     const { data: attention } = await client.from("fulfillment_orders").select("id, order_sn, status, last_error, user_id, created_at").in("status", ["needs_attention", "awaiting_funds"]).order("created_at", { ascending: false }).limit(100);
     return {
-      suppliers: (data ?? []).map((row) => ({ id: String(row["id"]), slug: String(row["slug"]), name: String(row["name"]), whatsapp: (row["whatsapp"] as string | null) ?? null, email: (row["email"] as string | null) ?? null, pixKey: (row["pix_key"] as string | null) ?? null, sources: (row["sources"] as string[]) ?? [], active: Boolean(row["active"]), hasPanel: Boolean(row["panel_token_hash"]), queued: counts.get(String(row["id"])) ?? 0 })),
+      suppliers: (data ?? []).map((row) => ({ id: String(row["id"]), slug: String(row["slug"]), name: String(row["name"]), whatsapp: (row["whatsapp"] as string | null) ?? null, email: (row["email"] as string | null) ?? null, pixKey: (row["pix_key"] as string | null) ?? null, pixKeyType: (row["pix_key_type"] as string | null) ?? null, autoPayout: Boolean(row["auto_payout"]), sources: (row["sources"] as string[]) ?? [], active: Boolean(row["active"]), hasPanel: Boolean(row["panel_token_hash"]), queued: counts.get(String(row["id"])) ?? 0 })),
+      payouts: (payouts ?? []).map((row) => ({ id: String(row["id"]), supplierId: String(row["supplier_id"]), amount: Number(row["amount"]), orders: Number(row["order_count"]), day: String(row["payout_day"]), status: String(row["status"]), lastError: (row["last_error"] as string | null) ?? null })),
+      payoutsEnabled: Boolean(process.env["ASAAS_API_KEY"]) && process.env["SUPPLIER_PAYOUTS"] !== "off",
       attention: (attention ?? []).map((row) => ({ id: String(row["id"]), orderSn: String(row["order_sn"]), status: String(row["status"]), lastError: (row["last_error"] as string | null) ?? null, userId: String(row["user_id"]), at: String(row["created_at"]) })),
     };
   });
@@ -165,13 +170,18 @@ export const adminSaveSupplier = createServerFn({ method: "POST" })
   .validator((input: unknown) => z.object({
     id: z.string().uuid().optional(), slug: z.string().regex(/^[a-z0-9-]{2,40}$/), name: z.string().trim().min(2).max(80),
     whatsapp: z.string().max(20).optional(), email: z.string().email().max(120).optional().or(z.literal("")), pixKey: z.string().max(120).optional(),
+    pixKeyType: z.enum(["CPF", "CNPJ", "EMAIL", "PHONE", "EVP"]).nullable().optional(), autoPayout: z.boolean().optional(),
     sources: z.array(z.string().max(60)).max(20), active: z.boolean(), rotateToken: z.boolean().optional(),
   }).parse(input))
   .handler(async ({ data }) => {
     const { newPanelToken } = await import("@/lib/fulfillment.server");
+    const { pixKeyInfo } = await import("@/lib/fulfillment");
+    const pix = data.pixKey ? pixKeyInfo(data.pixKey) : null;
+    if (data.pixKey && !pix) throw new Error("Chave PIX inválida. Use CPF, CNPJ, e-mail, celular com +55 ou chave aleatória.");
+    if (data.autoPayout && !pix) throw new Error("Para o repasse automático, informe a chave PIX do fornecedor.");
     const token = data.rotateToken || !data.id ? newPanelToken() : null;
     const row = {
-      slug: data.slug, name: data.name, whatsapp: data.whatsapp || null, email: data.email || null, pix_key: data.pixKey || null,
+      slug: data.slug, name: data.name, whatsapp: data.whatsapp || null, email: data.email || null, pix_key: data.pixKeyType && data.pixKey ? data.pixKey.trim() : pix?.key ?? null, pix_key_type: data.pixKeyType ?? pix?.type ?? null, auto_payout: Boolean(data.autoPayout),
       sources: data.sources, active: data.active, updated_at: new Date().toISOString(), ...(token ? { panel_token_hash: token.hash } : {}),
     };
     const client = await admin();
@@ -183,23 +193,29 @@ export const adminSaveSupplier = createServerFn({ method: "POST" })
 
 /* ------------------------------- PIX recharge ------------------------------- */
 
-/** Creates a PIX charge; the wallet is credited by itself when Mercado Pago confirms it. */
+/** Creates a PIX charge (Asaas or Mercado Pago); the wallet is credited by itself when the payment is confirmed. */
 export const createPixRecharge = createServerFn({ method: "POST" })
   .middleware([requireActiveUser])
-  .validator((input: unknown) => z.object({ amount: z.number() }).parse(input))
+  .validator((input: unknown) => z.object({ amount: z.number(), document: z.string().max(20).optional() }).parse(input))
   .handler(async ({ data, context }) => {
-    const { isValidPixRecharge, PIX_RECHARGE_MAX_BRL, PIX_RECHARGE_MIN_BRL } = await import("@/lib/fulfillment");
+    const { isValidPixRecharge, normalizeCpfCnpj, PIX_RECHARGE_MAX_BRL, PIX_RECHARGE_MIN_BRL } = await import("@/lib/fulfillment");
     if (!isValidPixRecharge(data.amount)) throw new Error(`Escolha um valor entre R$ ${PIX_RECHARGE_MIN_BRL} e R$ ${PIX_RECHARGE_MAX_BRL}.`);
+    const document = data.document ? normalizeCpfCnpj(data.document) : null;
+    if (data.document && !document) throw new Error("CPF ou CNPJ inválido. Confira os números.");
     const client = await admin();
     const { data: user } = await client.auth.admin.getUserById(context.userId);
     const email = user?.user?.email;
     if (!email) throw new Error("Sua conta não tem e-mail cadastrado para o PIX.");
-    const { data: row, error } = await client.from("wallet_recharges").insert({ user_id: context.userId, amount: data.amount }).select("id").single();
+    const { createPixCharge, hasAsaasCustomer, pixProvider } = await import("@/lib/pix.server");
+    const provider = pixProvider();
+    if (!provider) throw new Error("A recarga por PIX ainda não está ativada. Fale com o suporte.");
+    if (provider === "asaas" && !document && !(await hasAsaasCustomer(context.userId))) throw new Error("Informe seu CPF ou CNPJ para gerar o PIX.");
+    const meta = (user?.user?.user_metadata ?? {}) as Record<string, unknown>;
+    const name = String(meta["full_name"] ?? meta["name"] ?? email.split("@")[0]).slice(0, 80);
+    const { data: row, error } = await client.from("wallet_recharges").insert({ user_id: context.userId, amount: data.amount, provider }).select("id").single();
     if (error || !row) throw new Error("Não foi possível iniciar a recarga. Tente de novo.");
-    const { createPixCharge } = await import("@/lib/pix.server");
-    const base = process.env["PUBLIC_SITE_URL"];
     try {
-      const charge = await createPixCharge({ rechargeId: String(row["id"]), amount: data.amount, email, notificationUrl: base ? `${base.replace(/\/$/, "")}/api/public/pagamentos/mercadopago` : null });
+      const charge = await createPixCharge({ rechargeId: String(row["id"]), amount: data.amount, userId: context.userId, name, email, document, siteUrl: process.env["PUBLIC_SITE_URL"] ?? null });
       await client.from("wallet_recharges").update({ provider_payment_id: charge.paymentId, qr_code: charge.qrCode, qr_code_base64: charge.qrCodeBase64, ticket_url: charge.ticketUrl, updated_at: new Date().toISOString() }).eq("id", row["id"]);
       return { id: String(row["id"]), amount: data.amount, ...charge };
     } catch (failure) {
@@ -208,7 +224,7 @@ export const createPixRecharge = createServerFn({ method: "POST" })
     }
   });
 
-/** Polled by the recharge screen: settles the PIX as soon as Mercado Pago confirms it (backup for the webhook). */
+/** Polled by the recharge screen: settles the PIX as soon as the provider confirms it (backup for the webhook). */
 export const checkPixRecharge = createServerFn({ method: "POST" })
   .middleware([requireActiveUser])
   .validator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
@@ -219,4 +235,14 @@ export const checkPixRecharge = createServerFn({ method: "POST" })
     if (row["status"] !== "pending" || !row["provider_payment_id"]) return { status: String(row["status"]) };
     const { settleRecharge } = await import("@/lib/pix.server");
     return settleRecharge(String(row["provider_payment_id"]));
+  });
+
+/** Admin: puts a failed supplier payout's orders back in the queue (after fixing the PIX key or checking Asaas). */
+export const adminReleasePayout = createServerFn({ method: "POST" })
+  .middleware([requireAdmin])
+  .validator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
+  .handler(async ({ data }) => {
+    const { releaseFailedPayout } = await import("@/lib/payouts.server");
+    await releaseFailedPayout(data.id);
+    return { ok: true };
   });

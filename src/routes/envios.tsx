@@ -63,7 +63,7 @@ function EnviosPage() {
         </article>
         <article className="card-surface p-5">
           <p className="text-muted-foreground text-xs">Recarregar</p>
-          {data?.pixAutomatic ? <PixRecharge onPaid={refresh} /> : (
+          {data?.pixAutomatic ? <PixRecharge onPaid={refresh} needsDocument={Boolean(data?.pixNeedsDocument)} /> : (
             <p className="mt-2 text-sm">{data?.pixKey ? <>Envie um PIX para <b className="select-all">{data.pixKey}</b> e mande o comprovante no WhatsApp de suporte.</> : "Fale com o suporte para recarregar sua carteira."}</p>
           )}
         </article>
@@ -133,13 +133,14 @@ function ReputationLine({ shipped }: { shipped: number }) {
 
 const QUICK = [50, 100, 200, 500];
 
-function PixRecharge({ onPaid }: { onPaid: () => void }) {
+function PixRecharge({ onPaid, needsDocument }: { onPaid: () => void; needsDocument: boolean }) {
   const createFn = useServerFn(createPixRecharge);
   const checkFn = useServerFn(checkPixRecharge);
   const [amount, setAmount] = useState("100");
+  const [document, setDocument] = useState("");
   const [charge, setCharge] = useState<{ id: string; amount: number; qrCode: string | null; qrCodeBase64: string | null } | null>(null);
   const value = Number(amount.replace(",", "."));
-  const create = useMutation({ mutationFn: () => createFn({ data: { amount: value } }), onSuccess: setCharge, onError: (e: Error) => toast.error(e.message) });
+  const create = useMutation({ mutationFn: () => createFn({ data: { amount: value, ...(needsDocument ? { document } : {}) } }), onSuccess: setCharge, onError: (e: Error) => toast.error(e.message) });
   useQuery({
     queryKey: ["pix-recharge", charge?.id],
     enabled: Boolean(charge),
@@ -166,7 +167,8 @@ function PixRecharge({ onPaid }: { onPaid: () => void }) {
     <div className="mt-2 space-y-2">
       <div className="flex flex-wrap gap-1">{QUICK.map((q) => <Button key={q} size="sm" variant={value === q ? "default" : "outline"} onClick={() => setAmount(String(q))}>{brl(q)}</Button>)}</div>
       <input className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} aria-label="Valor da recarga" />
-      <Button size="sm" className="w-full" disabled={!isValidPixRecharge(value) || create.isPending} onClick={() => create.mutate()}>{create.isPending ? "Gerando PIX…" : "Gerar PIX"}</Button>
+      {needsDocument ? <input className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm" inputMode="numeric" placeholder="Seu CPF ou CNPJ (só na 1ª recarga)" value={document} onChange={(e) => setDocument(e.target.value)} aria-label="CPF ou CNPJ" /> : null}
+      <Button size="sm" className="w-full" disabled={!isValidPixRecharge(value) || create.isPending || (needsDocument && document.replace(/\D/g, "").length < 11)} onClick={() => create.mutate()}>{create.isPending ? "Gerando PIX…" : "Gerar PIX"}</Button>
       <p className="text-muted-foreground text-[11px]">De {brl(PIX_RECHARGE_MIN_BRL)} a {brl(PIX_RECHARGE_MAX_BRL)}. Sem aprovação manual.</p>
     </div>
   );

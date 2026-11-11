@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { AdminPageHeader } from "@/components/admin/admin-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { adminCreditWallet, adminListSuppliers, adminSaveSupplier, adminSetCreditLimit } from "@/lib/fulfillment.functions";
+import { adminCreditWallet, adminListSuppliers, adminReleasePayout, adminSaveSupplier, adminSetCreditLimit } from "@/lib/fulfillment.functions";
 import { whatsappLink } from "@/lib/fulfillment";
 
 export const Route = createFileRoute("/admin/envios")({
@@ -15,8 +15,9 @@ export const Route = createFileRoute("/admin/envios")({
   component: AdminEnvios,
 });
 
-type SupplierForm = { id?: string; slug: string; name: string; whatsapp: string; email: string; pixKey: string; sources: string; active: boolean };
-const emptySupplier: SupplierForm = { slug: "", name: "", whatsapp: "", email: "", pixKey: "", sources: "", active: true };
+type PixType = "" | "CPF" | "CNPJ" | "EMAIL" | "PHONE" | "EVP";
+type SupplierForm = { id?: string; slug: string; name: string; whatsapp: string; email: string; pixKey: string; pixKeyType: PixType; autoPayout: boolean; sources: string; active: boolean };
+const emptySupplier: SupplierForm = { slug: "", name: "", whatsapp: "", email: "", pixKey: "", pixKeyType: "", autoPayout: false, sources: "", active: true };
 
 function AdminEnvios() {
   const queryClient = useQueryClient();
@@ -24,6 +25,7 @@ function AdminEnvios() {
   const saveFn = useServerFn(adminSaveSupplier);
   const creditFn = useServerFn(adminCreditWallet);
   const limitFn = useServerFn(adminSetCreditLimit);
+  const releaseFn = useServerFn(adminReleasePayout);
   const list = useQuery({ queryKey: ["admin-envios"], queryFn: () => listFn() });
   const refresh = () => queryClient.invalidateQueries({ queryKey: ["admin-envios"] });
   const [form, setForm] = useState<SupplierForm>(emptySupplier);
@@ -31,7 +33,7 @@ function AdminEnvios() {
   const [credit, setCredit] = useState({ userId: "", amount: "", reference: "", limit: "" });
 
   const save = useMutation({
-    mutationFn: (rotateToken: boolean) => saveFn({ data: { ...form, sources: form.sources.split(",").map((s) => s.trim()).filter(Boolean), rotateToken } }),
+    mutationFn: (rotateToken: boolean) => saveFn({ data: { ...form, pixKeyType: form.pixKeyType || null, sources: form.sources.split(",").map((s) => s.trim()).filter(Boolean), rotateToken } }),
     onSuccess: (result) => {
       if (result.panelToken) setLink({ url: `${window.location.origin}/expedicao/${result.panelToken}`, whatsapp: form.whatsapp || null });
       toast.success("Fornecedor salvo.");
@@ -51,6 +53,12 @@ function AdminEnvios() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const release = useMutation({
+    mutationFn: (id: string) => releaseFn({ data: { id } }),
+    onSuccess: () => { toast.success("Pedidos voltaram para o próximo repasse."); refresh(); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const field = (key: keyof SupplierForm, placeholder: string) => (
     <Input placeholder={placeholder} value={String(form[key])} onChange={(event) => setForm({ ...form, [key]: event.target.value })} />
   );
@@ -64,7 +72,11 @@ function AdminEnvios() {
         <div className="mt-3 grid gap-2 sm:grid-cols-2">
           {field("name", "Nome")}{field("slug", "identificador (ex: casa-bella)")}
           {field("whatsapp", "WhatsApp")}{field("email", "E-mail")}
-          {field("pixKey", "Chave PIX (para você pagar o fornecedor)")}{field("sources", "Sites importados (supplier_source), separados por vírgula")}
+          {field("pixKey", "Chave PIX do fornecedor (celular com +55)")}{field("sources", "Sites importados (supplier_source), separados por vírgula")}
+          <select aria-label="Tipo da chave PIX" className="border-input bg-background h-9 rounded-md border px-3 text-sm" value={form.pixKeyType} onChange={(e) => setForm({ ...form, pixKeyType: e.target.value as PixType })}>
+            <option value="">Tipo da chave: detectar</option><option value="CPF">CPF</option><option value="CNPJ">CNPJ</option><option value="EMAIL">E-mail</option><option value="PHONE">Celular</option><option value="EVP">Aleatória</option>
+          </select>
+          <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.autoPayout} onChange={(e) => setForm({ ...form, autoPayout: e.target.checked })} />Repasse automático por PIX (1 vez por dia, pedidos enviados). Deixe desligado para DepDrop.</label>
         </div>
         <div className="mt-3 flex gap-2">
           <Button disabled={save.isPending || !form.name || !form.slug} onClick={() => save.mutate(false)}>Salvar</Button>
@@ -80,8 +92,8 @@ function AdminEnvios() {
         <ul className="mt-4 divide-y text-sm">
           {(list.data?.suppliers ?? []).map((s) => (
             <li key={s.id} className="flex items-center justify-between py-2">
-              <span>{s.name} <span className="text-muted-foreground">({s.sources.join(", ") || "sem site"}) · {s.queued} na fila{s.active ? "" : " · inativo"}</span></span>
-              <Button size="sm" variant="outline" onClick={() => setForm({ id: s.id, slug: s.slug, name: s.name, whatsapp: s.whatsapp ?? "", email: s.email ?? "", pixKey: s.pixKey ?? "", sources: s.sources.join(", "), active: s.active })}>Editar</Button>
+              <span>{s.name} <span className="text-muted-foreground">({s.sources.join(", ") || "sem site"}) · {s.queued} na fila{s.autoPayout ? " · repasse automático" : ""}{s.active ? "" : " · inativo"}</span></span>
+              <Button size="sm" variant="outline" onClick={() => setForm({ id: s.id, slug: s.slug, name: s.name, whatsapp: s.whatsapp ?? "", email: s.email ?? "", pixKey: s.pixKey ?? "", pixKeyType: (s.pixKeyType ?? "") as PixType, autoPayout: s.autoPayout, sources: s.sources.join(", "), active: s.active })}>Editar</Button>
             </li>
           ))}
         </ul>
@@ -98,6 +110,23 @@ function AdminEnvios() {
           <Input placeholder="Limite de adiantamento (R$)" value={credit.limit} onChange={(e) => setCredit({ ...credit, limit: e.target.value })} />
           <Button variant="outline" disabled={limit.isPending || !credit.userId || credit.limit === ""} onClick={() => limit.mutate()}>Salvar limite</Button>
         </div>
+      </section>
+
+      <section className="rounded-xl border p-4">
+        <h2 className="font-semibold">Repasses aos fornecedores</h2>
+        <p className="text-muted-foreground text-xs">{list.data?.payoutsEnabled ? "Ligado: 1 PIX por dia para cada fornecedor com repasse automático, com o custo dos pedidos enviados há mais de 12 horas." : "Desligado: falta a chave do Asaas (ASAAS_API_KEY) no servidor."}</p>
+        <ul className="mt-3 divide-y text-sm">
+          {(list.data?.payouts ?? []).map((p) => {
+            const supplier = list.data?.suppliers.find((s) => s.id === p.supplierId);
+            return (
+              <li key={p.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
+                <span>{p.day} · {supplier?.name ?? "fornecedor"} · R$ {p.amount.toFixed(2)} ({p.orders} pedido(s)) · {p.status === "failed" ? "falhou" : p.status === "pending" ? "enviando" : "enviado"}{p.lastError ? <span className="text-muted-foreground"> · {p.lastError}</span> : null}</span>
+                {p.status === "failed" ? <Button size="sm" variant="outline" disabled={release.isPending} onClick={() => window.confirm("Confira no Asaas que esse PIX NÃO saiu. Liberar os pedidos para o próximo repasse?") && release.mutate(p.id)}>Liberar para o próximo repasse</Button> : null}
+              </li>
+            );
+          })}
+          {list.data && !list.data.payouts.length ? <li className="text-muted-foreground py-2">Nenhum repasse ainda.</li> : null}
+        </ul>
       </section>
 
       <section className="rounded-xl border p-4">

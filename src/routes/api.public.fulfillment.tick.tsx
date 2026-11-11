@@ -12,7 +12,11 @@ export const Route = createFileRoute("/api/public/fulfillment/tick")({
         if (!ok) return new Response("forbidden", { status: 403 });
         const { runFulfillmentTick } = await import("@/lib/fulfillment-cron.server");
         const report = await runFulfillmentTick();
-        return Response.json({ ok: true, shops: report.length, report });
+        const { settlePendingRecharges } = await import("@/lib/pix.server");
+        const { runSupplierPayouts } = await import("@/lib/payouts.server");
+        const recharges = await settlePendingRecharges().catch((error: unknown) => { console.error("recharges tick failed", error); return 0; });
+        const payouts = await runSupplierPayouts().catch((error: unknown) => { console.error("payouts tick failed", error); return { paid: 0, failed: 0 }; });
+        return Response.json({ ok: true, shops: report.length, recharges, payouts, report });
       },
     },
   },
