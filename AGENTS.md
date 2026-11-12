@@ -9,6 +9,17 @@
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
 
+## Deploy do shopcenter.cloud (leia antes de sugerir como publicar)
+
+- O site no ar (shopcenter.cloud) roda no **EasyPanel** (Docker, usando o `Dockerfile` deste repositório) e implanta a branch **`feat/unificar-shopcenter`**. Trabalhe e faça push nessa branch.
+- Uma alteração só entra no ar quando o Cauã clica no botão **Implantar** do EasyPanel. Depois de cada push, avise que há alteração esperando o Implantar. Cada deploy tira o site do ar por cerca de 1 minuto, então nunca durante as lives.
+- **Não** sugira rodar `deploy/update.sh`, nem qualquer comando na VPS, nem juntar na `main` para publicar. A pasta `deploy/` (nginx + pm2) é de um plano antigo que não está em uso, e a VPS também roda outro projeto.
+- O bloco do Lovable acima é herança da base importada: este repositório **não** sincroniza com o Lovable. O sistema antigo (sistemapas.online) é outro projeto, mantido só como reserva.
+- As variáveis `VITE_*` entram no build pelo **Ambiente** do EasyPanel. Nunca coloque chaves, senhas ou `.env` no repositório (ele é público).
+- Antes de começar: `git pull` na `feat/unificar-shopcenter`. Outras pessoas e outros Claudes enviam para a mesma branch; sem force push.
+- Regras dos donos: acesso só é liberado por compra paga e nunca é cortado automaticamente por reembolso ou chargeback; nada de cadastro aberto; contato de suporte vem só de `VITE_SUPPORT_WHATSAPP`, nunca fixo no código.
+
+
 - Authenticated PAS appearance is browser-persisted and applies semantic theme tokens to the shell and portaled controls; restore the document theme on exit to keep public pages unchanged.
 - `/fornecedores` is the authenticated supplier directory. Public main and partner sales pages reuse SellerSalesPage; partner pages at `/fornecedor/$slug` resolve prices and checkout URLs server-side so purchase ownership cannot be chosen client-side.
 - Admin/owner rights come only from active `admin_users` rows bound by user id, never email (signup auto-confirms). Demo shops are server-authorized for owner and active partners. `partner_signup` metadata creates a partner row on first access; pre-registered rows are linked only by the admin panel.
