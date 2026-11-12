@@ -59,7 +59,7 @@ import { prepareShopeeImageFile, prepareShopeeImageUrls } from "@/lib/shopee-ima
 import { leafShopeeCategories, programmedShopeeStock, suggestShopeeCategory, type ShopeeCategoryOption } from "@/lib/shopee-product-defaults";
 import { extractVoltageOptions, shopeeAttributeSchema, shopeeVariationSchema, type ShopeeAttribute, type ShopeeVariation } from "@/lib/shopee-publishing";
 import { refreshSavedProducts, useSavedProducts } from "@/lib/saved-products";
-import { analyzeShopeeGallery, archiveShopeeProduct, beginShopeeConnection, disconnectShopeeStore, getShopeeCategoryRequirements, getShopeePublishingOptions, getShopeeWorkspace, getSupplierProductPhotos, improveShopeeCopy, listCommunityPhotoProducts, listMyShopeeProducts, publishShopeeListing, saveShopeeDraft, updateMyShopeeProduct, validateShopeeGallery } from "@/lib/shopee.functions";
+import { analyzeShopeeGallery, archiveShopeeProduct, beginShopeeConnection, disconnectShopeeStore, getShopeeCategoryRequirements, getShopeePublishingOptions, getShopeeWorkspace, syncShopeeStore, getSupplierProductPhotos, improveShopeeCopy, listCommunityPhotoProducts, listMyShopeeProducts, publishShopeeListing, saveShopeeDraft, updateMyShopeeProduct, validateShopeeGallery } from "@/lib/shopee.functions";
 import { customerMessage } from "@/lib/shopee-compliance";
 import { listShopeePublications } from "@/lib/shopee-compliance.functions";
 import { useUnavailableProducts } from "@/hooks/use-shopee-availability";
@@ -245,6 +245,17 @@ function ShopeeWorkspaceContent() {
   const closeEditor = () => { setSelected(null); setEditing(null); if (search.product) void navigate({ search: (prev) => ({ ...prev, product: undefined }), replace: true }); };
   const connection = workspace.data?.connection;
   const connections = workspace.data?.connections ?? [];
+  // Pedidos novos aparecem sozinhos: ao abrir a tela, busca na Shopee se a última sincronização tem mais de 15 minutos.
+  const autoSyncFn = useServerFn(syncShopeeStore);
+  const autoSynced = useRef<string | null>(null);
+  const refetchWorkspace = workspace.refetch;
+  useEffect(() => {
+    if (!connection || autoSynced.current === connection.id) return;
+    const last = connection.last_synced_at ? Date.parse(connection.last_synced_at) : 0;
+    if (Date.now() - last < 15 * 60 * 1000) return;
+    autoSynced.current = connection.id;
+    void autoSyncFn({ data: { connectionId: connection.id } }).then(() => refetchWorkspace()).catch(() => undefined);
+  }, [connection, autoSyncFn, refetchWorkspace]);
   const credentialStatus = workspace.data?.credentialStatus;
   const communityFn = useServerFn(listCommunityPhotoProducts);
   const community = useQuery({ queryKey: ["community-photo-products"], queryFn: () => communityFn(), enabled: !authLoading && Boolean(user), staleTime: 5 * 60_000 });
