@@ -60,6 +60,10 @@ export const getSalesAccess = createServerFn({ method: "GET" })
       if (meta["partner_signup"] === true && email) {
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const name = String(meta["full_name"] ?? email.split("@")[0]).slice(0, 120);
+        // Código de afiliado informado no cadastro (quem confirma o e-mail depois chega por aqui).
+        const { affiliateCheckouts, parseAffiliateCode } = await import("@/lib/checkouts");
+        const signupCode = parseAffiliateCode(typeof meta["affiliate_code"] === "string" ? meta["affiliate_code"] : null);
+        const links = signupCode ? affiliateCheckouts(signupCode) : null;
         const { data: existing } = await supabaseAdmin.from("partner_profiles").select("id, user_id").ilike("email", email).maybeSingle();
         // Pre-registered partner rows are never claimed by an (unverified) email match;
         // the owner links them from the partner panel.
@@ -71,7 +75,8 @@ export const getSalesAccess = createServerFn({ method: "GET" })
             // Sem slug: o banco atribui o próximo endereço logistica-NN.
             user_id: context.userId, name, email, status: "active",
             notes: "Cadastro realizado pela página reservada de parceiros.",
-          }).select("id, name, status, slug").single();
+            ...(links ? { checkout_lifetime_url: links.lifetime, checkout_monthly_url: links.monthly } : {}),
+          }).select("id, name, status, slug, checkout_lifetime_url, checkout_monthly_url").single();
           partner = data;
         }
       }
