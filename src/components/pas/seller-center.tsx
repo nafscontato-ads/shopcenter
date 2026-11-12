@@ -41,7 +41,7 @@ export type SellerCenterProps = {
   lastSyncedAt: string | null;
   orders: SellerCenterOrder[];
   /** Live listing totals from Shopee; null while loading or when Shopee did not answer. */
-  listings: { banned: number | null; active: number | null; unlisted: number | null } | null;
+  listings: { banned: number | null; active: number | null; unlisted: number | null; bannedItems?: { itemId: number; name: string; image: string | null }[] } | null;
   listingsLoading?: boolean;
   syncing?: boolean;
   onSync?: () => void;
@@ -118,7 +118,7 @@ function Change({ current, previous }: { current: number; previous: number | nul
 const SHORTCUTS: { title: string; items: { label: string; to: string; search?: Record<string, string>; icon: typeof Store }[] }[] = [
   { title: "Pedido", items: [
     { label: "Meus pedidos", to: "/shopee", search: { aba: "orders" }, icon: ShoppingCart },
-    { label: "Envios a processar", to: "/shopee", search: { aba: "orders", status: "READY_TO_SHIP" }, icon: Truck },
+    { label: "Envios a processar", to: "/shopee", search: { aba: "orders", status: "to_process" }, icon: Truck },
     { label: "Devoluções e cancelamentos", to: "/shopee", search: { aba: "orders", status: "returns" }, icon: RotateCcw },
   ] },
   { title: "Produto", items: [
@@ -173,10 +173,10 @@ export function SellerCenterBoard({ shopName, lastSyncedAt, orders, listings, li
   );
 
   const counters = [
-    { label: "Envios a processar", value: counts.toProcess, icon: Truck, search: { aba: "orders", status: "READY_TO_SHIP" }, alert: counts.toProcess > 0 },
+    { label: "Envios a processar", value: counts.toProcess, icon: Truck, search: { aba: "orders", status: "to_process" }, alert: counts.toProcess > 0 },
     { label: "Envios processados", value: counts.processed, icon: PackageCheck, search: { aba: "orders", status: "PROCESSED" }, alert: false },
     { label: "Devolução / Cancelamento", value: counts.returns, icon: RotateCcw, search: { aba: "orders", status: "returns" }, alert: counts.returns > 0 },
-    { label: "Produtos banidos", value: listings?.banned ?? null, icon: Ban, search: { aba: "shop-products" }, alert: (listings?.banned ?? 0) > 0 },
+    { label: "Produtos banidos", value: listings?.banned ?? null, icon: Ban, search: null, alert: (listings?.banned ?? 0) > 0 },
   ];
 
   const metrics = [
@@ -208,20 +208,24 @@ export function SellerCenterBoard({ shopName, lastSyncedAt, orders, listings, li
         </section>
 
         <section className="card-surface grid grid-cols-2 divide-border overflow-hidden md:grid-cols-4 md:divide-x">
-          {counters.map((item) => (
-            <Link
-              key={item.label}
-              to="/shopee"
-              search={item.search as never}
-              className="hover:bg-elevated group flex flex-col items-center gap-1 px-3 py-5 text-center transition-colors"
-            >
-              <item.icon className={cn("size-4", item.alert ? "text-primary" : "text-muted-foreground")} />
-              <span className={cn("text-2xl font-bold tabular-nums", item.alert ? "text-primary" : "text-foreground")}>
-                {item.value === null ? (listingsLoading ? "…" : "—") : item.value.toLocaleString("pt-BR")}
-              </span>
-              <span className="text-muted-foreground group-hover:text-foreground text-xs leading-tight">{item.label}</span>
-            </Link>
-          ))}
+          {counters.map((item) => {
+            const body = (
+              <>
+                <item.icon className={cn("size-4", item.alert ? "text-primary" : "text-muted-foreground")} />
+                <span className={cn("text-2xl font-bold tabular-nums", item.alert ? "text-primary" : "text-foreground")}>
+                  {item.value === null ? (listingsLoading ? "…" : "—") : item.value.toLocaleString("pt-BR")}
+                </span>
+                <span className="text-muted-foreground group-hover:text-foreground text-xs leading-tight">{item.label}</span>
+              </>
+            );
+            const cls = "hover:bg-elevated group flex flex-col items-center gap-1 px-3 py-5 text-center transition-colors";
+            // Banned products are listed further down this page; the shop's product tab only loads active listings.
+            return item.search ? (
+              <Link key={item.label} to="/shopee" search={item.search as never} className={cls}>{body}</Link>
+            ) : (
+              <a key={item.label} href="#produtos-banidos" className={cls}>{body}</a>
+            );
+          })}
         </section>
 
         <section className="card-surface p-4 sm:p-5">
@@ -272,7 +276,7 @@ export function SellerCenterBoard({ shopName, lastSyncedAt, orders, listings, li
         <section className="card-surface p-4 sm:p-5">
           <div className="flex items-center justify-between gap-3">
             <h2 className="font-semibold">Pedidos a processar</h2>
-            <Link to="/shopee" search={{ aba: "orders", status: "READY_TO_SHIP" } as never} className="text-primary inline-flex items-center gap-0.5 text-sm font-medium hover:underline">
+            <Link to="/shopee" search={{ aba: "orders", status: "to_process" } as never} className="text-primary inline-flex items-center gap-0.5 text-sm font-medium hover:underline">
               Ver todos <ChevronRight className="size-4" />
             </Link>
           </div>
@@ -306,6 +310,28 @@ export function SellerCenterBoard({ shopName, lastSyncedAt, orders, listings, li
             </p>
           )}
         </section>
+        {(listings?.banned ?? 0) > 0 && (
+          <section id="produtos-banidos" className="card-surface scroll-mt-4 p-4 sm:p-5">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="font-semibold">Produtos banidos</h2>
+              <a href="https://seller.shopee.com.br/portal/product/list/all" target="_blank" rel="noopener noreferrer" className="text-primary inline-flex items-center gap-1 text-sm font-medium hover:underline">
+                Ver motivo na Shopee <ExternalLink className="size-3" />
+              </a>
+            </div>
+            <ul className="divide-border mt-3 divide-y">
+              {(listings?.bannedItems ?? []).map((item) => (
+                <li key={item.itemId} className="flex items-center gap-3 py-3">
+                  {item.image ? <img src={item.image} alt="" className="size-11 shrink-0 rounded-lg object-cover" loading="lazy" /> : <span className="bg-elevated grid size-11 shrink-0 place-items-center rounded-lg"><Ban className="text-muted-foreground size-4" /></span>}
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">{item.name}</p>
+                    <p className="text-muted-foreground text-[11px]">ID {item.itemId}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <p className="text-muted-foreground mt-2 text-[11px]">A Shopee mostra o motivo de cada banimento na conta do vendedor. Corrija o anúncio lá ou apague e publique de novo.</p>
+          </section>
+        )}
       </div>
     </div>
   );
