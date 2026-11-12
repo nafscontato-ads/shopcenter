@@ -143,7 +143,7 @@ const NavList = memo(function NavList({ collapsed, onNavigate, theme, horizontal
   );
 });
 
-export function AppShell({ children, appearance = "default" }: { children: ReactNode; appearance?: "default" | "sales-light" }) {
+export function AppShell({ children, appearance = "sales-light" }: { children: ReactNode; appearance?: "default" | "sales-light" }) {
   return <PrivateAppGate appearance={appearance}>{children}</PrivateAppGate>;
 }
 
