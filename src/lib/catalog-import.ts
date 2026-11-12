@@ -18,7 +18,7 @@ export type CatalogRow = {
   available: boolean;
 };
 
-/** Splits CSV text (comma or semicolon, quoted fields, CRLF) into rows of cells. */
+/** Splits CSV text (comma or semicolon, quoted fields, CRLF) into rows of cells; blank lines stay so line numbers match. */
 export function parseCsv(text: string): string[][] {
   const clean = text.replace(/^﻿/, "");
   const firstLine = clean.split(/\r?\n/, 1)[0] ?? "";
@@ -40,7 +40,7 @@ export function parseCsv(text: string): string[][] {
     else if (char === "\n" || char === "\r") {
       if (char === "\r" && clean[i + 1] === "\n") i += 1;
       row.push(cell); cell = "";
-      if (row.some((value) => value.trim() !== "")) rows.push(row);
+      rows.push(row);
       row = [];
     } else cell += char;
   }
@@ -98,13 +98,14 @@ export function readCatalog(text: string): CatalogParse {
   const seen = new Set<string>();
   table.slice(1).forEach((cells, offset) => {
     const line = offset + 2;
+    if (!cells.some((value) => value.trim() !== "")) return;
     const get = (key: keyof typeof HEADERS) => (index[key] >= 0 ? (cells[index[key]] ?? "").trim() : "");
     const title = get("title").slice(0, 200);
     const cost = parseMoney(get("cost"));
     const externalId = (get("externalId") || plain(title).replace(/ /g, "-")).slice(0, 120);
-    if (!title) return skipped.push({ line, reason: "sem nome" });
-    if (cost == null || cost <= 0) return skipped.push({ line, reason: "custo inválido" });
-    if (seen.has(externalId)) return skipped.push({ line, reason: `SKU repetido (${externalId})` });
+    if (!title) { skipped.push({ line, reason: "sem nome" }); return; }
+    if (cost == null || cost <= 0) { skipped.push({ line, reason: "custo inválido" }); return; }
+    if (seen.has(externalId)) { skipped.push({ line, reason: `SKU repetido (${externalId})` }); return; }
     seen.add(externalId);
     const gallery = get("images").split(/[|\s,;]+/).map(httpUrl).filter((url): url is string => Boolean(url));
     const imageUrl = httpUrl(get("imageUrl")) ?? gallery[0] ?? null;
