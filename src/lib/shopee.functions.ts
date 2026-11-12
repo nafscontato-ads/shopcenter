@@ -619,6 +619,34 @@ export const listMyShopeeProducts = createServerFn({ method: "GET" })
     });
   });
 
+/**
+ * Counters for the Central do Vendedor that orders cannot answer: how many of the
+ * shop's listings Shopee itself reports as banned. Read live, never stored or estimated;
+ * null means Shopee did not answer, so the screen shows a dash instead of a zero.
+ */
+export const getShopeeListingCounters = createServerFn({ method: "GET" })
+  .middleware([requireActiveUser])
+  .validator((input: unknown) => z.object({ connectionId: z.string().uuid().optional() }).parse(input ?? {}))
+  .handler(async ({ data, context }) => {
+    return withFreshConnection(context.userId, data.connectionId, async (connection) => {
+      const shopee = await import("@/lib/shopee.server");
+      const credentials = { shopId: Number(connection.shop_id), accessToken: connection.access_token };
+      const total = async (status: string) => {
+        try {
+          const result = await shopee.getShopeeItemList(credentials, 0, status, 1);
+          const value = Number(record(result["response"])["total_count"]);
+          return Number.isFinite(value) ? value : 0;
+        } catch (error) {
+          const { ShopeeAuthorizationError } = await import("@/lib/shopee.server");
+          if (error instanceof ShopeeAuthorizationError) throw error;
+          return null;
+        }
+      };
+      const [banned, active, unlisted] = await Promise.all([total("BANNED"), total("NORMAL"), total("UNLIST")]);
+      return { banned, active, unlisted, checkedAt: new Date().toISOString() };
+    });
+  });
+
 export const updateMyShopeeProduct = createServerFn({ method: "POST" })
   .middleware([requireActiveUser])
   .validator((input) => remoteItemUpdateInput.extend({ connectionId: z.string().uuid().optional() }).parse(input))

@@ -71,6 +71,9 @@ const searchSchema = z.object({
   connection: z.enum(["success", "error", "invalid"]).optional(),
   reason: z.string().max(200).optional(),
   marketplace: z.string().max(40).optional(),
+  // Deep links from the Central do Vendedor: open a tab, optionally with an order status filter.
+  aba: z.enum(["overview", "pas-products", "shop-products", "orders", "automation", "activity"]).optional().catch(undefined),
+  status: z.string().regex(/^[A-Za-z_]{1,32}$/).optional().catch(undefined),
 });
 
 const PUBLISH_BATCH = 48;
@@ -408,7 +411,7 @@ function ShopeeWorkspaceContent() {
         </div>
       )}
 
-      <Tabs defaultValue={connection ? "overview" : "pas-products"}>
+      <Tabs key={search.aba ?? "default"} defaultValue={search.aba ?? (connection ? "overview" : "pas-products")}>
         <TabsList className="scrollbar-slim mb-5 h-11 w-full justify-start overflow-x-auto">
           <TabsTrigger value="overview" disabled={!connection && !workspace.data?.ownerDemoShop}><LayoutDashboard className="mr-2 size-4" />Visão geral</TabsTrigger>
           <TabsTrigger value="pas-products"><PackageCheck className="mr-2 size-4" />Publicar do Shop Center</TabsTrigger>
@@ -537,7 +540,7 @@ function ShopeeWorkspaceContent() {
       <TabsContent value="shop-products">
         {connection && <MyShopeeProducts connectionId={connection.id} onEdit={setRemoteEditing} />}
       </TabsContent>
-      <TabsContent value="orders">{workspace.data?.ownerDemoShop ? <><div className="mb-4 flex gap-2"><Button size="sm" variant="default">Minha loja</Button></div><ShopeeDemoPanel view="orders" realOrders={workspace.data?.orders ?? []} connectionId={connection?.id} onSynced={() => void workspace.refetch()} /></> : connection ? <ShopeeOrders orders={workspace.data?.orders ?? []} connectionId={connection.id} onSynced={() => void workspace.refetch()} /> : null}</TabsContent>
+      <TabsContent value="orders">{workspace.data?.ownerDemoShop ? <><div className="mb-4 flex gap-2"><Button size="sm" variant="default">Minha loja</Button></div><ShopeeDemoPanel view="orders" realOrders={workspace.data?.orders ?? []} connectionId={connection?.id} onSynced={() => void workspace.refetch()} /></> : connection ? <ShopeeOrders key={search.status ?? "all"} orders={workspace.data?.orders ?? []} connectionId={connection.id} initialStatus={search.aba === "orders" ? search.status : undefined} onSynced={() => void workspace.refetch()} /> : null}</TabsContent>
       <TabsContent value="automation">{connection && <ShopeeAutomation connection={connection} onRefresh={() => void workspace.refetch()} />}</TabsContent>
       <TabsContent value="activity">{connection && <ShopeeLogs logs={workspace.data?.logs ?? []} />}</TabsContent>
       </Tabs>

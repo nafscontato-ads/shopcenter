@@ -363,10 +363,10 @@ export async function getShopeeBrands(credentials: ShopCredentials, categoryId: 
   });
 }
 
-export async function getShopeeItemList(credentials: ShopCredentials, offset = 0) {
+export async function getShopeeItemList(credentials: ShopCredentials, offset = 0, itemStatus = "NORMAL", pageSize = 50) {
   return signedShopRequest("/api/v2/product/get_item_list", credentials, {
     method: "GET",
-    query: { offset, page_size: 50, item_status: "NORMAL" },
+    query: { offset, page_size: pageSize, item_status: itemStatus },
   });
 }
 
