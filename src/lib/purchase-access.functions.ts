@@ -50,3 +50,44 @@ export const completeSignup = createServerFn({ method: "POST" })
     if (error) throw new Error("Este e-mail já tem conta. Entre com sua senha ou use 'Esqueci minha senha'.");
     return { email: row.email };
   });
+
+const onlyDigits = (value: unknown) => String(value ?? "").replace(/\D/g, "");
+
+/**
+ * Cadastro sem o link do e-mail (o dono manda /cadastro pelo WhatsApp): a pessoa prova a compra
+ * informando o e-mail e o CPF usados no checkout. Sem compra paga com esse par, não cria conta.
+ */
+export const completeSignupByPurchase = createServerFn({ method: "POST" })
+  .validator((input: unknown) => z.object({
+    email: z.string().trim().toLowerCase().email().max(200),
+    cpf: z.string().trim().min(11).max(20),
+    fullName: z.string().trim().min(3).max(120),
+    password: z.string().min(8).max(72),
+  }).parse(input))
+  .handler(async ({ data }) => {
+    const denied = "Não achamos uma compra aprovada com esse e-mail e CPF. Use os mesmos dados do checkout ou fale com o suporte.";
+    const cpf = onlyDigits(data.cpf);
+    if (cpf.length !== 11 && cpf.length !== 14) throw new Error(denied);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: access } = await supabaseAdmin.from("purchase_access" as never).select("email, status, signup_used_at").eq("email", data.email).maybeSingle();
+    const row = access as { status: string; signup_used_at: string | null } | null;
+    if (!row || row.status !== "active") throw new Error(denied);
+    const { data: events } = await supabaseAdmin.from("purchase_webhook_events" as never).select("payload").eq("email", data.email).like("result", "liberado%").limit(20);
+    const matches = ((events ?? []) as Array<{ payload: Record<string, unknown> | null }>).some((event) => {
+      const client = (event.payload?.["client"] ?? event.payload?.["customer"] ?? {}) as Record<string, unknown>;
+      return [client["cpf"], client["cnpj"], client["document"]].some((doc) => onlyDigits(doc) === cpf);
+    });
+    if (!matches) throw new Error(denied);
+    const { error } = await supabaseAdmin.auth.admin.createUser({
+      email: data.email,
+      password: data.password,
+      email_confirm: true,
+      user_metadata: { full_name: data.fullName.replace(/\s+/g, " ") },
+    });
+    if (error) {
+      if (/already|registered|exists/i.test(error.message)) throw new Error("Este e-mail já tem conta. Entre com sua senha ou use 'Esqueci minha senha'.");
+      throw new Error(`Não foi possível criar a conta: ${error.message}`);
+    }
+    await supabaseAdmin.from("purchase_access" as never).update({ signup_used_at: new Date().toISOString() } as never).eq("email", data.email);
+    return { email: data.email };
+  });

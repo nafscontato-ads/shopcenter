@@ -59,7 +59,7 @@ import { prepareShopeeImageFile, prepareShopeeImageUrls } from "@/lib/shopee-ima
 import { leafShopeeCategories, programmedShopeeStock, suggestShopeeCategory, type ShopeeCategoryOption } from "@/lib/shopee-product-defaults";
 import { extractVoltageOptions, shopeeAttributeSchema, shopeeVariationSchema, type ShopeeAttribute, type ShopeeVariation } from "@/lib/shopee-publishing";
 import { refreshSavedProducts, useSavedProducts } from "@/lib/saved-products";
-import { analyzeShopeeGallery, archiveShopeeProduct, beginShopeeConnection, disconnectShopeeStore, getShopeeCategoryRequirements, getShopeePublishingOptions, getShopeeWorkspace, getSupplierProductPhotos, improveShopeeCopy, listCommunityPhotoProducts, listMyShopeeProducts, publishShopeeListing, saveShopeeDraft, updateMyShopeeProduct, validateShopeeGallery } from "@/lib/shopee.functions";
+import { analyzeShopeeGallery, archiveShopeeProduct, beginShopeeConnection, disconnectShopeeStore, getShopeeCategoryRequirements, getShopeePublishingOptions, getShopeeWorkspace, syncShopeeStore, getSupplierProductPhotos, improveShopeeCopy, listCommunityPhotoProducts, listMyShopeeProducts, publishShopeeListing, saveShopeeDraft, updateMyShopeeProduct, validateShopeeGallery } from "@/lib/shopee.functions";
 import { customerMessage } from "@/lib/shopee-compliance";
 import { listShopeePublications } from "@/lib/shopee-compliance.functions";
 import { useUnavailableProducts } from "@/hooks/use-shopee-availability";
@@ -245,6 +245,17 @@ function ShopeeWorkspaceContent() {
   const closeEditor = () => { setSelected(null); setEditing(null); if (search.product) void navigate({ search: (prev) => ({ ...prev, product: undefined }), replace: true }); };
   const connection = workspace.data?.connection;
   const connections = workspace.data?.connections ?? [];
+  // Pedidos novos aparecem sozinhos: ao abrir a tela, busca na Shopee se a última sincronização tem mais de 15 minutos.
+  const autoSyncFn = useServerFn(syncShopeeStore);
+  const autoSynced = useRef<string | null>(null);
+  const refetchWorkspace = workspace.refetch;
+  useEffect(() => {
+    if (!connection || autoSynced.current === connection.id) return;
+    const last = connection.last_synced_at ? Date.parse(connection.last_synced_at) : 0;
+    if (Date.now() - last < 15 * 60 * 1000) return;
+    autoSynced.current = connection.id;
+    void autoSyncFn({ data: { connectionId: connection.id } }).then(() => refetchWorkspace()).catch(() => undefined);
+  }, [connection, autoSyncFn, refetchWorkspace]);
   const credentialStatus = workspace.data?.credentialStatus;
   const communityFn = useServerFn(listCommunityPhotoProducts);
   const community = useQuery({ queryKey: ["community-photo-products"], queryFn: () => communityFn(), enabled: !authLoading && Boolean(user), staleTime: 5 * 60_000 });
@@ -392,9 +403,11 @@ function ShopeeWorkspaceContent() {
       </section>
       </>)}
 
-      <a href="https://seller.shopee.com.br/register/form" target="_blank" rel="noopener noreferrer" className="border-border bg-card hover:border-primary/50 text-muted-foreground hover:text-foreground mb-6 -mt-3 inline-flex items-center gap-2 rounded-full border py-1 pr-3 pl-1 text-xs transition-colors">
+      <a href="https://seller.shopee.com.br/register/form" target="_blank" rel="noopener noreferrer" className={connection
+        ? "border-border bg-card hover:border-primary/50 text-muted-foreground hover:text-foreground mb-6 -mt-3 inline-flex items-center gap-2 rounded-full border py-1 pr-3 pl-1 text-xs transition-colors"
+        : "bg-primary text-primary-foreground hover:bg-primary/90 mb-6 -mt-3 flex w-full items-center justify-center gap-2.5 rounded-xl px-5 py-3 text-sm font-bold shadow-sm transition-colors sm:inline-flex sm:w-auto"}>
         <img src={shopeeBag.url} alt="Shopee" className="size-6 rounded-full object-cover" />
-        Ainda não tem conta? Criar painel de vendedor Shopee
+        {connection ? "Criar outra loja na Shopee" : "Ainda não tem loja? Criar minha loja na Shopee"}
       </a>
 
       <MarketplaceConnections />

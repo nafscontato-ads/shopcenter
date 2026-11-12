@@ -94,10 +94,13 @@ const NavList = memo(function NavList({ collapsed, onNavigate, theme, horizontal
 
   return (
     <nav className={horizontal ? "scrollbar-slim mx-auto flex max-w-[1240px] items-center gap-1 overflow-x-auto px-4 py-1.5 md:px-8 [&>div]:flex [&>div]:mb-0 [&>div]:gap-1 [&_a]:mt-0 [&_a]:whitespace-nowrap" : "scrollbar-slim flex-1 overflow-y-auto px-3 py-2"}>
-      {access?.role === "partner" && access.salesPageSlug && (
+      {access?.role === "partner" && (access.affiliateCode || access.ownsOfficialOffer || access.salesPageSlug) && (
         <Link
-          to="/fornecedor/$slug"
-          params={{ slug: access.salesPageSlug }}
+          {...(access.affiliateCode
+            ? { to: "/r/$code" as const, params: { code: access.affiliateCode } }
+            : access.ownsOfficialOffer
+            ? { to: "/" as const }
+            : { to: "/fornecedor/$slug" as const, params: { slug: access.salesPageSlug ?? "" } })}
           onClick={onNavigate}
           title={collapsed ? "Minha página de vendas" : undefined}
           className="border-border text-muted-foreground hover:bg-sidebar-accent hover:text-foreground mt-2 flex items-center gap-3 rounded-lg border px-3 py-2 text-xs font-medium transition-colors"
@@ -142,7 +145,7 @@ const NavList = memo(function NavList({ collapsed, onNavigate, theme, horizontal
   );
 });
 
-export function AppShell({ children, appearance = "default" }: { children: ReactNode; appearance?: "default" | "sales-light" }) {
+export function AppShell({ children, appearance = "sales-light" }: { children: ReactNode; appearance?: "default" | "sales-light" }) {
   return <PrivateAppGate appearance={appearance}>{children}</PrivateAppGate>;
 }
 

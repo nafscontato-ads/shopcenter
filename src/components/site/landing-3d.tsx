@@ -146,6 +146,8 @@ const features = [
 /* ------------------------------------------------------------------ */
 
 const OFFER_ENDS_AT = Date.parse(((import.meta.env as Record<string, string | undefined>)["VITE_OFFER_ENDS_AT"] || "2026-11-30T23:59:59-03:00").trim());
+/** Preço do Vitalício fora da Black Friday. */
+const LIFETIME_FULL_PRICE = 1299.9;
 const pad = (n: number) => String(n).padStart(2, "0");
 
 function OfferCountdown() {
@@ -217,7 +219,7 @@ const SHOWCASE_PRODUCTS: { name: string; category: string; price: number; image:
   { name: "Escova Pente para Cabelo Pata Pata Oval", category: "Beleza", price: 3.06, image: "https://dcduh12ikx9w9.cloudfront.net/img/p/2/3/9/5/7/4/239574-home_default.jpg" },
 ];
 
-type Plan = { name: string; price: string; note: string; href: string; featured?: boolean };
+type Plan = { name: string; price: string; note: string; href: string; featured?: boolean; was?: string; wasNote?: string; badge?: string };
 
 export type Landing3DProps = {
   products: Product[];
@@ -235,9 +237,15 @@ export function Landing3D({ products, productCount, monthlyCheckout, lifetimeChe
     return real.length >= 4 ? real : SHOWCASE_PRODUCTS.map((p) => ({ key: p.name, ...p }));
   }, [products]);
   const support = whatsappLink();
+  const offerActive = Number.isFinite(OFFER_ENDS_AT) && Date.now() < OFFER_ENDS_AT;
+  const offerEndLabel = offerActive ? new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit", timeZone: "America/Sao_Paulo" }).format(new Date(OFFER_ENDS_AT)) : "";
   const plans: Plan[] = [
     { name: "Mensal", price: brl(monthlyPrice), note: "por mês · cancele quando quiser", href: monthlyCheckout },
-    { name: "Vitalício", price: lifetimePrice === 295.9 ? "12x R$ 31,53" : brl(lifetimePrice), note: `ou ${brl(lifetimePrice)} à vista · pagamento único`, href: lifetimeCheckout, featured: true },
+    {
+      name: "Vitalício", price: lifetimePrice === 295.9 ? "12x R$ 31,53" : brl(lifetimePrice), note: `ou ${brl(lifetimePrice)} à vista · pagamento único`, href: lifetimeCheckout, featured: true,
+      // Preço cheio que volta depois da Black Friday (dono, 2026-11-12). Some sozinho quando a oferta acaba.
+      ...(offerActive ? { was: brl(LIFETIME_FULL_PRICE), wasNote: "preço normal, ou 12x sem juros", badge: `Preço de Black Friday · só até ${offerEndLabel}` } : {}),
+    },
   ];
   const faq = [
     ["O que é o Shop Center?", "Um sistema de logística e gestão para quem vende em marketplaces. Você conecta suas lojas, importa produtos de fornecedores parceiros e acompanha pedidos e etiquetas num painel só."],
@@ -375,7 +383,9 @@ export function Landing3D({ products, productCount, monthlyCheckout, lifetimeChe
               <article key={plan.name} className={cn("relative flex flex-col rounded-3xl p-8", plan.featured ? "bg-gradient-to-br from-orange-500 to-orange-600 text-white shadow-[0_40px_80px_-40px_rgba(234,88,12,0.95)]" : "border border-orange-100 bg-white")}>
                 {plan.featured && <span className="absolute -top-3 left-8 rounded-full bg-neutral-900 px-3 py-1 text-[11px] font-black uppercase tracking-widest text-white">Mais escolhido</span>}
                 <p className={cn("text-sm font-black uppercase tracking-widest", plan.featured ? "text-orange-100" : "text-orange-600")}>{plan.name}</p>
-                <p className="mt-3 text-5xl font-black tabular-nums">{plan.price}</p>
+                {plan.badge && <p className={cn("mt-3 inline-flex w-fit items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-wide", plan.featured ? "bg-white/15 text-white" : "bg-orange-50 text-orange-700")}><Clock className="size-3.5" />{plan.badge}</p>}
+                {plan.was && <p className={cn("mt-3 text-sm", plan.featured ? "text-orange-100" : "text-neutral-500")}>De <span className="text-lg font-bold line-through decoration-2">{plan.was}</span> <span className="opacity-80">({plan.wasNote})</span> por</p>}
+                <p className={cn("text-[2.5rem] leading-tight font-black whitespace-nowrap tabular-nums sm:text-5xl", plan.was ? "mt-1" : "mt-3")}>{plan.price}</p>
                 <p className={cn("mt-2 text-sm", plan.featured ? "text-orange-100" : "text-neutral-500")}>{plan.note}</p>
                 <ul className="my-7 flex-1 space-y-2.5 text-sm">{["Catálogo de fornecedores", "Até 3 lojas Shopee", "Publicação em 1 clique", "Margem líquida automática", "Pedidos e etiquetas", "Suporte no WhatsApp"].map((t) => <li key={t} className="flex gap-2"><Check className={cn("mt-0.5 size-4 shrink-0", plan.featured ? "text-white" : "text-orange-500")} />{t}</li>)}</ul>
                 <a href={plan.href} target="_blank" rel="noreferrer" className={cn("inline-flex h-14 items-center justify-center gap-2 rounded-2xl text-base font-extrabold transition hover:-translate-y-0.5", plan.featured ? "bg-white text-orange-600" : "bg-orange-500 text-white")}>Quero o {plan.name.toLowerCase()}<ArrowRight className="size-5" /></a>

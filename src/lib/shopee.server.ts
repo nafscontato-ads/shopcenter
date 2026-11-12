@@ -78,31 +78,84 @@ export function safeStateMatch(raw: string, expectedHash: string) {
   return actual.length === expected.length && timingSafeEqual(actual, expected);
 }
 
+// Endereço mundial da Shopee. O login de autorização passa por ele quando o endereço do Brasil ainda
+// não recebeu uma mudança feita no painel (ex.: troca do domínio de redirecionamento).
+const SHOPEE_GLOBAL_URL = "https://partner.shopeemobile.com";
+let authBaseUrl = SHOPEE_BASE_URL;
+
 export function buildShopeeAuthUrl(state: string) {
-  return authUrl(SHOPEE_BASE_URL, state);
+  return authUrl(authBaseUrl, state);
 }
 
 async function inspectAuthUrl(baseUrl: string) {
   const url = authUrl(baseUrl, "pas-credential-check");
   if (!url) return { accepted: false, error: "not_configured" };
-  const response = await fetch(url, { redirect: "manual" });
-  if (response.status >= 300 && response.status < 400) return { accepted: true, error: null };
-  const result = await response.json().catch(() => ({})) as Record<string, unknown>;
-  return { accepted: false, error: String(result["error"] ?? "unknown") };
+  try {
+    const response = await fetch(url, { redirect: "manual", signal: AbortSignal.timeout(8_000) });
+    if (response.status >= 300 && response.status < 400) return { accepted: true, error: null };
+    const result = await response.json().catch(() => ({})) as Record<string, unknown>;
+    return { accepted: false, error: String(result["error"] ?? "unknown") };
+  } catch {
+    // Shopee fora do ar ou lenta: não é prova de credencial errada.
+    return { accepted: false, error: "unreachable" };
+  }
 }
+
+/** Diagnóstico sem segredos: o que a Shopee responde ao link de autorização montado com as credenciais do servidor. */
+export async function diagnoseShopeeAuth() {
+  const config = partnerConfig();
+  if (!config) return "credenciais faltando";
+  const key = process.env["SHOPEE_PARTNER_KEY"] ?? "";
+  const shape = `partner_id ${config.partnerId}; chave com ${key.length} caracteres${/\s/.test(key) ? ", TEM ESPAÇO" : ""}${/^[\x21-\x7e]+$/.test(key) ? "" : ", TEM CARACTERE INVÁLIDO"}${key.startsWith("shpk") ? ", começa com shpk" : ""}; redirect ${SHOPEE_CALLBACK_URL}`;
+  const url = authUrl(SHOPEE_BASE_URL, "pas-credential-check");
+  const response = await fetch(url!, { redirect: "manual", signal: AbortSignal.timeout(15_000) });
+  const body = response.status >= 300 && response.status < 400 ? "redireciona (aceito)" : (await response.text()).slice(0, 300);
+  let global = "";
+  if (!body.startsWith("redireciona")) {
+    const other = await fetch(authUrl(SHOPEE_GLOBAL_URL, "pas-credential-check")!, { redirect: "manual", signal: AbortSignal.timeout(15_000) }).catch(() => null);
+    global = `; endereço mundial: ${other ? (other.status >= 300 && other.status < 400 ? "redireciona (aceito)" : `HTTP ${other.status} ${(await other.text()).slice(0, 160)}`) : "sem resposta"}`;
+  }
+  return `${shape}; HTTP ${response.status}; ${body}${global}`;
+}
+
+// Última resposta boa da Shopee. A conferência roda a cada abertura da tela; uma oscilação da Shopee
+// (lentidão, limite de chamadas, erro passageiro) não pode desligar o botão de quem vai conectar a loja.
+let lastAccepted: { baseUrl: string; at: number } | null = null;
+const ACCEPTED_TTL_MS = 6 * 60 * 60 * 1000;
+/** Só estas respostas provam que a credencial do servidor está errada. */
+const CREDENTIAL_ERRORS = new Set(["error_sign", "invalid_partner_id", "error_auth"]);
 
 export async function inspectShopeeCredentials() {
   if (!partnerConfig()) return { status: "not_configured" as const };
+  if (lastAccepted && Date.now() - lastAccepted.at < ACCEPTED_TTL_MS) {
+    authBaseUrl = lastAccepted.baseUrl;
+    return { status: "production" as const };
+  }
   const production = await inspectAuthUrl(SHOPEE_BASE_URL);
-  if (production.accepted) return { status: "production" as const };
+  if (production.accepted) {
+    authBaseUrl = SHOPEE_BASE_URL;
+    lastAccepted = { baseUrl: SHOPEE_BASE_URL, at: Date.now() };
+    return { status: "production" as const };
+  }
   if (production.error === "invalid_partner_id") {
     const sandbox = await inspectAuthUrl(SHOPEE_SANDBOX_URL);
     if (sandbox.accepted) return { status: "sandbox" as const };
+    return { status: "invalid" as const };
   }
-  return { status: "invalid" as const };
+  const global = await inspectAuthUrl(SHOPEE_GLOBAL_URL);
+  if (global.accepted) {
+    authBaseUrl = SHOPEE_GLOBAL_URL;
+    lastAccepted = { baseUrl: SHOPEE_GLOBAL_URL, at: Date.now() };
+    return { status: "production" as const };
+  }
+  if (CREDENTIAL_ERRORS.has(production.error ?? "") && CREDENTIAL_ERRORS.has(global.error ?? "")) return { status: "invalid" as const };
+  // Resposta inconclusiva: mantém o botão ligado, no último endereço que funcionou (ou o mundial, que aceita o domínio).
+  console.error("[shopee] conferência inconclusiva:", production.error, global.error);
+  authBaseUrl = lastAccepted?.baseUrl ?? SHOPEE_GLOBAL_URL;
+  return { status: "production" as const };
 }
 
-async function publicShopeePost(path: string, body: Record<string, unknown>) {
+async function publicShopeePost(path: string, body: Record<string, unknown>, baseUrl = SHOPEE_BASE_URL) {
   const config = partnerConfig();
   if (!config) throw new Error("A integração oficial da Shopee ainda não foi ativada.");
   const timestamp = unixTime();
@@ -112,7 +165,7 @@ async function publicShopeePost(path: string, body: Record<string, unknown>) {
     timestamp: String(timestamp),
     sign,
   });
-  const response = await fetch(`${SHOPEE_BASE_URL}${path}?${query}`, {
+  const response = await fetch(`${baseUrl}${path}?${query}`, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ partner_id: config.partnerId, ...body }),
@@ -125,7 +178,12 @@ async function publicShopeePost(path: string, body: Record<string, unknown>) {
 }
 
 export async function exchangeShopeeCode(code: string, shopId: number) {
-  return publicShopeePost("/api/v2/auth/token/get", { code, shop_id: shopId });
+  try {
+    return await publicShopeePost("/api/v2/auth/token/get", { code, shop_id: shopId });
+  } catch (error) {
+    // Autorização feita pelo endereço mundial: o código é trocado por lá.
+    return await publicShopeePost("/api/v2/auth/token/get", { code, shop_id: shopId }, SHOPEE_GLOBAL_URL).catch(() => { throw error; });
+  }
 }
 
 export function readShopeeTokenPayload(result: Record<string, unknown>): ShopeeTokenPayload {

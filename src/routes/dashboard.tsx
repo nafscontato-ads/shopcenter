@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
   Area,
   AreaChart,
@@ -28,7 +28,7 @@ import {
   TrendingUp,
   Wallet,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { AppShell } from "@/components/pas/app-shell";
 import { SalesLiveDashboard } from "@/components/pas/sales-live-dashboard";
@@ -164,7 +164,13 @@ function Dashboard() {
     }));
   }, [result, singleDay]);
 
-  if (loading) {
+  // Students are not partners: the lock card read as "no access", so they go straight to Integração.
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (!loading && !isPartner) void navigate({ to: "/shopee", replace: true });
+  }, [loading, isPartner, navigate]);
+
+  if (loading || !isPartner) {
     return <div className="text-muted-foreground py-20 text-center text-sm">Carregando painel…</div>;
   }
 
