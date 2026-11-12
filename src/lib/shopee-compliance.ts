@@ -5,8 +5,12 @@
  * block; every other gap is sent and Shopee decides.
  */
 
-/** Owner decision (21/10): no local block stops a publication; missing documents are only reported. */
-export const LOCAL_DOCUMENT_BLOCKS = false;
+/**
+ * Owner decision (12/11, replaces 21/10): products the catalogue already knows Shopee refuses for a
+ * missing document (EAN, Anatel, ANVISA, INMETRO) show as "Indisponível na Shopee" instead of failing
+ * on publish. In the 48h before this, 30 of 65 failures were on these products and none of them published.
+ */
+export const LOCAL_DOCUMENT_BLOCKS = true;
 
 export const DOCUMENT_BLOCKER_CODES = [
   "ANATEL_REQUIRED",
