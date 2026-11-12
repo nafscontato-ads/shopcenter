@@ -322,7 +322,7 @@ export const getShopeeWorkspace = createServerFn({ method: "GET" })
     const ownerDemoShop = isOwner || isPartner ? OWNER_DEMO_SHOP : null;
     const { inspectShopeeCredentials } = await import("@/lib/shopee.server");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const [{ data: connections, error: connectionError }, { data: listings, error: listingsError }, { data: orders }, { data: logs }] = await Promise.all([
+    const [{ data: connections, error: connectionError }, { data: listings, error: listingsError }, { data: logs }] = await Promise.all([
       supabaseAdmin
         .from("shopee_shop_connections")
         .select("id, shop_id, merchant_id, region, shop_name, status, token_expires_at, updated_at, last_synced_at, low_stock_threshold, sync_prices, sync_stock, alert_low_stock, pause_when_out_of_stock")
@@ -333,7 +333,6 @@ export const getShopeeWorkspace = createServerFn({ method: "GET" })
         .from("shopee_listings")
         .select("id, product_id, shopee_item_id, status, status_detail, title, description, price, stock, sku, condition, category_id, category_name, attributes, variations, logistics, weight, package_length, package_width, package_height, images, video_url, size_chart_url, is_max_ad, promoted, promoted_at, shopee_link, last_synced_at, published_at, created_at, updated_at")
         .order("updated_at", { ascending: false }),
-      context.supabase.from("shopee_orders").select("id, connection_id, order_sn, status, total_amount, currency, buyer_label, items, created_time, updated_time, completed_time, synced_at").order("created_time", { ascending: false }).limit(500),
       context.supabase.from("shopee_sync_logs").select("id, connection_id, operation, status, processed_count, changed_count, error_count, message, started_at, finished_at").order("created_at", { ascending: false }).limit(30),
     ]);
     if (connectionError) {
@@ -350,7 +349,11 @@ export const getShopeeWorkspace = createServerFn({ method: "GET" })
     }
     const connection = (connections ?? []).find((item) => item.id === data.connectionId) ?? connections?.[0] ?? null;
     const credentialStatus = connection ? "production" : (await inspectShopeeCredentials()).status;
-    const shopOrders = (orders ?? []).filter((order) => !connection || order.connection_id === connection.id);
+    // Orders are read per selected shop, so other shops' orders never use up the limit.
+    const { data: connectionOrders } = connection
+      ? await context.supabase.from("shopee_orders").select("id, connection_id, order_sn, status, total_amount, currency, buyer_label, items, created_time, updated_time, completed_time, synced_at").eq("connection_id", connection.id).order("created_time", { ascending: false }).limit(2000)
+      : { data: [] };
+    const shopOrders = connectionOrders ?? [];
     const orderLines = await supplierOrderLines(supabaseAdmin, shopOrders, listings ?? []);
     return {
       configured: credentialStatus === "production",
@@ -616,6 +619,54 @@ export const listMyShopeeProducts = createServerFn({ method: "GET" })
         shopeeLink: `https://shopee.com.br/product/${connection.shop_id}/${Number(item["item_id"])}`,
       };
       });
+    });
+  });
+
+/**
+ * Counters for the Central do Vendedor that orders cannot answer: how many of the
+ * shop's listings Shopee itself reports as banned. Read live, never stored or estimated;
+ * null means Shopee did not answer, so the screen shows a dash instead of a zero.
+ */
+export const getShopeeListingCounters = createServerFn({ method: "GET" })
+  .middleware([requireActiveUser])
+  .validator((input: unknown) => z.object({ connectionId: z.string().uuid().optional() }).parse(input ?? {}))
+  .handler(async ({ data, context }) => {
+    return withFreshConnection(context.userId, data.connectionId, async (connection) => {
+      const shopee = await import("@/lib/shopee.server");
+      const credentials = { shopId: Number(connection.shop_id), accessToken: connection.access_token };
+      const total = async (status: string) => {
+        try {
+          const result = await shopee.getShopeeItemList(credentials, 0, status, 1);
+          const value = Number(record(result["response"])["total_count"]);
+          return Number.isFinite(value) ? value : 0;
+        } catch (error) {
+          const { ShopeeAuthorizationError } = await import("@/lib/shopee.server");
+          if (error instanceof ShopeeAuthorizationError) throw error;
+          return null;
+        }
+      };
+      const [banned, active, unlisted] = await Promise.all([total("BANNED"), total("NORMAL"), total("UNLIST")]);
+      // Names and photos of up to 50 banned listings, so the seller sees which ones the counter means.
+      let bannedItems: { itemId: number; name: string; image: string | null }[] = [];
+      if (banned) {
+        try {
+          const list = await shopee.getShopeeItemList(credentials, 0, "BANNED", 50);
+          const ids = (Array.isArray(record(list["response"])["item"]) ? record(list["response"])["item"] as Record<string, unknown>[] : [])
+            .map((item) => Number(item["item_id"])).filter((id) => Number.isInteger(id) && id > 0);
+          if (ids.length) {
+            const info = await shopee.getShopeeItemBaseInfo(credentials, ids);
+            const rows = record(info["response"])["item_list"];
+            bannedItems = (Array.isArray(rows) ? rows as Record<string, unknown>[] : []).map((item) => {
+              const urls = record(item["image"])["image_url_list"];
+              return { itemId: Number(item["item_id"]), name: String(item["item_name"] ?? "Produto"), image: Array.isArray(urls) && urls[0] ? String(urls[0]) : null };
+            });
+          }
+        } catch (error) {
+          const { ShopeeAuthorizationError } = await import("@/lib/shopee.server");
+          if (error instanceof ShopeeAuthorizationError) throw error;
+        }
+      }
+      return { banned, active, unlisted, bannedItems, checkedAt: new Date().toISOString() };
     });
   });
 
