@@ -90,10 +90,15 @@ export function buildShopeeAuthUrl(state: string) {
 async function inspectAuthUrl(baseUrl: string) {
   const url = authUrl(baseUrl, "pas-credential-check");
   if (!url) return { accepted: false, error: "not_configured" };
-  const response = await fetch(url, { redirect: "manual" });
-  if (response.status >= 300 && response.status < 400) return { accepted: true, error: null };
-  const result = await response.json().catch(() => ({})) as Record<string, unknown>;
-  return { accepted: false, error: String(result["error"] ?? "unknown") };
+  try {
+    const response = await fetch(url, { redirect: "manual", signal: AbortSignal.timeout(8_000) });
+    if (response.status >= 300 && response.status < 400) return { accepted: true, error: null };
+    const result = await response.json().catch(() => ({})) as Record<string, unknown>;
+    return { accepted: false, error: String(result["error"] ?? "unknown") };
+  } catch {
+    // Shopee fora do ar ou lenta: não é prova de credencial errada.
+    return { accepted: false, error: "unreachable" };
+  }
 }
 
 /** Diagnóstico sem segredos: o que a Shopee responde ao link de autorização montado com as credenciais do servidor. */
@@ -113,25 +118,41 @@ export async function diagnoseShopeeAuth() {
   return `${shape}; HTTP ${response.status}; ${body}${global}`;
 }
 
+// Última resposta boa da Shopee. A conferência roda a cada abertura da tela; uma oscilação da Shopee
+// (lentidão, limite de chamadas, erro passageiro) não pode desligar o botão de quem vai conectar a loja.
+let lastAccepted: { baseUrl: string; at: number } | null = null;
+const ACCEPTED_TTL_MS = 6 * 60 * 60 * 1000;
+/** Só estas respostas provam que a credencial do servidor está errada. */
+const CREDENTIAL_ERRORS = new Set(["error_sign", "invalid_partner_id", "error_auth"]);
+
 export async function inspectShopeeCredentials() {
   if (!partnerConfig()) return { status: "not_configured" as const };
+  if (lastAccepted && Date.now() - lastAccepted.at < ACCEPTED_TTL_MS) {
+    authBaseUrl = lastAccepted.baseUrl;
+    return { status: "production" as const };
+  }
   const production = await inspectAuthUrl(SHOPEE_BASE_URL);
   if (production.accepted) {
     authBaseUrl = SHOPEE_BASE_URL;
+    lastAccepted = { baseUrl: SHOPEE_BASE_URL, at: Date.now() };
     return { status: "production" as const };
-  }
-  if (production.error === "error_param") {
-    const global = await inspectAuthUrl(SHOPEE_GLOBAL_URL).catch(() => ({ accepted: false, error: "unreachable" }));
-    if (global.accepted) {
-      authBaseUrl = SHOPEE_GLOBAL_URL;
-      return { status: "production" as const };
-    }
   }
   if (production.error === "invalid_partner_id") {
     const sandbox = await inspectAuthUrl(SHOPEE_SANDBOX_URL);
     if (sandbox.accepted) return { status: "sandbox" as const };
+    return { status: "invalid" as const };
   }
-  return { status: "invalid" as const };
+  const global = await inspectAuthUrl(SHOPEE_GLOBAL_URL);
+  if (global.accepted) {
+    authBaseUrl = SHOPEE_GLOBAL_URL;
+    lastAccepted = { baseUrl: SHOPEE_GLOBAL_URL, at: Date.now() };
+    return { status: "production" as const };
+  }
+  if (CREDENTIAL_ERRORS.has(production.error ?? "") && CREDENTIAL_ERRORS.has(global.error ?? "")) return { status: "invalid" as const };
+  // Resposta inconclusiva: mantém o botão ligado, no último endereço que funcionou (ou o mundial, que aceita o domínio).
+  console.error("[shopee] conferência inconclusiva:", production.error, global.error);
+  authBaseUrl = lastAccepted?.baseUrl ?? SHOPEE_GLOBAL_URL;
+  return { status: "production" as const };
 }
 
 async function publicShopeePost(path: string, body: Record<string, unknown>, baseUrl = SHOPEE_BASE_URL) {
