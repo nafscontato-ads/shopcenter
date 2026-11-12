@@ -1,6 +1,7 @@
 import { describe, expect, it, test } from "bun:test";
 
 import { advanceFloat, canFund, confirmsAsaasRecharge, confirmsRecharge, normalizeCpfCnpj, pixKeyInfo, isValidPixRecharge, nextReputationTier, reputationCredit, planFulfillment, reactToShopeeStatus, resolveLines, supplierFor, whatsappLink } from "../src/lib/fulfillment";
+import { parseMoney, readCatalog } from "../src/lib/catalog-import";
 
 const suppliers = [{ id: "s1", sources: ["casabella"], active: true }, { id: "s2", sources: ["petmix"], active: true }, { id: "s3", sources: ["off"], active: false }];
 const products = [
@@ -119,5 +120,25 @@ describe("asaas helpers", () => {
     expect(confirmsAsaasRecharge({ status: "PENDING", externalReference: "r1", value: 100 }, recharge)).toBe(false);
     expect(confirmsAsaasRecharge({ status: "RECEIVED", externalReference: "r2", value: 100 }, recharge)).toBe(false);
     expect(confirmsAsaasRecharge({ status: "RECEIVED", externalReference: "r1", value: 99.99 }, recharge)).toBe(false);
+  });
+});
+
+describe("catalog import", () => {
+  test("reads a semicolon CSV with Brazilian money and quoted fields", () => {
+    const csv = "﻿SKU;Nome do produto;Preço de custo;Imagem;Estoque\nA1;\"Jogo de Lençol; Casal\";R$ 1.234,56;https://x.com/a.jpg;3\nA2;Toalha;39,9;;0\n;;;;\nA3;Sem custo;;https://x.com/c.jpg;1\n";
+    const parsed = readCatalog(csv);
+    expect(parsed.missingColumns).toEqual([]);
+    expect(parsed.rows.length).toBe(2);
+    expect(parsed.rows[0]).toMatchObject({ externalId: "A1", title: "Jogo de Lençol; Casal", cost: 1234.56, imageUrl: "https://x.com/a.jpg", available: true });
+    expect(parsed.rows[1]).toMatchObject({ externalId: "A2", cost: 39.9, imageUrl: null, available: false });
+    expect(parsed.skipped).toEqual([{ line: 5, reason: "custo inválido" }]);
+  });
+  test("asks for the required columns", () => {
+    expect(readCatalog("sku,foto\n1,a").missingColumns).toEqual(["nome", "custo"]);
+  });
+  test("parses money formats", () => {
+    expect(parseMoney("39.90")).toBe(39.9);
+    expect(parseMoney("R$ 12,5")).toBe(12.5);
+    expect(parseMoney("abc")).toBeNull();
   });
 });

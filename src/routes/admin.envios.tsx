@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { AdminPageHeader } from "@/components/admin/admin-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { adminCreditWallet, adminListSuppliers, adminReleasePayout, adminSaveSupplier, adminSetCreditLimit } from "@/lib/fulfillment.functions";
+import { adminCreditWallet, adminImportCatalog, adminListSuppliers, adminReleasePayout, adminSaveSupplier, adminSetCreditLimit } from "@/lib/fulfillment.functions";
 import { whatsappLink } from "@/lib/fulfillment";
 
 export const Route = createFileRoute("/admin/envios")({
@@ -26,6 +26,20 @@ function AdminEnvios() {
   const creditFn = useServerFn(adminCreditWallet);
   const limitFn = useServerFn(adminSetCreditLimit);
   const releaseFn = useServerFn(adminReleasePayout);
+  const importFn = useServerFn(adminImportCatalog);
+  const [importSupplier, setImportSupplier] = useState("");
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [importResult, setImportResult] = useState<string | null>(null);
+  const importCatalog = useMutation({
+    mutationFn: async () => importFn({ data: { supplierId: importSupplier, csv: await importFile!.text() } }),
+    onSuccess: (r) => {
+      const skipped = r.skippedCount ? ` ${r.skippedCount} linha(s) ignorada(s): ${r.skipped.map((s) => `linha ${s.line} (${s.reason})`).join(", ")}${r.skippedCount > r.skipped.length ? "…" : ""}.` : "";
+      setImportResult(`${r.imported} produto(s) lidos; ${r.active} ativos no catálogo; ${r.hidden} ocultos (sem foto, sem estoque ou custo abaixo de R$ 8).${r.withoutImage ? ` ${r.withoutImage} sem foto.` : ""}${skipped}`);
+      toast.success("Catálogo importado.");
+      refresh();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
   const list = useQuery({ queryKey: ["admin-envios"], queryFn: () => listFn() });
   const refresh = () => queryClient.invalidateQueries({ queryKey: ["admin-envios"] });
   const [form, setForm] = useState<SupplierForm>(emptySupplier);
@@ -97,6 +111,20 @@ function AdminEnvios() {
             </li>
           ))}
         </ul>
+      </section>
+
+      <section className="rounded-xl border p-4">
+        <h2 className="font-semibold">Importar catálogo do fornecedor (planilha)</h2>
+        <p className="text-muted-foreground text-xs">Arquivo CSV (no Excel/Google Planilhas: Arquivo &gt; Salvar como / Fazer download &gt; CSV). Colunas: <b>nome</b> e <b>custo</b> obrigatórias; <b>sku</b>, <b>imagem</b>, <b>imagens</b>, <b>categoria</b>, <b>marca</b>, <b>descricao</b>, <b>estoque</b>, <b>ean</b>, <b>link</b> opcionais. Importar de novo atualiza pelo SKU, sem duplicar. Os produtos entram no catálogo ligados a este fornecedor.</p>
+        <div className="mt-3 grid gap-2 sm:grid-cols-3">
+          <select aria-label="Fornecedor" className="border-input bg-background h-9 rounded-md border px-3 text-sm" value={importSupplier} onChange={(e) => setImportSupplier(e.target.value)}>
+            <option value="">Escolha o fornecedor</option>
+            {(list.data?.suppliers ?? []).map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+          </select>
+          <input aria-label="Planilha CSV" type="file" accept=".csv,text/csv" className="text-sm" onChange={(e) => { setImportFile(e.target.files?.[0] ?? null); setImportResult(null); }} />
+          <Button disabled={!importSupplier || !importFile || importCatalog.isPending} onClick={() => importCatalog.mutate()}>{importCatalog.isPending ? "Importando…" : "Importar planilha"}</Button>
+        </div>
+        {importResult ? <p className="bg-muted mt-3 rounded-lg p-3 text-sm">{importResult}</p> : null}
       </section>
 
       <section className="rounded-xl border p-4">
