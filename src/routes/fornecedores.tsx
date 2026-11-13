@@ -24,11 +24,13 @@ export const Route = createFileRoute("/fornecedores")({
 function SuppliersPage() {
   const unlock = useUnlockDialog();
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  return <AppShell><PageHeader icon={Store} title="Fornecedores" subtitle="Minipreço e 25 de Março Online já estão liberados. Desbloqueie fornecedores premium com preços de Black Friday." />
+  return <AppShell><PageHeader icon={Store} title="Fornecedores" subtitle="Minipreço, 25 de Março Online e nossos novos parceiros diretos já estão liberados. Desbloqueie fornecedores premium com preços de Black Friday." />
     <div className="mb-5 flex justify-end"><IntegrateSupplierButton /></div>
     <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">{supplierDirectory.map((supplier) => <SupplierCard key={supplier.id} supplier={supplier} selected={supplier.unlocked || selectedId === supplier.id} action={
       supplier.unlocked
-        ? <div className="grid gap-2"><Button asChild className="h-11 w-full rounded-[10px] text-base font-extrabold"><Link to="/marketplaces"><Rocket/>Vender</Link></Button><Button asChild variant="outline" className="w-full rounded-[10px]"><Link to="/produtos" search={supplier.catalogSource ? { fornecedor: supplier.catalogSource } : {}}><ShoppingBag/>Abrir catálogo</Link></Button></div>
+        ? <div className="grid gap-2"><Button asChild className="h-11 w-full rounded-[10px] text-base font-extrabold"><Link to="/marketplaces"><Rocket/>Vender</Link></Button>{supplier.comingSoon
+          ? <Button variant="outline" disabled className="w-full rounded-[10px]"><ShoppingBag/>Catálogo em breve</Button>
+          : <Button asChild variant="outline" className="w-full rounded-[10px]"><Link to="/produtos" search={supplier.catalogSource ? { fornecedor: supplier.catalogSource } : {}}><ShoppingBag/>Abrir catálogo</Link></Button>}</div>
         : selectedId === supplier.id
           ? <Button variant="secondary" className="h-10 w-full rounded-[10px] font-bold" onClick={() => unlock.show(supplier)}><Check/>Selecionado</Button>
           : <Button variant="outline" className="h-10 w-full rounded-[10px] font-bold" onClick={() => unlock.show(supplier)}><LockKeyhole/>Desbloquear fornecedor</Button>
