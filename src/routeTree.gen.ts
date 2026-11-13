@@ -37,6 +37,7 @@ import { Route as ReembolsoRouteImport } from './routes/reembolso'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RoadmapShopeeRouteImport } from './routes/roadmap-shopee'
 import { Route as RoadmapTiktokRouteImport } from './routes/roadmap-tiktok'
+import { Route as SejaFornecedorRouteImport } from './routes/seja-fornecedor'
 import { Route as ShopeeRouteImport } from './routes/shopee'
 import { Route as StudioRouteImport } from './routes/studio'
 import { Route as V2RouteImport } from './routes/v2'
@@ -226,6 +227,11 @@ const RoadmapShopeeRoute = RoadmapShopeeRouteImport.update({
 const RoadmapTiktokRoute = RoadmapTiktokRouteImport.update({
   id: '/roadmap-tiktok',
   path: '/roadmap-tiktok',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SejaFornecedorRoute = SejaFornecedorRouteImport.update({
+  id: '/seja-fornecedor',
+  path: '/seja-fornecedor',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ShopeeRoute = ShopeeRouteImport.update({
@@ -509,6 +515,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/roadmap-shopee': typeof RoadmapShopeeRoute
   '/roadmap-tiktok': typeof RoadmapTiktokRoute
+  '/seja-fornecedor': typeof SejaFornecedorRoute
   '/shopee': typeof ShopeeRoute
   '/studio': typeof StudioRoute
   '/v2': typeof V2Route
@@ -586,6 +593,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/roadmap-shopee': typeof RoadmapShopeeRoute
   '/roadmap-tiktok': typeof RoadmapTiktokRoute
+  '/seja-fornecedor': typeof SejaFornecedorRoute
   '/shopee': typeof ShopeeRoute
   '/studio': typeof StudioRoute
   '/v2': typeof V2Route
@@ -666,6 +674,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/roadmap-shopee': typeof RoadmapShopeeRoute
   '/roadmap-tiktok': typeof RoadmapTiktokRoute
+  '/seja-fornecedor': typeof SejaFornecedorRoute
   '/shopee': typeof ShopeeRoute
   '/studio': typeof StudioRoute
   '/v2': typeof V2Route
@@ -747,6 +756,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/roadmap-shopee'
     | '/roadmap-tiktok'
+    | '/seja-fornecedor'
     | '/shopee'
     | '/studio'
     | '/v2'
@@ -824,6 +834,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/roadmap-shopee'
     | '/roadmap-tiktok'
+    | '/seja-fornecedor'
     | '/shopee'
     | '/studio'
     | '/v2'
@@ -903,6 +914,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/roadmap-shopee'
     | '/roadmap-tiktok'
+    | '/seja-fornecedor'
     | '/shopee'
     | '/studio'
     | '/v2'
@@ -983,6 +995,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   RoadmapShopeeRoute: typeof RoadmapShopeeRoute
   RoadmapTiktokRoute: typeof RoadmapTiktokRoute
+  SejaFornecedorRoute: typeof SejaFornecedorRoute
   ShopeeRoute: typeof ShopeeRoute
   StudioRoute: typeof StudioRoute
   V2Route: typeof V2Route
@@ -1207,6 +1220,13 @@ declare module '@tanstack/react-router' {
       path: '/roadmap-tiktok'
       fullPath: '/roadmap-tiktok'
       preLoaderRoute: typeof RoadmapTiktokRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/seja-fornecedor': {
+      id: '/seja-fornecedor'
+      path: '/seja-fornecedor'
+      fullPath: '/seja-fornecedor'
+      preLoaderRoute: typeof SejaFornecedorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/shopee': {
@@ -1658,6 +1678,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   RoadmapShopeeRoute: RoadmapShopeeRoute,
   RoadmapTiktokRoute: RoadmapTiktokRoute,
+  SejaFornecedorRoute: SejaFornecedorRoute,
   ShopeeRoute: ShopeeRoute,
   StudioRoute: StudioRoute,
   V2Route: V2Route,

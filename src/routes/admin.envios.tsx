@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { adminCreditWallet, adminImportCatalog, adminListSuppliers, adminReleasePayout, adminSaveSupplier, adminSetCreditLimit } from "@/lib/fulfillment.functions";
 import { whatsappLink } from "@/lib/fulfillment";
+import { adminDecideSupplierApplication, adminListSupplierApplications } from "@/lib/supplier-applications.functions";
 
 export const Route = createFileRoute("/admin/envios")({
   head: () => ({ meta: [{ title: "Envio automático | Painel Shop Center" }] }),
@@ -113,6 +114,8 @@ function AdminEnvios() {
         </ul>
       </section>
 
+      <SupplierApplications onApproved={(url, whatsapp) => { setLink({ url, whatsapp }); refresh(); }} />
+
       <section className="rounded-xl border p-4">
         <h2 className="font-semibold">Importar catálogo do fornecedor (planilha)</h2>
         <p className="text-muted-foreground text-xs">Arquivo CSV (no Excel/Google Planilhas: Arquivo &gt; Salvar como / Fazer download &gt; CSV). Colunas: <b>nome</b> e <b>custo</b> obrigatórias; <b>sku</b>, <b>imagem</b>, <b>imagens</b>, <b>categoria</b>, <b>marca</b>, <b>descricao</b>, <b>estoque</b>, <b>ean</b>, <b>link</b> opcionais. Importar de novo atualiza pelo SKU, sem duplicar. Os produtos entram no catálogo ligados a este fornecedor.</p>
@@ -167,5 +170,49 @@ function AdminEnvios() {
         </ul>
       </section>
     </div>
+  );
+}
+
+function SupplierApplications({ onApproved }: { onApproved: (panelUrl: string, whatsapp: string | null) => void }) {
+  const listFn = useServerFn(adminListSupplierApplications);
+  const decideFn = useServerFn(adminDecideSupplierApplication);
+  const queryClient = useQueryClient();
+  const apps = useQuery({ queryKey: ["admin-supplier-applications"], queryFn: () => listFn() });
+  const decide = useMutation({
+    mutationFn: (input: { id: string; approve: boolean }) => decideFn({ data: input }),
+    onSuccess: (result) => {
+      void queryClient.invalidateQueries({ queryKey: ["admin-supplier-applications"] });
+      if (!result.approved) return void toast.success("Cadastro recusado.");
+      if (result.importError) toast.error(`Fornecedor criado, mas a planilha falhou: ${result.importError}`);
+      else toast.success(result.imported != null ? `Fornecedor aprovado, ${result.imported} produto(s) ativos no catálogo.` : "Fornecedor aprovado. Falta a planilha de produtos.");
+      onApproved(`${window.location.origin}/expedicao/${result.panelToken}`, result.whatsapp);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const pending = (apps.data ?? []).filter((a) => a.status === "pending");
+  return (
+    <section className="rounded-xl border p-4">
+      <h2 className="font-semibold">Cadastros de fornecedores ({pending.length} aguardando)</h2>
+      <p className="text-muted-foreground text-xs">Chegam pela página pública /seja-fornecedor. Aprovar cria o fornecedor com repasse automático, importa a planilha enviada e gera o link do painel de pedidos.</p>
+      <ul className="mt-3 divide-y text-sm">
+        {pending.map((a) => (
+          <li key={a.id} className="grid gap-1 py-3">
+            <div className="font-medium">{a.company} <span className="text-muted-foreground font-normal">· {a.niche ?? "nicho não informado"} · {a.place ?? "local não informado"}</span></div>
+            <div className="text-muted-foreground text-xs">
+              {a.contactName} · <a className="underline" href={whatsappLink(a.whatsapp, "")} target="_blank" rel="noreferrer">WhatsApp {a.whatsapp}</a> · {a.email} · doc {a.document}
+              {a.instagram ? ` · ${a.instagram}` : ""}
+            </div>
+            <div className="text-muted-foreground text-xs">
+              {a.payoutMode === "on_ship" ? "Recebe na postagem" : "Recebe após a entrega"} · posta em até {a.shipsWithinDays} dia(s) útil(eis) · PIX {a.pixKey} · {a.catalogRows ? `${a.catalogRows} produto(s) na planilha` : "sem planilha"}
+            </div>
+            <div className="mt-1 flex gap-2">
+              <Button size="sm" disabled={decide.isPending} onClick={() => decide.mutate({ id: a.id, approve: true })}>Aprovar</Button>
+              <Button size="sm" variant="outline" disabled={decide.isPending} onClick={() => window.confirm(`Recusar ${a.company}?`) && decide.mutate({ id: a.id, approve: false })}>Recusar</Button>
+            </div>
+          </li>
+        ))}
+        {apps.data && !pending.length ? <li className="text-muted-foreground py-2">Nenhum cadastro novo.</li> : null}
+      </ul>
+    </section>
   );
 }
