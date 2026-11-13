@@ -71,6 +71,7 @@ import { Route as InfluencerIndexRouteImport } from './routes/influencer.index'
 import { Route as InfluencerIdRouteImport } from './routes/influencer.$id'
 import { Route as InfluencerImagemRouteImport } from './routes/influencer.imagem'
 import { Route as InfluencerNovoRouteImport } from './routes/influencer.novo'
+import { Route as PainelReembolsosTokenRouteImport } from './routes/painel-reembolsos.$token'
 import { Route as RCodeRouteImport } from './routes/r.$code'
 import { Route as AdminUsersIdRouteImport } from './routes/admin.users.$id'
 import { Route as ApiPublicSaudeRouteImport } from './routes/api.public.saude'
@@ -391,6 +392,11 @@ const InfluencerNovoRoute = InfluencerNovoRouteImport.update({
   path: '/influencer/novo',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PainelReembolsosTokenRoute = PainelReembolsosTokenRouteImport.update({
+  id: '/painel-reembolsos/$token',
+  path: '/painel-reembolsos/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RCodeRoute = RCodeRouteImport.update({
   id: '/r/$code',
   path: '/r/$code',
@@ -493,6 +499,7 @@ export interface FileRoutesByFullPath {
   '/influencer/$id': typeof InfluencerIdRoute
   '/influencer/imagem': typeof InfluencerImagemRoute
   '/influencer/novo': typeof InfluencerNovoRoute
+  '/painel-reembolsos/$token': typeof PainelReembolsosTokenRoute
   '/r/$code': typeof RCodeRoute
   '/BLACK/': typeof BLACKIndexRoute
   '/admin/': typeof AdminIndexRoute
@@ -563,6 +570,7 @@ export interface FileRoutesByTo {
   '/influencer/$id': typeof InfluencerIdRoute
   '/influencer/imagem': typeof InfluencerImagemRoute
   '/influencer/novo': typeof InfluencerNovoRoute
+  '/painel-reembolsos/$token': typeof PainelReembolsosTokenRoute
   '/r/$code': typeof RCodeRoute
   '/BLACK': typeof BLACKIndexRoute
   '/admin': typeof AdminIndexRoute
@@ -636,6 +644,7 @@ export interface FileRoutesById {
   '/influencer/$id': typeof InfluencerIdRoute
   '/influencer/imagem': typeof InfluencerImagemRoute
   '/influencer/novo': typeof InfluencerNovoRoute
+  '/painel-reembolsos/$token': typeof PainelReembolsosTokenRoute
   '/r/$code': typeof RCodeRoute
   '/BLACK/': typeof BLACKIndexRoute
   '/admin/': typeof AdminIndexRoute
@@ -710,6 +719,7 @@ export interface FileRouteTypes {
     | '/influencer/$id'
     | '/influencer/imagem'
     | '/influencer/novo'
+    | '/painel-reembolsos/$token'
     | '/r/$code'
     | '/BLACK/'
     | '/admin/'
@@ -780,6 +790,7 @@ export interface FileRouteTypes {
     | '/influencer/$id'
     | '/influencer/imagem'
     | '/influencer/novo'
+    | '/painel-reembolsos/$token'
     | '/r/$code'
     | '/BLACK'
     | '/admin'
@@ -852,6 +863,7 @@ export interface FileRouteTypes {
     | '/influencer/$id'
     | '/influencer/imagem'
     | '/influencer/novo'
+    | '/painel-reembolsos/$token'
     | '/r/$code'
     | '/BLACK/'
     | '/admin/'
@@ -906,6 +918,7 @@ export interface RootRouteChildren {
   InfluencerIdRoute: typeof InfluencerIdRoute
   InfluencerImagemRoute: typeof InfluencerImagemRoute
   InfluencerNovoRoute: typeof InfluencerNovoRoute
+  PainelReembolsosTokenRoute: typeof PainelReembolsosTokenRoute
   RCodeRoute: typeof RCodeRoute
   BLACKIndexRoute: typeof BLACKIndexRoute
   CadastroIndexRoute: typeof CadastroIndexRoute
@@ -1354,6 +1367,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InfluencerNovoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/painel-reembolsos/$token': {
+      id: '/painel-reembolsos/$token'
+      path: '/painel-reembolsos/$token'
+      fullPath: '/painel-reembolsos/$token'
+      preLoaderRoute: typeof PainelReembolsosTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/r/$code': {
       id: '/r/$code'
       path: '/r/$code'
@@ -1524,6 +1544,7 @@ const rootRouteChildren: RootRouteChildren = {
   InfluencerIdRoute: InfluencerIdRoute,
   InfluencerImagemRoute: InfluencerImagemRoute,
   InfluencerNovoRoute: InfluencerNovoRoute,
+  PainelReembolsosTokenRoute: PainelReembolsosTokenRoute,
   RCodeRoute: RCodeRoute,
   BLACKIndexRoute: BLACKIndexRoute,
   CadastroIndexRoute: CadastroIndexRoute,
