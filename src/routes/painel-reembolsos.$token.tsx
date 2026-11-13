@@ -63,6 +63,33 @@ const FILTERS: { value: Filter; label: string }[] = [
   ...STATUS.map((s) => ({ value: s.value as Filter, label: `Reembolso ${s.label.toLowerCase()}` })),
   { value: "sem_reembolso", label: "Sem reembolso" },
 ];
+/** De onde veio o pedido: página /reembolso do site, Applyfy ou chargeback no cartão. */
+const ORIGIN: Record<PanelRefund["source"], { label: string; long: string; badge: string }> = {
+  site: {
+    label: "Site",
+    long: "Página /reembolso do site",
+    badge: "bg-orange-100 text-orange-700",
+  },
+  applyfy: {
+    label: "Applyfy",
+    long: "Pedido aberto na Applyfy",
+    badge: "bg-violet-100 text-violet-700",
+  },
+  chargeback: {
+    label: "Chargeback",
+    long: "Contestação no cartão (Applyfy)",
+    badge: "bg-red-100 text-red-700",
+  },
+};
+function applyfyLabel(r: PanelRefund) {
+  const ev = r.applyfy?.event ?? "";
+  if (r.source === "chargeback")
+    return r.applyfy?.state === "SOLVED" ? "Chargeback resolvido" : "Chargeback aberto";
+  if (ev === "REFUND_COMPLETED" || r.applyfy?.state === "COMPLETED") return "Dinheiro devolvido";
+  if (ev === "REFUND_REJECTED" || r.applyfy?.state === "CANCELED") return "Recusado pelo produtor";
+  if (ev === "REFUND_APPROVED_BY_COMPANY") return "Aprovado pela Applyfy";
+  return "Aberto, esperando resposta";
+}
 const REFUNDS_MS = 4000;
 const STUDENTS_MS = 30000;
 const PAGE = 40;
@@ -563,8 +590,9 @@ function StudentCard({
   const r = e.refund;
   const wa = waLink(e.phone ?? r?.phone ?? null);
   const last = e.sales[0];
+  const origin = r ? ORIGIN[r.source] : null;
   const subtitle = r
-    ? `Pediu reembolso ${ago(r.created_at, now)} · ${r.reason}`
+    ? `${r.source === "chargeback" ? "Chargeback" : "Pediu reembolso"} ${ago(r.created_at, now)} · ${r.reason}`
     : last
       ? `${last.plan} · pago em ${dateBr(last.paidAt)}`
       : "";
@@ -593,6 +621,16 @@ function StudentCard({
           <span className="min-w-0">
             <span className="flex items-center gap-2">
               <span className="truncate font-extrabold">{e.name}</span>
+              {origin && (
+                <span
+                  className={cn(
+                    "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-black uppercase",
+                    origin.badge,
+                  )}
+                >
+                  {origin.label}
+                </span>
+              )}
               {fresh && (
                 <span className="shrink-0 rounded-full bg-orange-500 px-2 py-0.5 text-[10px] font-black uppercase text-white">
                   Novo
@@ -654,14 +692,28 @@ function StudentCard({
       {open && (
         <div className="grid gap-4 border-t border-neutral-100 bg-neutral-50/60 p-4 text-sm sm:grid-cols-2">
           {r && (
-            <Info title="Pedido de reembolso" icon={Inbox}>
+            <Info
+              title={r.source === "chargeback" ? "Chargeback" : "Pedido de reembolso"}
+              icon={Inbox}
+            >
+              <Line k="Veio de" v={origin?.long ?? "—"} />
+              {r.applyfy && <Line k="Situação na Applyfy" v={applyfyLabel(r)} />}
+              {r.applyfy?.amount != null && <Line k="Valor pedido" v={brl(r.applyfy.amount)} />}
+              {r.applyfy?.rejectedReason && (
+                <p className="mt-1 rounded-lg bg-neutral-50 p-2 text-xs text-neutral-600">
+                  Resposta na Applyfy: {r.applyfy.rejectedReason}
+                </p>
+              )}
               <Line k="Protocolo" v={<span className="font-mono font-bold">{r.protocol}</span>} />
               <Line k="Enviado em" v={dateTimeBr(r.created_at)} />
               <Line k="Motivo" v={r.reason} />
               {r.details && (
                 <p className="mt-1 rounded-lg bg-neutral-50 p-2 text-neutral-700">“{r.details}”</p>
               )}
-              <Line k="Diz que pagou com" v={r.payment_method === "pix" ? "PIX" : "Cartão"} />
+              <Line
+                k={r.source === "site" ? "Diz que pagou com" : "Pagou com"}
+                v={r.payment_method === "pix" ? "PIX" : "Cartão"}
+              />
               <Line k="Data da compra" v={dateBr(r.purchase_date)} />
             </Info>
           )}

@@ -59,6 +59,15 @@ export type PanelRefund = {
   seller: RefundSeller | null;
   /** Código de outro afiliado, quando a venda achada é de um afiliado que não é o Cauã. */
   otherAffiliate: string | null;
+  /** De onde veio: página /reembolso do site, pedido aberto na Applyfy ou chargeback no cartão. */
+  source: "site" | "applyfy" | "chargeback";
+  /** Situação na Applyfy (último aviso do webhook), só para pedidos que vieram de lá. */
+  applyfy: null | {
+    event: string | null;
+    state: string | null;
+    amount: number | null;
+    rejectedReason: string | null;
+  };
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -253,6 +262,19 @@ export const getRefundPanel = createServerFn({ method: "POST" })
         seller:
           r["seller"] === "lucena" || r["seller"] === "caua" ? (r["seller"] as RefundSeller) : null,
         otherAffiliate: code && code !== CAUA_AFFILIATE_CODE ? code : null,
+        source:
+          r["source"] === "applyfy" || r["source"] === "chargeback"
+            ? (r["source"] as "applyfy" | "chargeback")
+            : "site",
+        applyfy:
+          r["source"] === "applyfy" || r["source"] === "chargeback"
+            ? {
+                event: str(r["applyfy_event"]),
+                state: str(r["applyfy_state"]),
+                amount: r["applyfy_amount"] == null ? null : Number(r["applyfy_amount"]),
+                rejectedReason: str(r["applyfy_rejected_reason"]),
+              }
+            : null,
       };
     });
     return { refunds, serverTime: new Date().toISOString() };

@@ -17,7 +17,7 @@ export const Route = createFileRoute("/api/public/saude")({
           resend: process.env["RESEND_API_KEY"] ? "ok" : "faltando",
           ia_textos: process.env["OPENROUTER_API_KEY"] ? "ok (OpenRouter)" : process.env["LOVABLE_API_KEY"] ? "ok (Lovable)" : "faltando (OPENROUTER_API_KEY)",
           ia_imagens: process.env["OPENROUTER_API_KEY"] ? "ok (OpenRouter)" : process.env["GEMINI_API_KEY"] ? "ok (Google)" : "faltando (OPENROUTER_API_KEY)",
-          versao: "painel-suporte-v2",
+          versao: "painel-suporte-v3",
           hora_do_servidor: new Date().toISOString(),
         };
         try {
