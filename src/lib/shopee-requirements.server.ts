@@ -238,11 +238,12 @@ function textValue(value: string) {
 }
 
 async function aiChoices(fields: AttributeDefinition[], facts: ProductFacts) {
-  const key = process.env["LOVABLE_API_KEY"];
+  const { aiChat, aiTextKey } = await import("@/lib/ai-gateway.server");
+  const key = aiTextKey();
   if (!key || fields.length === 0) return [] as ShopeeAttribute[];
   const catalogue = fields.map((field) => ({ attribute_id: field.id, name: field.name, options: field.values.filter((value) => value.id > 0).map((value) => ({ value_id: value.id, name: value.name })) }));
   try {
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await aiChat({
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
       body: JSON.stringify({ model: "google/gemini-3.8-flash", messages: [{ role: "user", content: `Você preenche características obrigatórias de um anúncio Shopee. Para cada característica, escolha UMA opção da lista somente quando o título ou a descrição do produto sustentarem claramente a escolha (ex.: "sem fio"/"bluetooth" => Wireless). Se não houver evidência, omita. Nunca invente. Responda somente JSON {"choices":[{"attribute_id":1,"value_id":2}]}.\nProduto: ${facts.name}\nMarca: ${facts.brand ?? ""}\nDescrição: ${facts.description.slice(0, 2500)}\nCaracterísticas: ${JSON.stringify(catalogue)}` }] }),
@@ -307,10 +308,11 @@ export async function fillMandatoryAttributes(response: unknown, facts: ProductF
 
 /** Pick an existing gallery photo that is clearly a size/measurement table. */
 export async function detectSizeChartImage(images: string[]) {
-  const key = process.env["LOVABLE_API_KEY"];
+  const { aiChat, aiTextKey } = await import("@/lib/ai-gateway.server");
+  const key = aiTextKey();
   if (!key || images.length === 0) return null;
   try {
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await aiChat({
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
       body: JSON.stringify({ model: "google/gemini-3.8-flash", messages: [{ role: "user", content: [

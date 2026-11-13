@@ -15,13 +15,12 @@ async function guard<T>(userId: string, route: string, run: () => Promise<T>): P
 }
 
 
-const GATEWAY = "https://ai.gateway.lovable.dev/v1";
 const MODEL_STANDARD = "gemini-2.5-flash-image";
 const MODEL_MAX = "gemini-3-pro-image-preview";
 const TEXT_MODEL = "openai/gpt-5.6-sol";
 
 function apiKey() {
-  const key = process.env["LOVABLE_API_KEY"];
+  const key = (process.env["OPENROUTER_API_KEY"] ?? "").trim() || process.env["LOVABLE_API_KEY"];
   if (!key) throw new Error("A geração de imagens não está configurada.");
   return key;
 }
@@ -140,7 +139,7 @@ Regras: linguagem falada e natural, frases curtas, sem emoji, sem hashtags, sem 
 NUNCA invente características técnicas, resultados ou promessas que não estejam no nome/categoria do produto.
 Responda apenas com o texto da fala corrido, no tamanho certo para ${data.duration} segundos.`;
 
-    const res = await fetch(`${GATEWAY}/chat/completions`, {
+    const res = await (await import("@/lib/ai-gateway.server")).aiChat({
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey()}`, "Content-Type": "application/json" },
       body: JSON.stringify({ model: TEXT_MODEL, messages: [{ role: "user", content: instruction }] }),

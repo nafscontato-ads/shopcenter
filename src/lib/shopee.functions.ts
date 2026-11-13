@@ -336,7 +336,10 @@ export const getShopeeWorkspace = createServerFn({ method: "GET" })
       context.supabase.from("shopee_orders").select("id, connection_id, order_sn, status, total_amount, currency, buyer_label, items, created_time, updated_time, completed_time, synced_at").order("created_time", { ascending: false }).limit(500),
       context.supabase.from("shopee_sync_logs").select("id, connection_id, operation, status, processed_count, changed_count, error_count, message, started_at, finished_at").order("created_at", { ascending: false }).limit(30),
     ]);
-    if (connectionError) throw new Error(connectionError.message);
+    if (connectionError) {
+      console.error("[shopee-workspace] lojas:", connectionError.message, connectionError.details ?? "");
+      throw new Error(`Lojas: ${connectionError.message}`);
+    }
     if (listingsError) throw new Error(listingsError.message);
     // A publish request that died midway (closed tab, timeout) leaves "publishing" forever; release it so the seller can retry.
     const staleBefore = Date.now() - STALE_PUBLISHING_MS;
@@ -364,7 +367,14 @@ export const getShopeeWorkspace = createServerFn({ method: "GET" })
 export const beginShopeeConnection = createServerFn({ method: "POST" })
   .middleware([requireActiveUser])
   .handler(async ({ context }) => {
-    const { buildShopeeAuthUrl, createOAuthState, inspectShopeeCredentials } = await import("@/lib/shopee.server");
+    const { buildShopeeAuthUrl, createOAuthState, inspectShopeeCredentials, MAX_SHOPEE_STORES_PER_USER } = await import("@/lib/shopee.server");
+    {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { count } = await supabaseAdmin.from("shopee_shop_connections").select("id", { count: "exact", head: true }).eq("user_id", context.userId).eq("status", "active");
+      if ((count ?? 0) >= MAX_SHOPEE_STORES_PER_USER) {
+        throw new Error(`Você já conectou ${MAX_SHOPEE_STORES_PER_USER} lojas Shopee, o limite por conta. Desconecte uma para conectar outra.`);
+      }
+    }
     const credentials = await inspectShopeeCredentials();
     if (credentials.status === "sandbox") {
       throw new Error("Este aplicativo Shopee ainda está no ambiente de testes. Ative as credenciais de produção para conectar lojas reais.");
@@ -486,11 +496,14 @@ export const getSupplierProductPhotos = createServerFn({ method: "POST" })
   .middleware([requireActiveUser])
   .validator((input: unknown) => supplierPhotosInput.parse(input))
   .handler(async ({ data, context }) => {
-    const { data: product, error } = await context.supabase
+    // supplier_url não é legível pelo aluno direto no banco; lê no servidor com a mesma regra de antes.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const isOwner = await isOwnerAccount(context.supabase, context.userId);
+    const { data: product, error } = await supabaseAdmin
       .from("products")
       .select("primary_image, gallery_images, url, supplier_source, supplier_url")
       .eq("id", data.productId)
-      .in("status", ["active", OWNER_EXCLUSIVE_STATUS])
+      .in("status", isOwner ? ["active", OWNER_EXCLUSIVE_STATUS] : ["active"])
       .maybeSingle();
     if (error || !product) throw new Error("Produto não encontrado no catálogo.");
 
@@ -522,10 +535,11 @@ export const analyzeShopeeGallery = createServerFn({ method: "POST" })
   .middleware([requireActiveUser])
   .validator((input: unknown) => z.object({ images: z.array(z.string().url()).min(1).max(9) }).parse(input))
   .handler(async ({ data }) => {
-    const key = process.env["LOVABLE_API_KEY"];
+    const { aiChat, aiTextKey } = await import("@/lib/ai-gateway.server");
+    const key = aiTextKey();
     if (!key) throw new Error("A análise com IA não está disponível agora.");
     const images = normalizeProductImages(null, data.images, 9);
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await aiChat({
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
       body: JSON.stringify({ model: "google/gemini-3.8-flash", messages: [{ role: "user", content: [
@@ -736,9 +750,10 @@ export const improveShopeeCopy = createServerFn({ method: "POST" })
   .middleware([requireActiveUser])
   .validator((input: unknown) => z.object({ title: z.string().min(3).max(120), description: z.string().max(3000), facts: z.string().max(4000), mode: z.enum(["title", "description", "both"]) }).parse(input))
   .handler(async ({ data }) => {
-    const key = process.env["LOVABLE_API_KEY"];
+    const { aiChat, aiTextKey } = await import("@/lib/ai-gateway.server");
+    const key = aiTextKey();
     if (!key) throw new Error("A otimização com IA não está disponível agora.");
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", { method: "POST", headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" }, body: JSON.stringify({ model: "openai/gpt-5.6-sol", messages: [{ role: "user", content: `Otimize um anúncio Shopee em português. Use SOMENTE os fatos fornecidos; não invente materiais, medidas, benefícios ou garantias. Responda apenas JSON {"title":"...","description":"...","suggestions":["..."]}. Modo: ${data.mode}. Título atual: ${data.title}. Descrição atual: ${data.description}. Fatos confirmados: ${data.facts}` }] }) });
+    const response = await aiChat({ method: "POST", headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" }, body: JSON.stringify({ model: "openai/gpt-5.6-sol", messages: [{ role: "user", content: `Otimize um anúncio Shopee em português. Use SOMENTE os fatos fornecidos; não invente materiais, medidas, benefícios ou garantias. Responda apenas JSON {"title":"...","description":"...","suggestions":["..."]}. Modo: ${data.mode}. Título atual: ${data.title}. Descrição atual: ${data.description}. Fatos confirmados: ${data.facts}` }] }) });
     if (!response.ok) throw new Error("Não foi possível otimizar o anúncio agora.");
     const result = await response.json() as { choices?: Array<{ message?: { content?: string } }> };
     const raw = result.choices?.[0]?.message?.content ?? "";

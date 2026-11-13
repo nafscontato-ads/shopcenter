@@ -10,7 +10,7 @@ export const Route = createFileRoute("/api/public/shopee/callback")({
         const shopId = Number(url.searchParams.get("shop_id") ?? url.searchParams.get("shopid"));
         const providerError = url.searchParams.get("error") ?? url.searchParams.get("error_code") ?? "";
         const providerMessage = url.searchParams.get("message") ?? url.searchParams.get("error_description") ?? "";
-        const destination = new URL("/shopee", "https://sistemapas.online");
+        const destination = new URL("/shopee", (process.env["PUBLIC_SITE_URL"] || url.origin).replace(/\/+$/, ""));
         if (providerError) {
           destination.searchParams.set("connection", "error");
           destination.searchParams.set("reason", providerMessage || "A autorização foi recusada pela Shopee.");
@@ -26,7 +26,7 @@ export const Route = createFileRoute("/api/public/shopee/callback")({
           return Response.redirect(destination, 302);
         }
         try {
-          const { exchangeShopeeCode, getShopeeShopInfo, hashOAuthState, readShopeeTokenPayload } = await import("@/lib/shopee.server");
+          const { exchangeShopeeCode, getShopeeShopInfo, hashOAuthState, readShopeeTokenPayload, MAX_SHOPEE_STORES_PER_USER } = await import("@/lib/shopee.server");
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           const stateHash = hashOAuthState(state);
           const { data: oauthState } = await supabaseAdmin
@@ -36,6 +36,15 @@ export const Route = createFileRoute("/api/public/shopee/callback")({
             .maybeSingle();
           if (!oauthState || oauthState.used_at || new Date(oauthState.expires_at).getTime() < Date.now()) {
             throw new Error("Autorização inválida ou expirada.");
+          }
+          const { data: activeShops } = await supabaseAdmin
+            .from("shopee_shop_connections")
+            .select("shop_id")
+            .eq("user_id", oauthState.user_id)
+            .eq("status", "active");
+          const otherShops = (activeShops ?? []).filter((row) => Number(row.shop_id) !== shopId);
+          if (otherShops.length >= MAX_SHOPEE_STORES_PER_USER) {
+            throw new Error(`Limite de ${MAX_SHOPEE_STORES_PER_USER} lojas Shopee por conta atingido. Desconecte uma loja e tente de novo.`);
           }
           const tokenResponse = await exchangeShopeeCode(code, shopId);
           const token = readShopeeTokenPayload(tokenResponse);

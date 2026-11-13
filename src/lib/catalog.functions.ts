@@ -1,6 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
+import { requireActiveUser } from "@/lib/access-control";
+
 import type { Product } from "@/lib/pas-data";
 import { normalizeProductImages } from "@/lib/product-images";
 import { encodeCatalog, type CatalogWire } from "@/lib/catalog-wire";
@@ -153,10 +155,12 @@ export const getCatalogProductDetails = createServerFn({ method: "GET" })
 
 /** Supplier purchase pages for a handful of catalogue products (orders list). */
 export const getSupplierLinks = createServerFn({ method: "POST" })
+  .middleware([requireActiveUser])
   .inputValidator((input: { ids: string[] }) => z.object({ ids: z.array(z.string().uuid()).max(300) }).parse(input))
   .handler(async ({ data }) => {
     if (!data.ids.length) return {} as Record<string, { url: string; source: string }>;
-    const db = await publicClient();
+    // Link do fornecedor é o que o aluno paga para ter: só servidor + aluno liberado.
+    const { supabaseAdmin: db } = await import("@/integrations/supabase/client.server");
     const { data: rows, error } = await db.from("products").select("id, supplier_source, supplier_url").in("id", data.ids).eq("status", "active").not("supplier_url", "is", null);
     if (error) throw new Error(error.message);
     return Object.fromEntries((rows ?? []).map((row) => [row.id as string, { url: row.supplier_url as string, source: row.supplier_source as string }]));

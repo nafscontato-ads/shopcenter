@@ -411,6 +411,27 @@ html {
   scroll-behavior: smooth;
 }
 
+/* App fixo no celular: sem zoom de pinça, sem arrastar a tela pro lado, sem elástico. */
+html,
+body {
+  max-width: 100%;
+  overflow-x: clip;
+  overscroll-behavior: none;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+html {
+  touch-action: pan-x pan-y;
+}
+@media (max-width: 767px) {
+  /* Campo com letra menor que 16px faz o iPhone dar zoom ao focar. */
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
 /* Landing PAS: identidade comercial quente, isolada das áreas internas. */
 .pas-landing {
   --background: oklch(0.19 0.015 55);
@@ -1064,3 +1085,38 @@ html {
 .sc-bf-supplier { background: oklch(1 0 0 / 6%); border: 1px solid oklch(1 0 0 / 12%); }
 .sc-bf-strip { background: oklch(0.2 0.012 40); color: oklch(0.97 0.006 70); }
 .sc-bf-strip svg { color: oklch(0.88 0.16 90); }
+
+/* ------------------------------------------------------------------ */
+/* Landing 3D (Shop Center): etiquetas flutuantes com profundidade      */
+/* ------------------------------------------------------------------ */
+.sc3d-hero { --mx: 0; --my: 0; --sy: 0; }
+.sc3d-scene { perspective: 1100px; transform-style: preserve-3d; }
+.sc3d-stage { transform-style: preserve-3d; transform: rotateX(calc(var(--my) * -14deg)) rotateY(calc(var(--mx) * 18deg)); transition: transform 0.25s ease-out; }
+.sc3d-tilt { transform: rotateX(calc(var(--my) * -8deg)) rotateY(calc(var(--mx) * 10deg)) translateY(calc(var(--sy) * -40px)); transition: transform 0.25s ease-out; transform-style: preserve-3d; }
+.sc3d-chip {
+  transform: translate3d(calc(var(--mx) * var(--z) * -0.35), calc(var(--my) * var(--z) * -0.35 + var(--sy) * var(--z) * -0.6), var(--z)) rotate(var(--r));
+  animation: sc3d-float 6s ease-in-out infinite;
+  animation-delay: var(--d, 0s);
+  will-change: transform;
+}
+@keyframes sc3d-float {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -12px; }
+}
+.sc3d-phone { animation: sc3d-bob 7s ease-in-out infinite; }
+@keyframes sc3d-bob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -10px; } }
+.sc3d-notif { animation: sc3d-in 0.45s cubic-bezier(.2,.9,.3,1.3) both; }
+@keyframes sc3d-in { from { opacity: 0; transform: translateY(-14px) scale(.96); } to { opacity: 1; transform: none; } }
+.sc3d-card { transition: transform .35s ease, box-shadow .35s ease; }
+.sc3d-card:hover { transform: translateY(-6px) rotateX(3deg); }
+@media (prefers-reduced-motion: reduce) {
+  .sc3d-chip, .sc3d-phone, .sc3d-notif { animation: none; }
+  .sc3d-stage, .sc3d-tilt, .sc3d-chip { transform: none; }
+}
+
+/* Carrossel de marketplaces na página de vendas */
+.sc3d-marquee { -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); }
+.sc3d-marquee-track { display: flex; width: max-content; gap: 1.25rem; padding: 0.5rem 0; animation: sc3d-marquee 32s linear infinite; }
+.sc3d-marquee:hover .sc3d-marquee-track { animation-play-state: paused; }
+@keyframes sc3d-marquee { from { transform: translateX(0); } to { transform: translateX(calc(-50% - 0.625rem)); } }
+@media (prefers-reduced-motion: reduce) { .sc3d-marquee-track { animation: none; flex-wrap: wrap; justify-content: center; width: auto; } .sc3d-marquee-track > [aria-hidden="true"] { display: none; } }

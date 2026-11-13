@@ -25,6 +25,7 @@ import { BrandWordmark, PasLogo, PasMark } from "@/components/pas/logo";
 import { usePartnerBranding } from "@/hooks/use-partner-branding";
 import { ensureFont, themeIsLight, themeVars, type PartnerTheme } from "@/lib/partner-theme";
 import { SalesBell } from "@/components/pas/sales-bell";
+import { InstallAppPrompt } from "@/components/site/install-app-prompt";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -91,10 +92,13 @@ const NavList = memo(function NavList({ collapsed, onNavigate, theme, horizontal
 
   return (
     <nav className={horizontal ? "scrollbar-slim mx-auto flex max-w-[1240px] items-center gap-1 overflow-x-auto px-4 py-1.5 md:px-8 [&>div]:flex [&>div]:mb-0 [&>div]:gap-1 [&_a]:mt-0 [&_a]:whitespace-nowrap" : "scrollbar-slim flex-1 overflow-y-auto px-3 py-2"}>
-      {access?.role === "partner" && access.salesPageSlug && (
+      {access?.role === "partner" && (access.affiliateCode || access.ownsOfficialOffer || access.salesPageSlug) && (
         <Link
-          to="/fornecedor/$slug"
-          params={{ slug: access.salesPageSlug }}
+          {...(access.affiliateCode
+            ? { to: "/r/$code" as const, params: { code: access.affiliateCode } }
+            : access.ownsOfficialOffer
+            ? { to: "/" as const }
+            : { to: "/fornecedor/$slug" as const, params: { slug: access.salesPageSlug ?? "" } })}
           onClick={onNavigate}
           title={collapsed ? "Minha página de vendas" : undefined}
           className="border-border text-muted-foreground hover:bg-sidebar-accent hover:text-foreground mt-2 flex items-center gap-3 rounded-lg border px-3 py-2 text-xs font-medium transition-colors"
@@ -139,7 +143,7 @@ const NavList = memo(function NavList({ collapsed, onNavigate, theme, horizontal
   );
 });
 
-export function AppShell({ children, appearance = "default" }: { children: ReactNode; appearance?: "default" | "sales-light" }) {
+export function AppShell({ children, appearance = "sales-light" }: { children: ReactNode; appearance?: "default" | "sales-light" }) {
   return <PrivateAppGate appearance={appearance}>{children}</PrivateAppGate>;
 }
 
@@ -324,6 +328,7 @@ function AppShellInner({ children, appearance }: { children: ReactNode; appearan
       )}
 
       <div className="flex min-w-0 flex-1 flex-col">
+        <InstallAppPrompt place="app" />
         <header className="sc-app-header border-border bg-background/85 sticky top-0 z-40 flex h-16 items-center gap-3 border-b px-4 backdrop-blur md:px-8">
           <button
             className="text-muted-foreground md:hidden"

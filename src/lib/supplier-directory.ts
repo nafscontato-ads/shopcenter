@@ -4,6 +4,9 @@ import multiLogo from '@/assets/suppliers/multiplace.webp';
 import promoLogo from '@/assets/suppliers/promovale.webp';
 import miniprecoLogo from '@/assets/suppliers/minipreco.webp';
 import demarcoLogo from '@/assets/suppliers/25demarco.webp';
+import maisQueLogo from '@/assets/suppliers/mais-que-distribuidora.webp';
+import donaCasaLogo from '@/assets/suppliers/dona-casa.webp';
+import talentosPetLogo from '@/assets/suppliers/talentos-pet.webp';
 import zentry from '@/assets/zentry-commerce.webp.asset.json';
 import atlas from '@/assets/atlas-supply.webp.asset.json';
 import novasource from '@/assets/novasource.webp.asset.json';
@@ -34,12 +37,17 @@ export type Supplier = {
   blackFridayPrice?: number;
   /** Supplier website whose products form this supplier's catalogue (see supplier-sites.ts). */
   catalogSource?: string;
+  /** Partner closed, catalogue still being imported: the card shows "Catálogo em breve". */
+  comingSoon?: boolean;
 };
 
 /** Shared factual availability; no integration is implied by a directory entry. */
 export const supplierDirectory: Supplier[] = [
   { id: 'minipreco', name: 'Minipreço', logo: miniprecoLogo, logoShape: 'wide', address: 'Avenida dos Estados, 1250 — Mooca, São Paulo – SP, CEP 03105-000', unlocked: true, catalogSource: 'minipreco' },
   { id: '25demarco', name: '25 de Março Online', logo: demarcoLogo, logoShape: 'wide', address: 'Rua do Gasômetro, 845 — Brás, São Paulo – SP, CEP 03004-001', unlocked: true, catalogSource: '25demarco' },
+  { id: 'mais-que-distribuidora', name: 'Mais Que Distribuidora', logo: maisQueLogo, logoShape: 'wide', address: 'Ibitinga – SP · cama, mesa, banho e decoração', unlocked: true },
+  { id: 'dona-casa', name: 'Dona Casa Distribuidora', logo: donaCasaLogo, logoShape: 'square', address: 'Ibitinga – SP · cama, mesa e decoração', unlocked: true },
+  { id: 'talentos-pet', name: 'Talentos Pet', logo: talentosPetLogo, logoShape: 'square', address: 'Iacanga – SP · produtos pet', unlocked: true },
   { id: 'zentry-commerce', name: 'Zentry Commerce', logo: zentry.url, logoShape: 'square', address: 'Rua das Palmeiras, 184 — Centro, São Paulo – SP, CEP 01042-120', annualPrice: 1589, blackFridayPrice: 1089, unlocked: false },
   { id: 'atlas-supply', name: 'Atlas Supply', logo: atlas.url, logoShape: 'square', address: 'Avenida Nova Esperança, 725 — Jardim América, São Paulo – SP, CEP 01428-310', annualPrice: 2190, blackFridayPrice: 1490, unlocked: false },
   { id: 'novasource', name: 'Novasource Distribuidora', logo: novasource.url, logoShape: 'square', address: 'Rua dos Ipês, 392 — Vila Industrial, Campinas – SP, CEP 13035-240', annualPrice: 2690, blackFridayPrice: 1790, unlocked: false },
