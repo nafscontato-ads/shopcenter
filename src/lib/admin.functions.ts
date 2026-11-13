@@ -781,7 +781,7 @@ export const getAdminSettings = createServerFn({ method: "POST" })
       role: context.admin.role,
       adminEmailConfigured: Boolean((process.env["ADMIN_EMAIL"] ?? "").trim()),
       aiConfigured: {
-        image: Boolean(process.env["LOVABLE_API_KEY"]),
+        image: Boolean(process.env["OPENROUTER_API_KEY"] || process.env["GEMINI_API_KEY"]),
         video: false,
       },
     };

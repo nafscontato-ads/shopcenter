@@ -15,8 +15,9 @@ export const Route = createFileRoute("/api/public/saude")({
           shopee_partner: process.env["SHOPEE_PARTNER_ID"] ? "ok" : "faltando",
           applyfy_token: process.env["APPLYFY_WEBHOOK_TOKEN"] ? "ok" : "faltando",
           resend: process.env["RESEND_API_KEY"] ? "ok" : "faltando",
-          ia_dos_anuncios: process.env["LOVABLE_API_KEY"] ? "ok" : "faltando (LOVABLE_API_KEY)",
-          versao: "auditoria-12-11",
+          ia_textos: process.env["OPENROUTER_API_KEY"] ? "ok (OpenRouter)" : process.env["LOVABLE_API_KEY"] ? "ok (Lovable)" : "faltando (OPENROUTER_API_KEY)",
+          ia_imagens: process.env["OPENROUTER_API_KEY"] ? "ok (OpenRouter)" : process.env["GEMINI_API_KEY"] ? "ok (Google)" : "faltando (OPENROUTER_API_KEY)",
+          versao: "ia-openrouter",
           hora_do_servidor: new Date().toISOString(),
         };
         try {
