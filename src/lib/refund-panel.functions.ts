@@ -17,7 +17,7 @@ const CAUA_AFFILIATE_CODE = "dy4ki0h";
 const SHOP_CENTER_OFFERS: Record<string, string> = { LCIVT2O: "Vitalício", YOJSS51: "Mensal" };
 
 export type RefundSeller = "lucena" | "caua";
-export type RefundStatus = "em_analise" | "aprovado" | "recusado" | "pago";
+export type RefundStatus = "em_analise" | "aprovado" | "recusado" | "pago" | "reembolsado_applyfy";
 
 export type PanelSale = {
   orderId: string;
@@ -286,7 +286,7 @@ export const setRefundStatus = createServerFn({ method: "POST" })
       .object({
         token: tokenSchema,
         id: z.string().uuid(),
-        status: z.enum(["em_analise", "aprovado", "recusado", "pago"]),
+        status: z.enum(["em_analise", "aprovado", "recusado", "pago", "reembolsado_applyfy"]),
       })
       .parse(input),
   )

@@ -10,6 +10,17 @@ ALTER TABLE public.refund_requests
   ADD COLUMN IF NOT EXISTS applyfy_rejected_reason text,
   ADD COLUMN IF NOT EXISTS applyfy_updated_at timestamptz;
 
+-- Novo status: "Reembolsado pela Applyfy" (a Applyfy já devolveu o dinheiro). "recusado" aparece como "Negado".
+DO $$
+DECLARE c text;
+BEGIN
+  FOR c IN SELECT conname FROM pg_constraint WHERE conrelid = 'public.refund_requests'::regclass AND contype = 'c' AND pg_get_constraintdef(oid) LIKE '%em_analise%' LOOP
+    EXECUTE format('ALTER TABLE public.refund_requests DROP CONSTRAINT %I', c);
+  END LOOP;
+END $$;
+ALTER TABLE public.refund_requests ADD CONSTRAINT refund_requests_status_check
+  CHECK (status IN ('em_analise', 'aprovado', 'recusado', 'pago', 'reembolsado_applyfy'));
+
 CREATE OR REPLACE FUNCTION public.refund_from_applyfy_event() RETURNS trigger
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE
@@ -49,8 +60,8 @@ BEGIN
     reason_txt,
     nullif(obj->>'description', ''),
     CASE WHEN tx->>'paymentMethod' = 'PIX' THEN 'pix' ELSE 'card' END,
-    -- Se a Applyfy já devolveu o dinheiro, o suporte não precisa fazer nada: entra como Pago.
-    CASE WHEN ev = 'REFUND_COMPLETED' OR (kind = 'applyfy' AND obj->>'status' = 'COMPLETED') THEN 'pago' ELSE 'em_analise' END,
+    -- Se a Applyfy já devolveu o dinheiro, entra como "Reembolsado pela Applyfy".
+    CASE WHEN ev = 'REFUND_COMPLETED' OR (kind = 'applyfy' AND obj->>'status' = 'COMPLETED') THEN 'reembolsado_applyfy' ELSE 'em_analise' END,
     kind,
     kind || ':' || (obj->>'id'),
     ev,
@@ -67,7 +78,7 @@ BEGIN
     applyfy_rejected_reason = coalesce(EXCLUDED.applyfy_rejected_reason, r.applyfy_rejected_reason),
     details = coalesce(r.details, EXCLUDED.details),
     applyfy_updated_at = EXCLUDED.applyfy_updated_at,
-    status = CASE WHEN EXCLUDED.status = 'pago' AND r.status <> 'pago' THEN 'pago' ELSE r.status END,
+    status = CASE WHEN EXCLUDED.status = 'reembolsado_applyfy' THEN 'reembolsado_applyfy' ELSE r.status END,
     updated_at = now()
   WHERE r.applyfy_updated_at IS NULL OR EXCLUDED.applyfy_updated_at >= r.applyfy_updated_at;
   RETURN NEW;

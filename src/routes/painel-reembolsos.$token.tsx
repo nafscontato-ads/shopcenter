@@ -49,10 +49,12 @@ const STATUS: { value: RefundStatus; label: string; pill: string }[] = [
   { value: "aprovado", label: "Aprovado", pill: "border-sky-200 bg-sky-50 text-sky-800" },
   { value: "pago", label: "Pago", pill: "border-emerald-200 bg-emerald-50 text-emerald-800" },
   {
-    value: "recusado",
-    label: "Recusado",
-    pill: "border-neutral-200 bg-neutral-100 text-neutral-600",
+    value: "reembolsado_applyfy",
+    label: "Reembolsado pela Applyfy",
+    pill: "border-violet-200 bg-violet-50 text-violet-800",
   },
+  // valor "recusado" no banco; para o suporte é "Negado" (pedido de má-fé)
+  { value: "recusado", label: "Negado", pill: "border-red-200 bg-red-50 text-red-700" },
 ];
 const statusOf = (s: string) => STATUS.find((x) => x.value === s) ?? STATUS[0]!;
 const SELLERS: Record<RefundSeller, string> = { lucena: "Lucena", caua: "Cauã" };
@@ -60,7 +62,7 @@ type Filter = "" | "reembolso" | "sem_reembolso" | RefundStatus;
 const FILTERS: { value: Filter; label: string }[] = [
   { value: "", label: "Todos os alunos" },
   { value: "reembolso", label: "Só quem pediu reembolso" },
-  ...STATUS.map((s) => ({ value: s.value as Filter, label: `Reembolso ${s.label.toLowerCase()}` })),
+  ...STATUS.map((s) => ({ value: s.value as Filter, label: `Status: ${s.label}` })),
   { value: "sem_reembolso", label: "Sem reembolso" },
 ];
 /** De onde veio o pedido: página /reembolso do site, Applyfy ou chargeback no cartão. */
@@ -359,8 +361,8 @@ function SupportPanelPage() {
         <Stat
           icon={CircleDollarSign}
           label="Pagos"
-          value={countStatus("pago")}
-          hint="Dinheiro devolvido"
+          value={countStatus("pago") + countStatus("reembolsado_applyfy")}
+          hint="Pelo time ou pela Applyfy"
           tone="text-emerald-600"
         />
       </div>
