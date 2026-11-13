@@ -29,6 +29,7 @@ import {
   Wallet,
   X,
   Zap,
+  Truck,
 
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
@@ -79,6 +80,7 @@ const groups: { title: string; items: Item[] }[] = [
     items: [
       { to: "/admin/health", label: "Saúde da plataforma", icon: Activity },
       { to: "/admin/recharges", label: "Pagamentos / Recarga", icon: Wallet },
+      { to: "/admin/envios", label: "Envio automático", icon: Truck },
       { to: "/admin/costs", label: "Custos de IA", icon: Coins },
       { to: "/admin/settings", label: "Configurações", icon: Settings },
       { to: "/admin/logs", label: "Logs", icon: ScrollText },
