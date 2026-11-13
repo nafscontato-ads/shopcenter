@@ -33,8 +33,8 @@ const STEPS = [
 
 const FAQ = [
   {
-    q: "O remetente da etiqueta é o endereço da loja do aluno. Posso postar daqui?",
-    a: "Pode. A etiqueta da Shopee é um contrato de frete já pago: o Correios aceita a postagem em qualquer agência, do mesmo jeito que funciona com as plataformas de dropshipping.",
+    q: "O remetente da etiqueta é a loja do lojista. Como fica a postagem?",
+    a: "Antes de começar, fazemos um pedido-teste com você para confirmar que a sua agência ou ponto de coleta aceita a etiqueta. Se não aceitar, combinamos outro jeito de envio.",
   },
   { q: "Preciso pagar alguma coisa para entrar?", a: "Não. Não tem mensalidade nem taxa para o fornecedor. Você recebe o preço de custo que informar na planilha." },
   { q: "E se o cliente devolver?", a: "A devolução é tratada pela Shop Center com o aluno. Produto com defeito segue a garantia combinada no contrato." },
