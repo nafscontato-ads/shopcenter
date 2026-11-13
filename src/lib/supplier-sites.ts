@@ -27,8 +27,7 @@ export const supplierSites: SupplierSite[] = [
     storeUrl: "https://www.minipreco.com.br",
     apiUrl: "https://minipreco.vtexcommercestable.com.br",
     platform: "vtex",
-    phone: "(41) 9222-7822",
-    whatsapp: "554192227822",
+    // No phone/WhatsApp on purpose: students must not contact the supplier directly (owner decision 2026-11-13).
   },
   {
     id: "25demarco",
