@@ -10,7 +10,10 @@ import { EmptyState } from "@/components/admin/bits";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { supplierSites } from "@/lib/supplier-sites";
+import { supplierSites as allSupplierSites } from "@/lib/supplier-sites";
+
+/** Only websites can be imported here; manual partners come from spreadsheets. */
+const supplierSites = allSupplierSites.filter((site) => !site.manual);
 import { importSupplierPage, listSupplierSections, publishSupplierCatalog, searchSupplierProducts } from "@/lib/supplier-sites.functions";
 
 export const Route = createFileRoute("/admin/fornecedor-sites")({

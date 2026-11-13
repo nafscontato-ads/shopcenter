@@ -17,6 +17,8 @@ export type SupplierSite = {
   phone?: string;
   /** Same number in WhatsApp format (country code + digits only). */
   whatsapp?: string;
+  /** Partner supplier whose catalogue comes from its spreadsheet/photos, not from a website import. */
+  manual?: boolean;
 };
 
 export const supplierSites: SupplierSite[] = [
@@ -37,6 +39,10 @@ export const supplierSites: SupplierSite[] = [
     apiUrl: "https://www.25demarcoonline.com.br",
     platform: "prestashop",
   },
+  // Direct partners (no website import; products added by the team). No contacts here on purpose.
+  { id: "dona-casa", name: "Dona Casa", letter: "C", storeUrl: "", apiUrl: "", platform: "vtex", manual: true },
+  { id: "cabelo-chique", name: "Cabelo Chique", letter: "D", storeUrl: "", apiUrl: "", platform: "vtex", manual: true },
+  { id: "don-armany", name: "Don Armany", letter: "E", storeUrl: "", apiUrl: "", platform: "vtex", manual: true },
 ];
 
 export function getSupplierSite(id: string) {
