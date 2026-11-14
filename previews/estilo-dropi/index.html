@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shop Center | Venda nos marketplaces sem estoque (prévia)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --orange:#EE4D2D; --orange-2:#FF7A2F; --amber:#FFB020; --ink:#140C08; --ink-2:#241510;
+  --gray:#F1ECE8; --muted:#7C7470; --line:#E9E1DB; --white:#fff; --cream:#FFF7F1;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:Nunito,system-ui,sans-serif;color:var(--ink);background:#fff;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1200px;margin:0 auto;padding:0 24px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:52px;padding:0 28px;border-radius:999px;font-weight:800;font-size:16px;transition:transform .15s}
+.btn:hover{transform:translateY(-2px)}
+.btn-dark{background:var(--ink);color:#fff}
+.btn-orange{background:var(--orange);color:#fff;box-shadow:0 14px 30px -14px rgba(238,77,45,.9)}
+.btn-ghost{border:2px solid var(--line);background:#fff}
+.btn-white{background:#fff;color:var(--ink)}
+.eyebrow{font-size:13px;font-weight:900;letter-spacing:.18em;text-transform:uppercase;color:var(--orange)}
+h2.big{font-size:clamp(32px,5vw,56px);font-weight:900;line-height:1.05;letter-spacing:-.02em}
+
+/* header */
+header{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.offer{background:var(--ink);color:#fff;text-align:center;font-size:13px;font-weight:800;padding:8px 12px}
+.offer b{color:var(--orange-2)}
+.nav{display:flex;align-items:center;height:70px;gap:24px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:900;font-size:20px}
+.logo img{width:38px;height:38px;border-radius:50%}
+.logo span{color:var(--orange)}
+.nav nav{display:flex;gap:30px;margin:0 auto;font-size:14px;font-weight:700;color:#5b524e}
+.nav .right{display:flex;align-items:center;gap:18px;font-weight:800;font-size:14px}
+.nav .right .btn{height:42px;padding:0 20px;font-size:14px}
+
+/* hero */
+.hero{padding:64px 0 40px}
+.hero .grid{display:grid;grid-template-columns:1.05fr 1fr;gap:48px;align-items:center}
+.hero h1{font-size:clamp(40px,5.6vw,70px);line-height:1.04;font-weight:900;letter-spacing:-.03em}
+.hero h1 .o{color:var(--orange)} .hero h1 .a{color:var(--orange-2);background:linear-gradient(90deg,var(--orange-2),var(--amber));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p.sub{margin-top:22px;font-size:19px;color:var(--muted);max-width:520px}
+.hero .ctas{margin-top:34px;display:flex;align-items:center;gap:22px;flex-wrap:wrap}
+.proof{display:flex;align-items:center;gap:12px;font-size:14px;color:var(--muted);font-weight:600}
+.avatars{display:flex}
+.avatars i{width:34px;height:34px;border-radius:50%;border:3px solid #fff;margin-left:-10px;display:grid;place-items:center;font-style:normal;font-weight:900;font-size:13px;color:#fff}
+.avatars i:first-child{margin-left:0}
+.bento{display:grid;grid-template-columns:1.25fr 1fr;grid-template-rows:250px 230px;gap:14px}
+.card{border-radius:28px;overflow:hidden;position:relative}
+.b1{background:linear-gradient(160deg,var(--orange),#C93A1E);color:#fff;padding:22px}
+.b1 .tag{font-weight:900;font-size:22px;letter-spacing:-.02em;max-width:46%;line-height:1.15}
+.phone{position:absolute;right:18px;bottom:-34px;width:140px;height:220px;border-radius:26px;background:#fff;border:7px solid var(--ink);padding:12px 10px;box-shadow:0 30px 50px -20px rgba(0,0,0,.5)}
+.phone .t{font-size:9px;color:var(--muted);font-weight:700}
+.phone .v{font-size:19px;font-weight:900;color:var(--ink)}
+.notif{margin-top:7px;background:var(--cream);border-radius:10px;padding:6px 7px;font-size:8.5px;color:var(--ink);font-weight:800;display:flex;gap:6px;align-items:center}
+.notif b{width:16px;height:16px;border-radius:5px;background:var(--orange);flex:none}
+.b1 .pill{position:absolute;left:22px;bottom:22px;max-width:44%;line-height:1.2;background:rgba(255,255,255,.18);border-radius:999px;padding:8px 14px;font-weight:800;font-size:13px}
+.b2{background:var(--gray);display:flex;flex-direction:column;justify-content:center;padding:26px}
+.b2 .n{font-size:54px;font-weight:900;line-height:1;color:var(--ink);white-space:nowrap}
+.b2 .n small{font-size:20px}
+.b2 p{margin-top:8px;color:var(--muted);font-weight:700}
+.b3{background:var(--ink);color:#fff;padding:20px}
+.b3 h4{font-size:15px;font-weight:900}
+.b3 .muted{font-size:12px;color:#a59c97}
+.menu{margin-top:12px;background:#fff;color:var(--ink);border-radius:14px;padding:8px;font-size:12px;font-weight:700}
+.menu div{padding:6px 9px;border-radius:8px;display:flex;justify-content:space-between}
+.menu div.on{background:var(--ink);color:#fff}
+.b4{background:linear-gradient(160deg,#FFE7D6,#FFD2B8);padding:18px}
+.b4 .chip{display:inline-block;background:var(--orange);color:#fff;border-radius:999px;padding:6px 12px;font-weight:900;font-size:13px}
+.prod{margin-top:12px;background:#fff;border-radius:16px;padding:10px;display:flex;gap:10px;align-items:center;box-shadow:0 10px 24px -14px rgba(0,0,0,.35)}
+.prod .ph{width:54px;height:54px;border-radius:12px;background:url(hero-logistics.webp) center/cover}
+.prod b{display:block;font-size:12px}
+.prod span{font-size:11px;color:var(--muted)}
+.prod .p{font-size:15px;font-weight:900;color:var(--orange)}
+
+/* marketplaces strip */
+.strip{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:34px 0;text-align:center}
+.strip p{color:var(--muted);font-weight:700}
+.logos{margin-top:22px;display:flex;justify-content:center;gap:14px;flex-wrap:wrap}
+.logos span{padding:12px 22px;border-radius:14px;font-weight:900;font-size:16px;background:var(--gray);color:#4a403b}
+
+/* suppliers */
+.sup{padding:90px 0;text-align:center}
+.sup .cats{margin-top:44px;display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+.cat{border-radius:24px;padding:26px 16px;text-align:left;min-height:170px;display:flex;flex-direction:column;justify-content:space-between}
+.cat .ic{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-size:24px;background:#fff}
+.cat b{font-size:18px;font-weight:900}
+.cat span{font-size:13px;color:var(--muted);font-weight:700}
+
+/* split light-gray */
+.light{background:var(--gray);padding:100px 0}
+.light .grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+.light p.eyebrow{margin-top:0;color:var(--orange);font-size:13px}
+.light p{margin-top:20px;color:var(--muted);font-size:18px;line-height:1.6}
+.light .ctas{margin-top:30px;display:flex;gap:14px;flex-wrap:wrap}
+.panel{background:#fff;border-radius:28px;padding:22px;box-shadow:0 40px 70px -40px rgba(0,0,0,.35)}
+.panel .row{display:flex;align-items:center;gap:12px;padding:12px;border-radius:16px}
+.panel .row+.row{border-top:1px solid var(--line)}
+.panel .st{margin-left:auto;font-size:12px;font-weight:900;padding:5px 10px;border-radius:999px}
+.st.ok{background:#E5F7EC;color:#1D8A4B}.st.go{background:#FFEDE3;color:var(--orange)}.st.wait{background:#F3F0EE;color:#6b625e}
+.panel .av{width:42px;height:42px;border-radius:12px;background:var(--gray);display:grid;place-items:center;font-size:20px}
+.panel b{font-size:14px}.panel small{display:block;color:var(--muted);font-size:12px;font-weight:600}
+
+/* love section */
+.love{background:var(--gray);padding:0 0 100px}
+.love .head{display:flex;justify-content:space-between;align-items:end;gap:20px;flex-wrap:wrap}
+.love h2 .o{color:var(--orange)}
+.photos{margin-top:40px;display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.photo{border-radius:26px;height:300px;padding:20px;display:flex;align-items:flex-end;color:#fff;font-weight:900;font-size:19px;position:relative;overflow:hidden}
+.photo .emo{position:absolute;top:22px;left:20px;font-size:54px}
+.dark-bento{margin-top:14px;display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.feat{background:var(--ink);color:#fff;border-radius:26px;padding:30px;min-height:210px;display:flex;flex-direction:column;justify-content:flex-end}
+.feat .ic{width:48px;height:48px;border-radius:15px;background:var(--orange);display:grid;place-items:center;font-size:22px;margin-bottom:auto}
+.feat h3{font-size:22px;font-weight:900;margin-top:26px}
+.feat p{margin-top:8px;color:#a59c97;font-weight:600}
+.feat.wide{grid-column:span 2;background:linear-gradient(120deg,var(--ink) 40%,#4a1d10)}
+.feat.or{background:var(--orange)}.feat.or .ic{background:#fff}.feat.or p{color:#ffe1d6}
+
+/* sem x com */
+.vs{background:linear-gradient(var(--gray) 50%,#fff 50%);padding:0 0 100px}
+.vs .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.vs .box{border-radius:32px;padding:46px;min-height:340px}
+.vs .no{background:#fff;border:1px solid var(--line)}
+.vs .yes{background:linear-gradient(150deg,var(--orange),#C93A1E);color:#fff}
+.vs h3{font-size:34px;font-weight:900}
+.vs .lead{margin-top:10px;font-size:18px;font-weight:600;opacity:.8}
+.vs ul{list-style:none;margin-top:26px;display:grid;gap:14px;font-weight:700}
+.vs li{display:flex;gap:12px;align-items:flex-start}
+.vs li i{flex:none;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:13px;font-weight:900}
+.no li i{background:#FDE3E3;color:#D33}.yes li i{background:#fff;color:var(--orange)}
+
+/* testimonials */
+.test{padding:40px 0 100px;text-align:center}
+.tgrid{margin-top:44px;display:grid;grid-template-columns:repeat(3,1fr);gap:18px;text-align:left}
+.tcard{border:2px dashed #E6C9B8;border-radius:26px;padding:26px;background:var(--cream)}
+.tcard .who{display:flex;gap:12px;align-items:center}
+.tcard .who i{width:46px;height:46px;border-radius:50%;background:#FFD9C4;display:grid;place-items:center;font-style:normal;font-size:20px}
+.tcard .stars{color:var(--amber);font-size:18px;margin-top:14px}
+.tcard p{margin-top:10px;color:var(--muted);font-weight:600}
+.note{margin-top:16px;font-size:12px;color:#a59c97}
+
+/* plans */
+.plans{background:var(--ink);color:#fff;padding:100px 0;text-align:center}
+.plans .eyebrow{color:var(--orange-2)}
+.pgrid{margin:50px auto 0;max-width:900px;display:grid;grid-template-columns:1fr 1fr;gap:20px;text-align:left}
+.plan{border-radius:30px;padding:36px;background:var(--ink-2);border:1px solid rgba(255,255,255,.1);display:flex;flex-direction:column}
+.plan.hl{background:linear-gradient(150deg,var(--orange),#C93A1E);border:none;position:relative}
+.plan .badge{position:absolute;top:-14px;left:30px;background:#fff;color:var(--ink);border-radius:999px;padding:6px 14px;font-size:12px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+.plan .nm{font-size:15px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;opacity:.85}
+.plan .bf{margin-top:12px;align-self:flex-start;background:rgba(255,255,255,.16);border-radius:999px;padding:5px 12px;font-size:12px;font-weight:900}
+.plan .was{margin-top:14px;font-size:15px;opacity:.85}.plan .was s{font-weight:800;font-size:18px}
+.plan .price{font-size:52px;font-weight:900;letter-spacing:-.02em;line-height:1.1;margin-top:4px}
+.plan .pn{opacity:.8;font-weight:600}
+.plan ul{list-style:none;margin:26px 0;display:grid;gap:11px;font-weight:700;flex:1}
+.plan li::before{content:"✓";display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.18);margin-right:10px;font-size:11px}
+.plan .btn{width:100%}
+.plan .g{margin-top:14px;text-align:center;font-size:13px;opacity:.8}
+
+/* whatsapp */
+.wpp{background:#2A120A;color:#fff;padding:90px 0}
+.wpp .grid{display:grid;grid-template-columns:1.1fr .9fr;gap:50px;align-items:center}
+.wpp p{margin-top:18px;color:#d8c5bc;font-size:18px;line-height:1.6}
+.wpp .btn{margin-top:30px;background:#25D366;color:#06210f}
+.chat{background:#fff;border-radius:28px;padding:22px;color:var(--ink)}
+.bub{max-width:80%;padding:12px 16px;border-radius:18px;font-weight:700;font-size:14px;margin-top:10px}
+.bub.l{background:var(--gray)}.bub.r{background:#DCF8C6;margin-left:auto}
+
+/* faq */
+.faq{background:#2A120A;color:#fff;padding:20px 0 100px}
+.faq .grid{display:grid;grid-template-columns:.8fr 1.2fr;gap:50px}
+details{border-bottom:1px solid rgba(255,255,255,.12);padding:22px 0}
+summary{list-style:none;cursor:pointer;font-weight:800;font-size:18px;display:flex;justify-content:space-between;gap:16px}
+summary::after{content:"+";color:var(--orange-2);font-size:24px;line-height:1}
+details[open] summary::after{content:"–"}
+details p{margin-top:12px;color:#d8c5bc;line-height:1.6}
+
+/* quote */
+.quote{background:var(--gray);padding:90px 0}
+.quote .grid{display:grid;grid-template-columns:1fr 1fr;gap:50px;align-items:center}
+.quote blockquote{font-size:clamp(26px,3vw,38px);font-weight:900;line-height:1.2;letter-spacing:-.01em}
+.quote blockquote span{color:var(--orange)}
+.quote .sup24{background:#fff;border-radius:28px;padding:30px}
+.quote .sup24 b{font-size:22px}
+
+/* footer */
+footer{background:var(--ink);color:#fff;padding:90px 0 40px}
+.fcta{text-align:center}
+.fcta .btn{margin-top:28px}
+.fcols{margin-top:80px;display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:30px;border-top:1px solid rgba(255,255,255,.1);padding-top:44px}
+.fcols h5{font-size:14px;font-weight:900;margin-bottom:14px}
+.fcols .flogo{color:#fff;margin:0;font-size:20px}
+.fcols a:not(.flogo){display:block;color:#a59c97;font-weight:600;font-size:14px;margin-top:9px}
+.fcols .about{color:#a59c97;font-size:13px;line-height:1.6;margin-top:16px;max-width:320px}
+.legal{margin-top:40px;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;color:#7c7470;font-size:13px}
+
+.wfloat{position:fixed;right:20px;bottom:20px;z-index:30;background:var(--ink);color:#fff;border-radius:999px;padding:12px 20px 12px 12px;display:flex;align-items:center;gap:10px;font-weight:800;font-size:14px;box-shadow:0 14px 30px -10px rgba(0,0,0,.5)}
+.wfloat i{width:32px;height:32px;border-radius:50%;background:#25D366;display:grid;place-items:center;font-style:normal}
+
+/* mobile */
+@media (max-width:900px){
+  .nav nav{display:none}.nav .right{margin-left:auto}.nav .right .entrar{display:none}
+  .hero{padding:34px 0 20px}
+  .hero .grid,.light .grid,.wpp .grid,.faq .grid,.quote .grid,.vs .grid,.pgrid{grid-template-columns:1fr}
+  .hero .ctas{gap:14px}.hero .ctas .btn{width:100%}
+  .bento{grid-template-rows:210px 200px;grid-template-columns:1fr 1fr}
+  .phone{width:118px;height:190px;right:10px;bottom:-60px}
+  .b1 .tag{font-size:17px}.b2 .n{font-size:40px}
+  .sup .cats{grid-template-columns:1fr 1fr}
+  .photos{grid-template-columns:1fr 1fr}.photo{height:200px}
+  .cat:last-child{grid-column:span 2;min-height:130px}
+  .sup h2 br,.love h2 br{display:none}
+  .dark-bento{grid-template-columns:1fr}.feat.wide{grid-column:auto}
+  .tgrid{grid-template-columns:1fr}
+  .vs .box{padding:30px}
+  .fcols{grid-template-columns:1fr 1fr}
+  .wfloat span{display:none}.wfloat{padding:12px}
+}
+@media (max-width:480px){.wrap{padding:0 16px}.bento{grid-template-columns:1fr;grid-template-rows:230px 150px 200px 190px}.b1 .tag{font-size:20px}.sup .cats{grid-template-columns:1fr 1fr}.plan .price{font-size:42px}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="offer">Oferta <b>Black Shop Center</b> termina em 30/11 · Vitalício de <s>R$ 1.299,90</s> por 12x R$ 31,53</div>
+  <div class="wrap nav">
+    <a class="logo" href="#"><img src="shop-center-logo.webp" alt="Shop Center">Shop<span>Center</span></a>
+    <nav><a href="#fornecedores">Seja fornecedor</a><a href="#recursos">Funcionalidades</a><a href="#planos">Preço</a><a href="#suporte">Suporte</a></nav>
+    <div class="right"><a class="entrar" href="https://shopcenter.cloud/auth">Entrar</a><a class="btn btn-dark" href="#planos">Comece agora</a></div>
+  </div>
+</header>
+
+<main>
+<!-- HERO -->
+<section class="hero">
+  <div class="wrap grid">
+    <div>
+      <h1>Monte sua <span class="o">loja na Shopee</span> <span class="a">sem estoque</span> e comece a vender hoje</h1>
+      <p class="sub">Com o Shop Center você importa produtos de fornecedores nacionais com um clique e acompanha cada pedido até a entrega.</p>
+      <div class="ctas">
+        <a class="btn btn-orange" href="#planos">Quero começar agora</a>
+        <div class="proof"><div class="avatars"><i style="background:#EE4D2D">A</i><i style="background:#FF7A2F">M</i><i style="background:#FFB020">J</i><i style="background:#140C08">R</i></div>+200 vendedores já<br>usam o Shop Center</div>
+      </div>
+    </div>
+    <div class="bento">
+      <div class="card b1"><div class="tag">Venda na Shopee<br>sem estoque</div>
+        <div class="phone"><div class="t">Vendas de hoje</div><div class="v">R$ 1.284</div>
+          <div class="notif"><b></b>Novo pedido · R$ 89,90</div><div class="notif"><b></b>Etiqueta pronta</div><div class="notif"><b></b>Pedido enviado</div><div class="notif"><b></b>Novo pedido · R$ 47,00</div></div>
+        <span class="pill">Publicação em 1 clique</span></div>
+      <div class="card b2"><div class="n">Até 3 <small>lojas</small></div><p>Shopee conectadas<br>na mesma conta</p></div>
+      <div class="card b3"><h4>Você foca em vender</h4><div class="muted">O Shop Center cuida do resto</div>
+        <div class="menu"><div>Catálogo <span>›</span></div><div class="on">Pedidos <span>12</span></div><div>Etiquetas <span>›</span></div><div>Margem líquida <span>›</span></div></div></div>
+      <div class="card b4"><span class="chip">Margem líquida automática</span>
+        <div class="prod"><div class="ph"></div><div><b>Produto do catálogo</b><span>Custo R$ 100,00</span><div class="p">Venda R$ 140,70</div></div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- MARKETPLACES -->
+<section class="strip">
+  <div class="wrap"><p>O sistema de dropshipping com integração pela API oficial dos marketplaces</p>
+    <div class="logos"><span style="background:#EE4D2D;color:#fff">Shopee</span><span>Mercado Livre</span><span>TikTok Shop</span><span>Amazon</span><span>Magalu</span></div></div>
+</section>
+
+<!-- FORNECEDORES -->
+<section class="sup" id="fornecedores">
+  <div class="wrap">
+    <p class="eyebrow">Fornecedores parceiros</p>
+    <h2 class="big" style="margin-top:12px">Venda sem estoque com os<br>melhores fornecedores do Brasil</h2>
+    <div class="cats">
+      <div class="cat" style="background:#FFEDE3"><div class="ic">👗</div><div><b>Moda</b><br><span>Roupas e acessórios</span></div></div>
+      <div class="cat" style="background:#FFF3D6"><div class="ic">💄</div><div><b>Beleza</b><br><span>Cabelo e cuidados</span></div></div>
+      <div class="cat" style="background:#F1ECE8"><div class="ic">🏠</div><div><b>Casa</b><br><span>Utilidades e decoração</span></div></div>
+      <div class="cat" style="background:#FFE4DC"><div class="ic">🐾</div><div><b>Pet</b><br><span>Itens para pets</span></div></div>
+      <div class="cat" style="background:#FFEFE0"><div class="ic">📱</div><div><b>Eletrônicos</b><br><span>Acessórios e gadgets</span></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="light">
+  <div class="wrap grid">
+    <div>
+      <p class="eyebrow">Sem estoque, sem armazém</p>
+      <h2 class="big" style="margin-top:12px">Venda produtos do Brás para o Brasil inteiro</h2>
+      <p>Você escolhe os produtos no catálogo, publica direto na sua loja e começa a vender em poucos minutos. Quando a venda cai, o pedido aparece no painel com a etiqueta pronta e o fornecedor despacha.</p>
+      <div class="ctas"><a class="btn btn-dark" href="#planos">Quero começar</a><a class="btn btn-ghost" href="#fornecedores">Seja fornecedor</a></div>
+    </div>
+    <div class="panel">
+      <div class="row"><div class="av">👗</div><div><b>Pedido #2611-0841</b><small>Vestido midi · Loja 1</small></div><span class="st go">Etiqueta pronta</span></div>
+      <div class="row"><div class="av">💄</div><div><b>Pedido #2611-0839</b><small>Kit cabelo · Loja 2</small></div><span class="st ok">Enviado</span></div>
+      <div class="row"><div class="av">🏠</div><div><b>Pedido #2611-0835</b><small>Organizador · Loja 1</small></div><span class="st ok">Entregue</span></div>
+      <div class="row"><div class="av">🐾</div><div><b>Pedido #2611-0832</b><small>Caminha pet · Loja 3</small></div><span class="st wait">A enviar</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- GANHE FAZENDO + RECURSOS -->
+<section class="love" id="recursos">
+  <div class="wrap">
+    <div class="head"><div><p class="eyebrow">Para quem quer começar</p><h2 class="big" style="margin-top:12px">Comece com pouco e<br><span class="o">escale suas vendas</span></h2></div><a class="btn btn-dark" href="#planos">Quero meu acesso</a></div>
+    <div class="photos">
+      <div class="photo" style="background:linear-gradient(160deg,#FF7A2F,#EE4D2D)"><span class="emo">📲</span>Escolha os produtos pelo celular</div>
+      <div class="photo" style="background:url(hero-logistics.webp) center/cover"><span style="background:rgba(20,12,8,.55);padding:8px 12px;border-radius:12px">O fornecedor despacha</span></div>
+      <div class="photo" style="background:linear-gradient(160deg,#241510,#140C08)"><span class="emo">🛍️</span>Publique em 1 clique</div>
+      <div class="photo" style="background:linear-gradient(160deg,#FFB020,#FF7A2F)"><span class="emo">🔔</span>Receba a notificação da venda</div>
+    </div>
+    <div class="dark-bento">
+      <div class="feat wide"><div class="ic">⚡</div><h3>Venda no automático</h3><p>Pedidos de todas as suas lojas chegam num painel só, com status em tempo real do cadastro à entrega.</p></div>
+      <div class="feat or"><div class="ic">💰</div><h3>Margem líquida de verdade</h3><p>Você escolhe quanto quer ganhar e o preço já sai com as taxas da Shopee.</p></div>
+      <div class="feat"><div class="ic">🛡️</div><h3>Sem estoque, sem risco</h3><p>Você só compra do fornecedor depois que o cliente já pagou.</p></div>
+      <div class="feat"><div class="ic">🏷️</div><h3>Etiqueta na mão</h3><p>Baixe a etiqueta oficial da Shopee sem sair do painel.</p></div>
+      <div class="feat"><div class="ic">📦</div><h3>Catálogo pronto</h3><p>Moda, beleza, casa, pet e mais, com fotos e descrição prontas.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- SEM x COM -->
+<section class="vs">
+  <div class="wrap grid">
+    <div class="box no"><h3>Sem o Shop Center</h3><p class="lead">Você precisa investir em estoque e fazer tudo na mão.</p>
+      <ul><li><i>×</i>Preço chutado, sem contar a taxa da Shopee</li><li><i>×</i>Planilha para controlar pedido</li><li><i>×</i>Copiar e colar anúncio um por um</li><li><i>×</i>Etiqueta e fornecedor pelo WhatsApp</li></ul></div>
+    <div class="box yes"><h3>Com o Shop Center</h3><p class="lead">Você vende com liberdade e foca em crescer.</p>
+      <ul><li><i>✓</i>Preço calculado com margem líquida</li><li><i>✓</i>Pedidos de até 3 lojas num painel</li><li><i>✓</i>Publicação em 1 clique</li><li><i>✓</i>Etiqueta pronta e fornecedor avisado</li></ul></div>
+  </div>
+</section>
+
+<!-- DEPOIMENTOS -->
+<section class="test">
+  <div class="wrap">
+    <p class="eyebrow">Depoimentos</p>
+    <h2 class="big" style="margin-top:12px">Quem usa o Shop Center recomenda</h2>
+    <div class="tgrid">
+      <div class="tcard"><div class="who"><i>🙂</i><div><b>Nome do aluno</b><br><small>Vendedor na Shopee</small></div></div><div class="stars">★★★★★</div><p>Espaço para um depoimento real de aluno (texto ou vídeo curto).</p></div>
+      <div class="tcard"><div class="who"><i>🙂</i><div><b>Nome do aluno</b><br><small>Vendedor na Shopee</small></div></div><div class="stars">★★★★★</div><p>Espaço para um depoimento real de aluno (texto ou vídeo curto).</p></div>
+      <div class="tcard"><div class="who"><i>🙂</i><div><b>Nome do aluno</b><br><small>Vendedor na Shopee</small></div></div><div class="stars">★★★★★</div><p>Espaço para um depoimento real de aluno (texto ou vídeo curto).</p></div>
+    </div>
+    <p class="note">Na versão final entram depoimentos reais, com autorização dos alunos.</p>
+  </div>
+</section>
+
+<!-- PLANOS -->
+<section class="plans" id="planos">
+  <div class="wrap">
+    <p class="eyebrow">Planos</p>
+    <h2 class="big" style="margin-top:12px">Escolha o plano ideal para começar</h2>
+    <div class="pgrid">
+      <div class="plan"><div class="nm">Mensal</div><div class="price" style="margin-top:22px">R$ 179,90</div><div class="pn">por mês · cancele quando quiser</div>
+        <ul><li>Catálogo de fornecedores</li><li>Até 3 lojas Shopee</li><li>Publicação em 1 clique</li><li>Margem líquida automática</li><li>Pedidos e etiquetas</li><li>Suporte no WhatsApp</li></ul>
+        <a class="btn btn-orange" href="https://checkout.applyfy.com.br/checkout/cmtlsvw6100o201oguljarzka?offer=YOJSS51">Quero o mensal</a><div class="g">7 dias de garantia · pagamento seguro</div></div>
+      <div class="plan hl"><span class="badge">Mais escolhido</span><div class="nm">Vitalício</div><span class="bf">Preço de Black Friday · só até 30/11</span>
+        <div class="was">De <s>R$ 1.299,90</s> por</div><div class="price">12x R$ 31,53</div><div class="pn">ou R$ 295,90 à vista · pagamento único</div>
+        <ul><li>Catálogo de fornecedores</li><li>Até 3 lojas Shopee</li><li>Publicação em 1 clique</li><li>Margem líquida automática</li><li>Pedidos e etiquetas</li><li>Suporte no WhatsApp</li></ul>
+        <a class="btn btn-white" href="https://checkout.applyfy.com.br/checkout/cmtlsvw6100o201oguljarzka?offer=LCIVT2O">Quero o vitalício</a><div class="g">7 dias de garantia · pagamento seguro</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- WHATSAPP -->
+<section class="wpp" id="suporte">
+  <div class="wrap grid">
+    <div><p class="eyebrow" style="color:#FF9E6B">Atendimento</p><h2 class="big" style="margin-top:12px">Continue pelo WhatsApp</h2>
+      <p>Nosso time está online. Tire suas dúvidas, entenda os planos e comece com um atendimento feito para você.</p>
+      <a class="btn" href="https://wa.me/5592920025017">Falar com o time</a></div>
+    <div class="chat"><div class="bub l">Oi! Quero entender como funciona o Shop Center 🙂</div><div class="bub r">Oi! Você conecta sua loja da Shopee, escolhe os produtos e o fornecedor envia. Posso te mostrar?</div><div class="bub l">Pode sim!</div></div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq">
+  <div class="wrap grid">
+    <div><h2 class="big">Dúvidas frequentes</h2></div>
+    <div>
+      <details open><summary>O que é o Shop Center?</summary><p>Um sistema de logística e gestão para quem vende em marketplaces. Você conecta suas lojas, importa produtos de fornecedores parceiros e acompanha pedidos e etiquetas num painel só.</p></details>
+      <details><summary>Preciso investir em estoque?</summary><p>Não. Você publica produtos dos fornecedores parceiros e só compra depois que o cliente já pagou.</p></details>
+      <details><summary>Funciona com quais marketplaces?</summary><p>Shopee hoje, com até 3 lojas por conta. Mercado Livre, TikTok Shop, Amazon e Magalu conforme cada integração for liberada.</p></details>
+      <details><summary>Preciso ter experiência?</summary><p>Não. O painel é simples e você tem aulas passo a passo e suporte no WhatsApp.</p></details>
+      <details><summary>Posso editar título, fotos e preço?</summary><p>Sim. Antes de publicar você ajusta tudo do seu jeito.</p></details>
+      <details><summary>Como o sistema calcula o preço?</summary><p>Você escolhe a margem líquida que quer ganhar e o sistema soma a comissão e a tarifa da Shopee, para o valor que cai na sua conta ser o custo mais a sua margem.</p></details>
+      <details><summary>Tem garantia?</summary><p>Sim, 7 dias de garantia pelo Código de Defesa do Consumidor.</p></details>
+      <details><summary>O Shop Center garante vendas?</summary><p>Não. O sistema dá as ferramentas. O resultado depende dos produtos, preços e da sua dedicação.</p></details>
+    </div>
+  </div>
+</section>
+
+<!-- QUOTE -->
+<section class="quote">
+  <div class="wrap grid">
+    <blockquote>“Um suporte que <span>acompanha você</span> do primeiro produto até a primeira venda.”</blockquote>
+    <div class="sup24"><b>Precisa de ajuda?</b><p style="margin-top:8px;color:var(--muted);font-weight:600">Fale com o suporte no WhatsApp e veja as aulas dentro do painel.</p><a class="btn btn-dark" style="margin-top:20px" href="https://wa.me/5592920025017">Central de atendimento</a></div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="fcta"><h2 class="big">Quer começar a vender?</h2><p style="margin-top:12px;color:#a59c97;font-size:18px">Garanta o preço de Black Friday até 30/11.</p><a class="btn btn-orange" href="#planos">Quero ser aluno</a></div>
+    <div class="fcols">
+      <div><a class="logo flogo" href="#"><img src="shop-center-logo.webp" alt="">Shop<span>Center</span></a><p class="about">Sistema de logística e gestão para vendedores de marketplaces. Shopee, Mercado Livre, TikTok Shop, Amazon e Magalu são marcas de seus donos.</p></div>
+      <div><h5>Shop Center</h5><a href="#recursos">Funcionalidades</a><a href="#planos">Preços</a><a href="#fornecedores">Seja fornecedor</a></div>
+      <div><h5>Alunos</h5><a href="https://shopcenter.cloud/auth">Área do aluno</a><a href="https://shopcenter.cloud/reembolso">Reembolso</a><a href="#suporte">Suporte</a></div>
+      <div><h5>Contato</h5><a href="https://wa.me/5592920025017">WhatsApp</a><a href="#">Instagram</a></div>
+    </div>
+    <div class="legal"><span>© 2026 Shop Center. O Shop Center não garante vendas ou lucro.</span><span>Termos de uso · Política de privacidade</span></div>
+  </div>
+</footer>
+
+<a class="wfloat" href="https://wa.me/5592920025017"><i>💬</i><span>Fale com a gente</span></a>
+</body>
+</html>
