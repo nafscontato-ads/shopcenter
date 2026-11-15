@@ -57,7 +57,7 @@ BEGIN
   END IF;
   SELECT array_agg(id) INTO _ids FROM (
     SELECT id FROM public.fulfillment_orders
-    WHERE supplier_id = _supplier AND status = 'shipped' AND payout_id IS NULL AND debited_amount > 0
+    WHERE supplier_id = _supplier AND status = 'shipped' AND payout_id IS NULL AND (debited_amount > 0 OR bonus_amount > 0)
       AND shipped_at < now() - interval '12 hours'
       -- 'after_delivery' suppliers are paid only once Shopee reports the buyer received the order.
       AND (_mode = 'on_ship' OR EXISTS (
