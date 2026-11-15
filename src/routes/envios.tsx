@@ -131,12 +131,12 @@ function ReputationLine({ shipped }: { shipped: number }) {
   );
 }
 
-const QUICK = [50, 100, 200, 500];
+const QUICK = [20, 50, 100, 200];
 
 function PixRecharge({ onPaid, needsDocument }: { onPaid: () => void; needsDocument: boolean }) {
   const createFn = useServerFn(createPixRecharge);
   const checkFn = useServerFn(checkPixRecharge);
-  const [amount, setAmount] = useState("100");
+  const [amount, setAmount] = useState("50");
   const [document, setDocument] = useState("");
   const [charge, setCharge] = useState<{ id: string; amount: number; qrCode: string | null; qrCodeBase64: string | null } | null>(null);
   const value = Number(amount.replace(",", "."));
