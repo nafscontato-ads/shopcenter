@@ -13,7 +13,7 @@ async function admin(): Promise<SupabaseClient> {
 
 export type MyFulfillmentOrder = {
   id: string; orderSn: string; status: FulfillmentStatus; lines: FulfillmentLine[]; goodsCost: number; fee: number;
-  debited: number; lastError: string | null; trackingNumber: string | null; createdAt: string; supplierName: string | null;
+  debited: number; bonusAmount: number; lastError: string | null; trackingNumber: string | null; createdAt: string; supplierName: string | null;
 };
 
 /* ---------------------------------- Seller ---------------------------------- */
@@ -22,11 +22,14 @@ export const getMyFulfillment = createServerFn({ method: "GET" })
   .middleware([requireActiveUser])
   .handler(async ({ context }) => {
     const client = context.supabase as unknown as SupabaseClient;
-    const [wallet, ledger, orders, shops] = await Promise.all([
+    // Envios bônus comprados antes de a conta existir passam a ser deste usuário.
+    await (await admin()).rpc("wallet_bonus_claim", { _user: context.userId });
+    const [wallet, ledger, orders, shops, bonus] = await Promise.all([
       (await admin()).from("seller_wallets").select("balance, credit_limit, asaas_customer_id").eq("user_id", context.userId).maybeSingle(),
       client.from("wallet_ledger").select("id, amount, kind, note, balance_after, created_at").eq("user_id", context.userId).order("created_at", { ascending: false }).limit(50),
-      client.from("fulfillment_orders").select("id, order_sn, status, lines, goods_cost, platform_fee, debited_amount, last_error, tracking_number, created_at, supplier_id").eq("user_id", context.userId).order("created_at", { ascending: false }).limit(200),
+      client.from("fulfillment_orders").select("id, order_sn, status, lines, goods_cost, platform_fee, debited_amount, bonus_amount, last_error, tracking_number, created_at, supplier_id").eq("user_id", context.userId).order("created_at", { ascending: false }).limit(200),
       context.supabase.from("shopee_shop_connections").select("id, shop_name, shop_id, status").eq("user_id", context.userId).eq("status", "active"),
+      (await admin()).from("wallet_bonus_grants").select("id, label, orders_total, orders_used, per_order_cap, expires_at").eq("user_id", context.userId).order("expires_at", { ascending: true }),
     ]);
     const supplierIds = [...new Set((orders.data ?? []).map((row) => row["supplier_id"]).filter(Boolean))] as string[];
     const names = new Map<string, string>();
@@ -45,12 +48,16 @@ export const getMyFulfillment = createServerFn({ method: "GET" })
       pixAutomatic: Boolean(process.env["ASAAS_API_KEY"] || process.env["MP_ACCESS_TOKEN"]),
       // Asaas needs the seller's CPF/CNPJ once, on the first recharge.
       pixNeedsDocument: Boolean(process.env["ASAAS_API_KEY"]) && !wallet.data?.["asaas_customer_id"],
+      bonus: (bonus.data ?? []).map((row) => ({
+        id: String(row["id"]), label: String(row["label"]), total: Number(row["orders_total"]), used: Number(row["orders_used"]),
+        cap: Number(row["per_order_cap"]), expiresAt: String(row["expires_at"]), expired: new Date(String(row["expires_at"])).getTime() <= Date.now(),
+      })),
       shippedCount: (orders.data ?? []).filter((row) => row["status"] === "shipped").length,
       shops: (shops.data ?? []).map((shop) => ({ id: shop.id, name: shop.shop_name ?? `Loja ${shop.shop_id}`, autoFulfillment: auto.get(shop.id) ?? false })),
       ledger: (ledger.data ?? []).map((row) => ({ id: String(row["id"]), amount: Number(row["amount"]), kind: String(row["kind"]), note: (row["note"] as string | null) ?? null, balanceAfter: Number(row["balance_after"]), at: String(row["created_at"]) })),
       orders: (orders.data ?? []).map((row): MyFulfillmentOrder => ({
         id: String(row["id"]), orderSn: String(row["order_sn"]), status: row["status"] as FulfillmentStatus, lines: row["lines"] as FulfillmentLine[],
-        goodsCost: Number(row["goods_cost"]), fee: Number(row["platform_fee"]), debited: Number(row["debited_amount"]), lastError: (row["last_error"] as string | null) ?? null,
+        goodsCost: Number(row["goods_cost"]), fee: Number(row["platform_fee"]), debited: Number(row["debited_amount"]), bonusAmount: Number(row["bonus_amount"] ?? 0), lastError: (row["last_error"] as string | null) ?? null,
         trackingNumber: (row["tracking_number"] as string | null) ?? null, createdAt: String(row["created_at"]), supplierName: row["supplier_id"] ? names.get(String(row["supplier_id"])) ?? null : null,
       })),
     };

@@ -115,3 +115,23 @@ export async function approvePurchase(db: SupabaseClient, email: string, name: s
   const link = `${siteUrl()}/cadastro/${raw}`;
   return `liberado; ${await sendSignupEmail(email, name, link).catch((e) => `falha no e-mail: ${e instanceof Error ? e.message : e}`)}`;
 }
+
+/** Compra paga de "Arranque Rápido": guarda os envios bônus do e-mail (a conta pode ainda não existir). */
+export async function grantBonusOrders(db: SupabaseClient, email: string, bonus: { orders: number; label: string }, reference: string | null) {
+  const { BONUS_PER_ORDER_CAP_BRL, BONUS_VALID_DAYS } = await import("@/lib/bonus-orders");
+  if (!reference) return "envios bônus: compra sem id de transação, não registrada";
+  const expires = new Date(Date.now() + BONUS_VALID_DAYS * 24 * 60 * 60 * 1000);
+  const { data: profiles } = await db.from("profiles").select("id").ilike("email", likeExact(email)).limit(1);
+  const userId = profiles?.[0]?.id ?? null;
+  const { error } = await db.from("wallet_bonus_grants").upsert({
+    email, user_id: userId, source: "applyfy", reference, label: bonus.label, orders_total: bonus.orders,
+    per_order_cap: BONUS_PER_ORDER_CAP_BRL, expires_at: expires.toISOString(),
+  }, { onConflict: "reference", ignoreDuplicates: true });
+  if (error) throw new Error(`envios bônus: ${error.message}`);
+  if (userId) {
+    // Pedidos parados por falta de saldo já podem sair com os envios bônus.
+    const { fundWaitingOrders } = await import("@/lib/fulfillment.server");
+    await fundWaitingOrders(String(userId)).catch((e) => console.error("[bonus] fundWaitingOrders", e));
+  }
+  return `${bonus.orders} envios bônus${userId ? "" : " (liga na conta quando ela for criada)"}`;
+}

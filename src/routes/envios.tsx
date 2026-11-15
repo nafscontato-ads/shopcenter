@@ -55,6 +55,7 @@ function EnviosPage() {
           <p className={cn("mt-2 text-3xl font-bold tabular-nums", (data?.balance ?? 0) < 0 && "text-destructive")}>{query.isLoading ? "…" : brl(data?.balance ?? 0)}</p>
           {data?.creditLimit ? <p className="text-muted-foreground mt-1 text-[11px]">Crédito Shop Center: {brl(data.creditLimit)} (disponível {brl(available)})</p> : null}
           {data ? <ReputationLine shipped={data.shippedCount} /> : null}
+          {data ? <BonusLine packs={data.bonus} /> : null}
         </article>
         <article className="card-surface p-5">
           <p className="text-muted-foreground text-xs">Pedidos aguardando saldo</p>
@@ -93,7 +94,7 @@ function EnviosPage() {
                 <td className="py-2 font-mono text-xs">{order.orderSn}<div className="text-muted-foreground font-sans">{dateTime(order.createdAt)}</div></td>
                 <td>{order.lines.map((line) => <div key={`${line.itemId}-${line.name}`}>{line.quantity}x {line.name}</div>)}</td>
                 <td>{order.supplierName ?? "—"}</td>
-                <td className="text-right tabular-nums">{order.goodsCost ? brl(order.goodsCost + order.fee) : "—"}</td>
+                <td className="text-right tabular-nums">{order.goodsCost ? brl(order.goodsCost + order.fee) : "—"}{order.bonusAmount > 0 ? <div className="text-xs text-emerald-600">{brl(order.bonusAmount)} do envio bônus</div> : null}</td>
                 <td>
                   <span className={cn("rounded-full px-2 py-0.5 text-xs font-medium", STATUS[order.status].tone)}>{STATUS[order.status].label}</span>
                   {order.trackingNumber ? <div className="text-muted-foreground mt-1 text-xs">Rastreio {order.trackingNumber}</div> : null}
@@ -119,6 +120,22 @@ function EnviosPage() {
         </ul>
       </section>
     </AppShell>
+  );
+}
+
+type BonusPack = { id: string; label: string; total: number; used: number; cap: number; expiresAt: string; expired: boolean };
+
+/** Envios bônus do "Arranque Rápido": pagam até R$ 30 de cada pedido, não são saldo nem saque. */
+function BonusLine({ packs }: { packs: BonusPack[] }) {
+  const active = packs.filter((pack) => !pack.expired && pack.used < pack.total);
+  if (!active.length) return null;
+  const left = active.reduce((sum, pack) => sum + pack.total - pack.used, 0);
+  const next = active[0]!;
+  return (
+    <div className="mt-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-2.5 text-xs">
+      <p className="font-semibold text-emerald-700 dark:text-emerald-300">{left} {left === 1 ? "envio bônus" : "envios bônus"} disponíve{left === 1 ? "l" : "is"}</p>
+      <p className="text-muted-foreground mt-0.5">Cada um paga até {brl(next.cap)} do pedido (o resto sai do saldo). Vale até {new Date(next.expiresAt).toLocaleDateString("pt-BR")}. Não pode ser sacado.</p>
+    </div>
   );
 }
 

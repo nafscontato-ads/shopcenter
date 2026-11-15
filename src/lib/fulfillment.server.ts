@@ -144,6 +144,8 @@ export async function refundOrder(userId: string, fulfillmentId: string) {
   const { data: order } = await client.from("fulfillment_orders").select("order_sn, debited_amount").eq("id", fulfillmentId).eq("user_id", userId).maybeSingle();
   const amount = Number(order?.["debited_amount"] ?? 0);
   if (amount > 0) await bookWallet(userId, amount, "order_refund", `fulfillment:${fulfillmentId}`, `Estorno ${order?.["order_sn"]}`, null);
+  // Envio bônus usado no pedido volta para o pacote (só uma vez).
+  if (order) await client.rpc("fulfillment_bonus_return", { _id: fulfillmentId });
 }
 
 export type SupplierRow = { id: string; name: string; slug: string; whatsapp: string | null };
