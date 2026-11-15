@@ -28,7 +28,6 @@ import { Route as LoglogRouteImport } from './routes/loglog'
 import { Route as MarketplacesRouteImport } from './routes/marketplaces'
 import { Route as MensalRouteImport } from './routes/mensal'
 import { Route as ObrigadoRouteImport } from './routes/obrigado'
-import { Route as ObrigadoAiRouteImport } from './routes/obrigado-ai'
 import { Route as PerfilRouteImport } from './routes/perfil'
 import { Route as PersonalizarRouteImport } from './routes/personalizar'
 import { Route as ProdutosRouteImport } from './routes/produtos'
@@ -177,11 +176,6 @@ const MensalRoute = MensalRouteImport.update({
 const ObrigadoRoute = ObrigadoRouteImport.update({
   id: '/obrigado',
   path: '/obrigado',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ObrigadoAiRoute = ObrigadoAiRouteImport.update({
-  id: '/obrigado-ai',
-  path: '/obrigado-ai',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PerfilRoute = PerfilRouteImport.update({
@@ -473,7 +467,6 @@ export interface FileRoutesByFullPath {
   '/marketplaces': typeof MarketplacesRoute
   '/mensal': typeof MensalRoute
   '/obrigado': typeof ObrigadoRoute
-  '/obrigado-ai': typeof ObrigadoAiRoute
   '/perfil': typeof PerfilRoute
   '/personalizar': typeof PersonalizarRoute
   '/produtos': typeof ProdutosRoute
@@ -546,7 +539,6 @@ export interface FileRoutesByTo {
   '/marketplaces': typeof MarketplacesRoute
   '/mensal': typeof MensalRoute
   '/obrigado': typeof ObrigadoRoute
-  '/obrigado-ai': typeof ObrigadoAiRoute
   '/perfil': typeof PerfilRoute
   '/personalizar': typeof PersonalizarRoute
   '/produtos': typeof ProdutosRoute
@@ -622,7 +614,6 @@ export interface FileRoutesById {
   '/marketplaces': typeof MarketplacesRoute
   '/mensal': typeof MensalRoute
   '/obrigado': typeof ObrigadoRoute
-  '/obrigado-ai': typeof ObrigadoAiRoute
   '/perfil': typeof PerfilRoute
   '/personalizar': typeof PersonalizarRoute
   '/produtos': typeof ProdutosRoute
@@ -699,7 +690,6 @@ export interface FileRouteTypes {
     | '/marketplaces'
     | '/mensal'
     | '/obrigado'
-    | '/obrigado-ai'
     | '/perfil'
     | '/personalizar'
     | '/produtos'
@@ -772,7 +762,6 @@ export interface FileRouteTypes {
     | '/marketplaces'
     | '/mensal'
     | '/obrigado'
-    | '/obrigado-ai'
     | '/perfil'
     | '/personalizar'
     | '/produtos'
@@ -847,7 +836,6 @@ export interface FileRouteTypes {
     | '/marketplaces'
     | '/mensal'
     | '/obrigado'
-    | '/obrigado-ai'
     | '/perfil'
     | '/personalizar'
     | '/produtos'
@@ -923,7 +911,6 @@ export interface RootRouteChildren {
   MarketplacesRoute: typeof MarketplacesRoute
   MensalRoute: typeof MensalRoute
   ObrigadoRoute: typeof ObrigadoRoute
-  ObrigadoAiRoute: typeof ObrigadoAiRoute
   PerfilRoute: typeof PerfilRoute
   PersonalizarRoute: typeof PersonalizarRoute
   ProdutosRoute: typeof ProdutosRoute
@@ -1090,13 +1077,6 @@ declare module '@tanstack/react-router' {
       path: '/obrigado'
       fullPath: '/obrigado'
       preLoaderRoute: typeof ObrigadoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/obrigado-ai': {
-      id: '/obrigado-ai'
-      path: '/obrigado-ai'
-      fullPath: '/obrigado-ai'
-      preLoaderRoute: typeof ObrigadoAiRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/perfil': {
@@ -1565,7 +1545,6 @@ const rootRouteChildren: RootRouteChildren = {
   MarketplacesRoute: MarketplacesRoute,
   MensalRoute: MensalRoute,
   ObrigadoRoute: ObrigadoRoute,
-  ObrigadoAiRoute: ObrigadoAiRoute,
   PerfilRoute: PerfilRoute,
   PersonalizarRoute: PersonalizarRoute,
   ProdutosRoute: ProdutosRoute,
