@@ -52,7 +52,7 @@ describe('retired suppliers (owner, 16/11)', () => {
   });
 
   it('keeps only the new partner suppliers in the shared catalogue', () => {
-    expect(CATALOG_SUPPLIER_SOURCES).toEqual(['dona-casa', 'cabelo-chique', 'don-armany']);
+    expect(CATALOG_SUPPLIER_SOURCES).toEqual(['dona-casa', 'cabelo-chique', 'don-armany', 'talentos-pet']);
   });
 
   it('includes every free partner supplier for free', () => {

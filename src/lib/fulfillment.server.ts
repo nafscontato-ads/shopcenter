@@ -73,7 +73,7 @@ export async function ingestOrders(userId: string, connectionId: string, orders:
   const { data: listings } = await client.from("shopee_listings").select("shopee_item_id, product_id").eq("user_id", userId).in("shopee_item_id", itemIds);
   const productIds = [...new Set((listings ?? []).map((row) => String(row["product_id"])))];
   const { data: products } = productIds.length
-    ? await client.from("products").select("id, name, supplier_id, supplier_source, supplier_cost, supplier_url").in("id", productIds)
+    ? await client.from("products").select("id, name, sku, supplier_id, supplier_source, supplier_cost, supplier_url").in("id", productIds)
     : { data: [] };
   const { data: suppliers } = await client.from("suppliers").select("id, sources, active");
 
@@ -109,7 +109,96 @@ export async function fundOrder(userId: string, fulfillmentId: string) {
   // Lock, debit and status change happen in one SQL transaction (fulfillment_debit).
   const { data, error } = await client.rpc("fulfillment_debit", { _id: fulfillmentId });
   if (error) throw new Error("Não foi possível pagar o pedido com a carteira. Tente de novo.");
+  if (data === "paid") await alertAdminsNewOrder(fulfillmentId).catch(() => undefined);
   return data === "paid";
+}
+
+const panelBase = () => (process.env["PUBLIC_SITE_URL"] || "https://shopcenter.cloud").replace(/\/+$/, "");
+const brl = (value: number) => `R$ ${value.toFixed(2).replace(".", ",")}`;
+
+/** E-mails the admins (FULFILLMENT_ALERT_EMAIL, comma separated) that a supplier must get a Pix before shipping. */
+export async function alertAdminsNewOrder(fulfillmentId: string) {
+  const to = (process.env["FULFILLMENT_ALERT_EMAIL"] ?? "").split(",");
+  if (!to.some((item) => item.trim())) return;
+  const client = await db();
+  const { data: order } = await client.from("fulfillment_orders").select("order_sn, goods_cost, lines, supplier_id").eq("id", fulfillmentId).maybeSingle();
+  if (!order?.["supplier_id"]) return;
+  const { data: supplier } = await client.from("suppliers").select("name").eq("id", order["supplier_id"]).maybeSingle();
+  const { sendMail, mailLayout, escapeHtml } = await import("@/lib/mail.server");
+  const items = (order["lines"] as FulfillmentLine[]).map((line) => `<li>${line.quantity}x ${escapeHtml(line.name)}</li>`).join("");
+  const name = escapeHtml(String(supplier?.["name"] ?? "fornecedor"));
+  await sendMail(to, `Pagar ${supplier?.["name"] ?? "fornecedor"}: pedido ${order["order_sn"]} (${brl(Number(order["goods_cost"]))})`, mailLayout(
+    "Pedido pago pelo aluno: falta o Pix do fornecedor",
+    `<p>O pedido <b>${escapeHtml(String(order["order_sn"]))}</b> é de <b>${name}</b>. O aluno já pagou pela carteira.</p><ul>${items}</ul><p>Custo a pagar ao fornecedor: <b>${brl(Number(order["goods_cost"]))}</b>.</p><p>Abra <a href="${panelBase()}/admin/envios">Admin › Envio automático</a>, faça o Pix e clique em <b>Já paguei este Pix</b>. Só então o fornecedor consegue gerar a etiqueta.</p>`,
+  ));
+}
+
+/** Admin: marks the listed orders (and credits) of one supplier as paid by Pix and tells the supplier by e-mail. */
+export async function markSupplierPaid(supplierId: string, orderIds: string[], creditIds: string[], note: string | null) {
+  const client = await db();
+  const now = new Date().toISOString();
+  const { data: paid } = orderIds.length
+    ? await client.from("fulfillment_orders").update({ supplier_paid_at: now, supplier_paid_note: note, updated_at: now })
+      .eq("supplier_id", supplierId).in("id", orderIds).eq("status", "queued").is("supplier_paid_at", null).select("id, order_sn, goods_cost")
+    : { data: [] };
+  if (creditIds.length) {
+    await client.from("fulfillment_orders").update({ supplier_credit_at: now, updated_at: now })
+      .eq("supplier_id", supplierId).in("id", creditIds).eq("status", "cancelled").not("supplier_paid_at", "is", null).is("supplier_credit_at", null);
+  }
+  const rows = paid ?? [];
+  if (rows.length) {
+    const { data: supplier } = await client.from("suppliers").select("name, email").eq("id", supplierId).maybeSingle();
+    const email = supplier?.["email"] as string | null;
+    if (email) {
+      const { sendMail, mailLayout, escapeHtml } = await import("@/lib/mail.server");
+      const total = rows.reduce((sum, row) => sum + Number(row["goods_cost"]), 0);
+      const list = rows.map((row) => `<li>${escapeHtml(String(row["order_sn"]))} · ${brl(Number(row["goods_cost"]))}</li>`).join("");
+      await sendMail([email], `Pix enviado: ${rows.length} pedido(s) liberado(s) para envio`, mailLayout(
+        "Pix enviado, pode despachar",
+        `<p>O Shop Center pagou ${brl(total)} referente aos pedidos abaixo:</p><ul>${list}</ul><p>Abra o seu painel de expedição (o link que você recebeu), clique em <b>Gerar etiqueta</b>, imprima, cole no pacote e poste num ponto de entrega. Depois clique em <b>Marcar como enviado</b>.</p>`,
+      ));
+    }
+  }
+  return { paid: rows.length };
+}
+
+export type SupplierPayable = {
+  supplierId: string; name: string; pixKey: string | null; pixKeyType: string | null; whatsapp: string | null;
+  orders: { id: string; orderSn: string; goodsCost: number; createdAt: string; lines: FulfillmentLine[] }[];
+  credits: { id: string; orderSn: string; goodsCost: number }[];
+  total: number;
+};
+
+/** What each supplier must receive by Pix now: paid-by-student orders not yet paid to the supplier, minus credits. */
+export async function supplierPayables(): Promise<SupplierPayable[]> {
+  const client = await db();
+  const [{ data: orders }, { data: credits }, { data: suppliers }] = await Promise.all([
+    client.from("fulfillment_orders").select("id, order_sn, goods_cost, created_at, lines, supplier_id").eq("status", "queued").is("supplier_paid_at", null).order("created_at").limit(500),
+    // Cancelled after the supplier was paid and before shipping: discounted from the next Pix.
+    client.from("fulfillment_orders").select("id, order_sn, goods_cost, supplier_id").eq("status", "cancelled").not("supplier_paid_at", "is", null).is("supplier_credit_at", null).is("shipped_at", null).limit(500),
+    client.from("suppliers").select("id, name, pix_key, pix_key_type, whatsapp"),
+  ]);
+  const result = new Map<string, SupplierPayable>();
+  const entry = (id: string) => {
+    if (!result.has(id)) {
+      const s = (suppliers ?? []).find((row) => String(row["id"]) === id);
+      result.set(id, { supplierId: id, name: String(s?.["name"] ?? "fornecedor"), pixKey: (s?.["pix_key"] as string | null) ?? null, pixKeyType: (s?.["pix_key_type"] as string | null) ?? null, whatsapp: (s?.["whatsapp"] as string | null) ?? null, orders: [], credits: [], total: 0 });
+    }
+    return result.get(id)!;
+  };
+  for (const row of orders ?? []) {
+    if (!row["supplier_id"]) continue;
+    entry(String(row["supplier_id"])).orders.push({ id: String(row["id"]), orderSn: String(row["order_sn"]), goodsCost: Number(row["goods_cost"]), createdAt: String(row["created_at"]), lines: row["lines"] as FulfillmentLine[] });
+  }
+  for (const row of credits ?? []) {
+    if (!row["supplier_id"]) continue;
+    entry(String(row["supplier_id"])).credits.push({ id: String(row["id"]), orderSn: String(row["order_sn"]), goodsCost: Number(row["goods_cost"]) });
+  }
+  for (const item of result.values()) {
+    const total = item.orders.reduce((sum, o) => sum + o.goodsCost, 0) - item.credits.reduce((sum, c) => sum + c.goodsCost, 0);
+    item.total = Math.round(total * 100) / 100;
+  }
+  return [...result.values()].filter((item) => item.orders.length);
 }
 
 /**
@@ -158,25 +247,33 @@ export async function supplierByToken(token: string): Promise<SupplierRow> {
   return data as unknown as SupplierRow;
 }
 
-export type SupplierQueueItem = { id: string; orderSn: string; status: FulfillmentStatus; lines: FulfillmentLine[]; createdAt: string; labelDownloadedAt: string | null; trackingNumber: string | null };
+export type SupplierQueueItem = {
+  id: string; orderSn: string; status: FulfillmentStatus; lines: FulfillmentLine[]; createdAt: string; labelDownloadedAt: string | null;
+  trackingNumber: string | null; goodsCost: number; paidAt: string | null; shippedAt: string | null; credited: boolean;
+};
 
+/** Orders of the last 31 days that reached this supplier (paid by the student), for the panel and its daily numbers. */
 export async function supplierQueue(supplierId: string): Promise<SupplierQueueItem[]> {
   const client = await db();
-  const since = new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString();
-  const { data } = await client.from("fulfillment_orders").select("id, order_sn, status, lines, created_at, label_downloaded_at, tracking_number")
-    .eq("supplier_id", supplierId).in("status", ["queued", "shipped"]).gte("created_at", since).order("created_at", { ascending: true }).limit(300);
-  return (data ?? []).map((row) => ({
-    id: String(row["id"]), orderSn: String(row["order_sn"]), status: row["status"] as FulfillmentStatus, lines: row["lines"] as FulfillmentLine[],
-    createdAt: String(row["created_at"]), labelDownloadedAt: (row["label_downloaded_at"] as string | null) ?? null, trackingNumber: (row["tracking_number"] as string | null) ?? null,
-  }));
+  const since = new Date(Date.now() - 31 * 24 * 60 * 60 * 1000).toISOString();
+  const { data } = await client.from("fulfillment_orders").select("id, order_sn, status, lines, created_at, label_downloaded_at, tracking_number, goods_cost, supplier_paid_at, supplier_credit_at, shipped_at")
+    .eq("supplier_id", supplierId).in("status", ["queued", "shipped", "cancelled"]).gte("created_at", since).order("created_at", { ascending: true }).limit(1000);
+  return (data ?? [])
+    // A cancelled order matters to the supplier only when it had already been paid to them.
+    .filter((row) => row["status"] !== "cancelled" || row["supplier_paid_at"])
+    .map((row) => ({
+      id: String(row["id"]), orderSn: String(row["order_sn"]), status: row["status"] as FulfillmentStatus, lines: row["lines"] as FulfillmentLine[],
+      createdAt: String(row["created_at"]), labelDownloadedAt: (row["label_downloaded_at"] as string | null) ?? null, trackingNumber: (row["tracking_number"] as string | null) ?? null,
+      goodsCost: Number(row["goods_cost"] ?? 0), paidAt: (row["supplier_paid_at"] as string | null) ?? null, shippedAt: (row["shipped_at"] as string | null) ?? null, credited: Boolean(row["supplier_credit_at"]),
+    }));
 }
 
 /** Loads a queued order of this supplier with the seller and shop that own it. */
 export async function supplierOrder(supplierId: string, fulfillmentId: string) {
   const client = await db();
-  const { data } = await client.from("fulfillment_orders").select("id, user_id, connection_id, order_sn, status").eq("id", fulfillmentId).eq("supplier_id", supplierId).maybeSingle();
+  const { data } = await client.from("fulfillment_orders").select("id, user_id, connection_id, order_sn, status, supplier_paid_at").eq("id", fulfillmentId).eq("supplier_id", supplierId).maybeSingle();
   if (!data) throw new Error("Pedido não encontrado no seu painel.");
-  return data as { id: string; user_id: string; connection_id: string; order_sn: string; status: FulfillmentStatus };
+  return data as { id: string; user_id: string; connection_id: string; order_sn: string; status: FulfillmentStatus; supplier_paid_at: string | null };
 }
 
 export async function markLabel(fulfillmentId: string, trackingNumber: string) {

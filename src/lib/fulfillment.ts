@@ -33,7 +33,7 @@ export type ShopeeOrderItem = {
 };
 
 export type ListingLink = { shopee_item_id: number | null; product_id: string };
-export type ProductLink = { id: string; supplier_id: string | null; supplier_source: string | null; supplier_cost: number | null; supplier_url: string | null; name: string };
+export type ProductLink = { id: string; supplier_id: string | null; supplier_source: string | null; supplier_cost: number | null; supplier_url: string | null; name: string; sku?: string | null };
 export type SupplierLink = { id: string; sources: string[]; active: boolean };
 
 export type FulfillmentLine = {
@@ -44,6 +44,8 @@ export type FulfillmentLine = {
   supplierId: string | null;
   unitCost: number | null;
   supplierUrl: string | null;
+  /** Supplier SKU of the catalogue product (so the supplier knows the exact size and colour). */
+  sku?: string | null;
 };
 
 const money = (value: number) => Math.round(value * 100) / 100;
@@ -75,6 +77,7 @@ export function resolveLines(items: ShopeeOrderItem[], listings: ListingLink[], 
       supplierId: product ? supplierFor(product, suppliers) : null,
       unitCost: cost != null && Number.isFinite(cost) && cost > 0 ? cost : null,
       supplierUrl: product?.supplier_url ?? null,
+      sku: product?.sku ?? null,
     };
   });
 }

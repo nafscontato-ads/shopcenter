@@ -14,7 +14,9 @@ async function db(): Promise<SupabaseClient> {
 }
 
 export function payoutsEnabled() {
-  return Boolean(process.env["ASAAS_API_KEY"]) && process.env["SUPPLIER_PAYOUTS"] !== "off";
+  // Suppliers are paid BEFORE shipping (manual Pix in Admin › Envio automático). The old Asaas "pay after
+  // shipping" run only happens when explicitly asked for, so nobody is ever paid twice.
+  return Boolean(process.env["ASAAS_API_KEY"]) && process.env["SUPPLIER_PAYOUTS"] === "after_ship";
 }
 
 type Supplier = { id: string; name: string; pix_key: string | null; pix_key_type: PixKeyType | null };

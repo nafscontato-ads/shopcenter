@@ -7,9 +7,8 @@ import { toast } from "sonner";
 
 import { AppShell, PageHeader } from "@/components/pas/app-shell";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import { FULFILLMENT_FEE_BRL, isValidPixRecharge, nextReputationTier, PIX_RECHARGE_MAX_BRL, PIX_RECHARGE_MIN_BRL, type FulfillmentStatus } from "@/lib/fulfillment";
-import { checkPixRecharge, createPixRecharge, getMyFulfillment, payWaitingOrders, setAutoFulfillment } from "@/lib/fulfillment.functions";
+import { checkPixRecharge, createPixRecharge, getMyFulfillment, payWaitingOrders } from "@/lib/fulfillment.functions";
 import { brl } from "@/lib/pas-data";
 import { cn } from "@/lib/utils";
 
@@ -32,11 +31,9 @@ const dateTime = (value: string) => new Intl.DateTimeFormat("pt-BR", { dateStyle
 function EnviosPage() {
   const queryClient = useQueryClient();
   const getFn = useServerFn(getMyFulfillment);
-  const toggleFn = useServerFn(setAutoFulfillment);
   const payFn = useServerFn(payWaitingOrders);
   const query = useQuery({ queryKey: ["my-fulfillment"], queryFn: () => getFn(), refetchInterval: 60_000 });
   const refresh = () => queryClient.invalidateQueries({ queryKey: ["my-fulfillment"] });
-  const toggle = useMutation({ mutationFn: (input: { connectionId: string; enabled: boolean }) => toggleFn({ data: input }), onSuccess: refresh, onError: (e: Error) => toast.error(e.message) });
   const pay = useMutation({
     mutationFn: () => payFn(),
     onSuccess: (r) => { toast.success(r.paid ? `${r.paid} pedido(s) liberado(s) para o fornecedor.` : "Saldo ainda não cobre o próximo pedido."); refresh(); },
@@ -72,12 +69,12 @@ function EnviosPage() {
 
       <section className="card-surface mt-5 p-5">
         <h2 className="font-semibold">Lojas</h2>
-        <p className="text-muted-foreground text-xs">Com o envio automático ligado, todo pedido pago de produto do catálogo Shop Center vai direto para o fornecedor.</p>
+        <p className="text-muted-foreground text-xs">O envio automático já vem ligado em todas as suas lojas: todo pedido pago de produto do catálogo Shop Center vai direto para o fornecedor. Na Shopee, deixe ativo o envio por ponto de entrega (postagem em agência).</p>
         <ul className="mt-3 divide-y">
           {(data?.shops ?? []).map((shop) => (
             <li key={shop.id} className="flex items-center justify-between py-2">
               <span>{shop.name}</span>
-              <Switch checked={shop.autoFulfillment} disabled={toggle.isPending} onCheckedChange={(enabled) => toggle.mutate({ connectionId: shop.id, enabled })} />
+              <span className="text-xs font-medium text-emerald-600">{shop.autoFulfillment ? "Envio automático ligado" : "Desligado pelo suporte"}</span>
             </li>
           ))}
           {data && !data.shops.length ? <li className="text-muted-foreground py-2 text-sm">Conecte sua loja Shopee na aba Integração.</li> : null}

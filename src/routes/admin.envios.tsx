@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { AdminPageHeader } from "@/components/admin/admin-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { adminCreditWallet, adminImportCatalog, adminListSuppliers, adminReleasePayout, adminSaveSupplier, adminSetCreditLimit } from "@/lib/fulfillment.functions";
+import { adminCreditWallet, adminImportCatalog, adminListSuppliers, adminMarkSupplierPaid, adminReleasePayout, adminSaveSupplier, adminSetCreditLimit, adminSupplierPayables } from "@/lib/fulfillment.functions";
 import { whatsappLink } from "@/lib/fulfillment";
 import { adminDecideSupplierApplication, adminListSupplierApplications } from "@/lib/supplier-applications.functions";
 
@@ -91,7 +91,6 @@ function AdminEnvios() {
           <select aria-label="Tipo da chave PIX" className="border-input bg-background h-9 rounded-md border px-3 text-sm" value={form.pixKeyType} onChange={(e) => setForm({ ...form, pixKeyType: e.target.value as PixType })}>
             <option value="">Tipo da chave: detectar</option><option value="CPF">CPF</option><option value="CNPJ">CNPJ</option><option value="EMAIL">E-mail</option><option value="PHONE">Celular</option><option value="EVP">Aleatória</option>
           </select>
-          <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.autoPayout} onChange={(e) => setForm({ ...form, autoPayout: e.target.checked })} />Repasse automático por PIX (1 vez por dia, pedidos enviados). Deixe desligado para DepDrop.</label>
         </div>
         <div className="mt-3 flex gap-2">
           <Button disabled={save.isPending || !form.name || !form.slug} onClick={() => save.mutate(false)}>Salvar</Button>
@@ -143,22 +142,24 @@ function AdminEnvios() {
         </div>
       </section>
 
-      <section className="rounded-xl border p-4">
-        <h2 className="font-semibold">Repasses aos fornecedores</h2>
-        <p className="text-muted-foreground text-xs">{list.data?.payoutsEnabled ? "Ligado: 1 PIX por dia para cada fornecedor com repasse automático, com o custo dos pedidos enviados há mais de 12 horas." : "Desligado: falta a chave do Asaas (ASAAS_API_KEY) no servidor."}</p>
-        <ul className="mt-3 divide-y text-sm">
-          {(list.data?.payouts ?? []).map((p) => {
-            const supplier = list.data?.suppliers.find((s) => s.id === p.supplierId);
-            return (
-              <li key={p.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
-                <span>{p.day} · {supplier?.name ?? "fornecedor"} · R$ {p.amount.toFixed(2)} ({p.orders} pedido(s)) · {p.status === "failed" ? "falhou" : p.status === "pending" ? "enviando" : "enviado"}{p.lastError ? <span className="text-muted-foreground"> · {p.lastError}</span> : null}</span>
-                {p.status === "failed" ? <Button size="sm" variant="outline" disabled={release.isPending} onClick={() => window.confirm("Confira no Asaas que esse PIX NÃO saiu. Liberar os pedidos para o próximo repasse?") && release.mutate(p.id)}>Liberar para o próximo repasse</Button> : null}
-              </li>
-            );
-          })}
-          {list.data && !list.data.payouts.length ? <li className="text-muted-foreground py-2">Nenhum repasse ainda.</li> : null}
-        </ul>
-      </section>
+      <SupplierPayables />
+
+      {list.data?.payoutsEnabled || list.data?.payouts.length ? (
+        <section className="rounded-xl border p-4">
+          <h2 className="font-semibold">Repasses antigos (Asaas)</h2>
+          <ul className="mt-3 divide-y text-sm">
+            {(list.data?.payouts ?? []).map((p) => {
+              const supplier = list.data?.suppliers.find((s) => s.id === p.supplierId);
+              return (
+                <li key={p.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
+                  <span>{p.day} · {supplier?.name ?? "fornecedor"} · R$ {p.amount.toFixed(2)} ({p.orders} pedido(s)) · {p.status === "failed" ? "falhou" : p.status === "pending" ? "enviando" : "enviado"}{p.lastError ? <span className="text-muted-foreground"> · {p.lastError}</span> : null}</span>
+                  {p.status === "failed" ? <Button size="sm" variant="outline" disabled={release.isPending} onClick={() => window.confirm("Confira no Asaas que esse PIX NÃO saiu. Liberar os pedidos para o próximo repasse?") && release.mutate(p.id)}>Liberar para o próximo repasse</Button> : null}
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      ) : null}
 
       <section className="rounded-xl border p-4">
         <h2 className="font-semibold">Precisam de atenção</h2>
@@ -212,6 +213,45 @@ function SupplierApplications({ onApproved }: { onApproved: (panelUrl: string, w
           </li>
         ))}
         {apps.data && !pending.length ? <li className="text-muted-foreground py-2">Nenhum cadastro novo.</li> : null}
+      </ul>
+    </section>
+  );
+}
+
+const brl = (value: number) => value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+/** Pix to suppliers BEFORE they ship: the student already paid the order from the wallet. */
+function SupplierPayables() {
+  const listFn = useServerFn(adminSupplierPayables);
+  const paidFn = useServerFn(adminMarkSupplierPaid);
+  const queryClient = useQueryClient();
+  const list = useQuery({ queryKey: ["admin-supplier-payables"], queryFn: () => listFn(), refetchInterval: 60_000 });
+  const paid = useMutation({
+    mutationFn: (input: { supplierId: string; orderIds: string[]; creditIds: string[] }) => paidFn({ data: input }),
+    onSuccess: (r) => { toast.success(`${r.paid} pedido(s) liberado(s) para o fornecedor enviar.`); queryClient.invalidateQueries({ queryKey: ["admin-supplier-payables"] }); queryClient.invalidateQueries({ queryKey: ["admin-envios"] }); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const items = list.data?.payables ?? [];
+  return (
+    <section className="rounded-xl border-2 border-orange-400 p-4">
+      <h2 className="font-semibold">Pagar fornecedores ({items.length})</h2>
+      <p className="text-muted-foreground text-xs">O aluno já pagou estes pedidos pela carteira. Faça o Pix para o fornecedor (Mercado Pago ou banco) e clique em <b>Já paguei este Pix</b>. Só depois disso a etiqueta libera no painel dele. Pedidos cancelados depois do Pix são descontados aqui.</p>
+      <ul className="mt-3 space-y-3">
+        {items.map((item) => (
+          <li key={item.supplierId} className="rounded-lg border p-3 text-sm">
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <span className="font-semibold">{item.name}</span>
+              <span className="text-lg font-bold">{brl(item.total)}</span>
+            </div>
+            <p className="mt-1">Chave Pix{item.pixKeyType ? ` (${item.pixKeyType})` : ""}: <span className="select-all font-mono">{item.pixKey ?? "não cadastrada: edite o fornecedor acima"}</span></p>
+            <ul className="text-muted-foreground mt-2">
+              {item.orders.map((o) => <li key={o.id}><span className="font-mono">{o.orderSn}</span> · {brl(o.goodsCost)} · {o.lines.map((l) => `${l.quantity}x ${l.name}${l.sku ? ` (SKU ${l.sku})` : ""}`).join(", ")}</li>)}
+              {item.credits.map((c) => <li key={c.id} className="text-amber-700">Desconto: <span className="font-mono">{c.orderSn}</span> cancelado depois do Pix · -{brl(c.goodsCost)}</li>)}
+            </ul>
+            <Button className="mt-3" size="sm" disabled={paid.isPending || item.total <= 0 && !item.orders.length} onClick={() => window.confirm(`Confirma que o Pix de ${brl(item.total)} para ${item.name} já saiu?`) && paid.mutate({ supplierId: item.supplierId, orderIds: item.orders.map((o) => o.id), creditIds: item.credits.map((c) => c.id) })}>Já paguei este Pix</Button>
+          </li>
+        ))}
+        {list.data && !items.length ? <li className="text-muted-foreground text-sm">Nenhum fornecedor para pagar agora.</li> : null}
       </ul>
     </section>
   );

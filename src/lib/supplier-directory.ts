@@ -48,7 +48,7 @@ export const supplierDirectory: Supplier[] = [
   { id: 'dona-casa', name: 'Dona Casa Distribuidora', logo: donaCasaLogo, logoShape: 'square', address: 'Ibitinga – SP · cama, mesa e decoração', unlocked: true, catalogSource: 'dona-casa' },
   { id: 'cabelo-chique', name: 'Cabelo Chique', logo: cabeloChiqueLogo, logoShape: 'square', address: 'Cosméticos capilares Rafty', unlocked: true, catalogSource: 'cabelo-chique' },
   { id: 'don-armany', name: 'Don Armany', logo: donArmanyLogo, logoShape: 'square', address: 'Santo Ângelo – RS · cuidados masculinos', unlocked: true, catalogSource: 'don-armany' },
-  { id: 'talentos-pet', name: 'Talentos Pet', logo: talentosPetLogo, logoShape: 'square', address: 'Iacanga – SP · produtos pet', unlocked: true },
+  { id: 'talentos-pet', name: "Talento's Pet", logo: talentosPetLogo, logoShape: 'square', address: 'Iacanga – SP · camas e acessórios pet', unlocked: true, catalogSource: 'talentos-pet' },
   { id: 'zentry-commerce', name: 'Zentry Commerce', logo: zentry.url, logoShape: 'square', address: 'Rua das Palmeiras, 184 — Centro, São Paulo – SP, CEP 01042-120', annualPrice: 1589, blackFridayPrice: 1089, unlocked: false },
   { id: 'atlas-supply', name: 'Atlas Supply', logo: atlas.url, logoShape: 'square', address: 'Avenida Nova Esperança, 725 — Jardim América, São Paulo – SP, CEP 01428-310', annualPrice: 2190, blackFridayPrice: 1490, unlocked: false },
   { id: 'novasource', name: 'Novasource Distribuidora', logo: novasource.url, logoShape: 'square', address: 'Rua dos Ipês, 392 — Vila Industrial, Campinas – SP, CEP 13035-240', annualPrice: 2690, blackFridayPrice: 1790, unlocked: false },

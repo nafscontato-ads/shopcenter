@@ -100,6 +100,8 @@ export const getSupplierLabel = createServerFn({ method: "POST" })
     const supplier = await supplierByToken(data.token);
     const order = await supplierOrder(supplier.id, data.id);
     if (order.status !== "queued") return { ok: false as const, message: order.status === "shipped" ? "Este pedido já foi enviado." : "Este pedido não está liberado para envio." };
+    // Supplier ships only after receiving the Shop Center Pix for this order.
+    if (!order.supplier_paid_at) return { ok: false as const, message: "Aguarde o Pix do Shop Center deste pedido. Assim que pagarmos, a etiqueta libera." };
     const client = await admin();
     const { data: shopOrder } = await client.from("shopee_orders").select("status").eq("connection_id", order.connection_id).eq("order_sn", order.order_sn).maybeSingle();
     const { generateShopeeLabel } = await import("@/lib/shopee.functions");
@@ -123,7 +125,8 @@ export const markSupplierShipped = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { supplierByToken, supplierOrder, markShipped } = await import("@/lib/fulfillment.server");
     const supplier = await supplierByToken(data.token);
-    await supplierOrder(supplier.id, data.id);
+    const order = await supplierOrder(supplier.id, data.id);
+    if (!order.supplier_paid_at) throw new Error("Este pedido ainda não foi pago pelo Shop Center.");
     return { ok: await markShipped(data.id) };
   });
 
@@ -166,7 +169,7 @@ export const adminListSuppliers = createServerFn({ method: "GET" })
     return {
       suppliers: (data ?? []).map((row) => ({ id: String(row["id"]), slug: String(row["slug"]), name: String(row["name"]), whatsapp: (row["whatsapp"] as string | null) ?? null, email: (row["email"] as string | null) ?? null, pixKey: (row["pix_key"] as string | null) ?? null, pixKeyType: (row["pix_key_type"] as string | null) ?? null, autoPayout: Boolean(row["auto_payout"]), sources: (row["sources"] as string[]) ?? [], active: Boolean(row["active"]), hasPanel: Boolean(row["panel_token_hash"]), queued: counts.get(String(row["id"])) ?? 0 })),
       payouts: (payouts ?? []).map((row) => ({ id: String(row["id"]), supplierId: String(row["supplier_id"]), amount: Number(row["amount"]), orders: Number(row["order_count"]), day: String(row["payout_day"]), status: String(row["status"]), lastError: (row["last_error"] as string | null) ?? null })),
-      payoutsEnabled: Boolean(process.env["ASAAS_API_KEY"]) && process.env["SUPPLIER_PAYOUTS"] !== "off",
+      payoutsEnabled: Boolean(process.env["ASAAS_API_KEY"]) && process.env["SUPPLIER_PAYOUTS"] === "after_ship",
       attention: (attention ?? []).map((row) => ({ id: String(row["id"]), orderSn: String(row["order_sn"]), status: String(row["status"]), lastError: (row["last_error"] as string | null) ?? null, userId: String(row["user_id"]), at: String(row["created_at"]) })),
     };
   });
@@ -242,6 +245,23 @@ export const checkPixRecharge = createServerFn({ method: "POST" })
     if (row["status"] !== "pending" || !row["provider_payment_id"]) return { status: String(row["status"]) };
     const { settleRecharge } = await import("@/lib/pix.server");
     return settleRecharge(String(row["provider_payment_id"]));
+  });
+
+/** Admin: what each supplier must receive by Pix before shipping (orders already paid by the students). */
+export const adminSupplierPayables = createServerFn({ method: "GET" })
+  .middleware([requireAdmin])
+  .handler(async () => {
+    const { supplierPayables } = await import("@/lib/fulfillment.server");
+    return { payables: await supplierPayables() };
+  });
+
+/** Admin: after sending the Pix by hand (Mercado Pago or bank), releases those orders to the supplier. */
+export const adminMarkSupplierPaid = createServerFn({ method: "POST" })
+  .middleware([requireAdmin])
+  .validator((input: unknown) => z.object({ supplierId: z.string().uuid(), orderIds: z.array(z.string().uuid()).min(1).max(500), creditIds: z.array(z.string().uuid()).max(500), note: z.string().max(200).optional() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { markSupplierPaid } = await import("@/lib/fulfillment.server");
+    return markSupplierPaid(data.supplierId, data.orderIds, data.creditIds, data.note ? `${data.note} (admin ${context.admin.email})` : `Pix manual (admin ${context.admin.email})`);
   });
 
 /** Admin: puts a failed supplier payout's orders back in the queue (after fixing the PIX key or checking Asaas). */
