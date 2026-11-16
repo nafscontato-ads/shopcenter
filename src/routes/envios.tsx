@@ -13,7 +13,7 @@ import { brl } from "@/lib/pas-data";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/envios")({
-  head: () => ({ meta: [{ title: "Envio automático | Shop Center" }, { name: "description", content: "Pedidos da sua loja enviados automaticamente pelo fornecedor." }] }),
+  head: () => ({ meta: [{ title: "Carteira e envios | Shop Center" }, { name: "description", content: "Pedidos da sua loja enviados automaticamente pelo fornecedor." }] }),
   component: EnviosPage,
 });
 
@@ -44,7 +44,7 @@ function EnviosPage() {
 
   return (
     <AppShell>
-      <PageHeader icon={Truck} title="Envio automático" subtitle={`Quando você vender na Shopee, o fornecedor recebe o pedido, imprime a etiqueta e despacha. Custo do produto + ${brl(FULFILLMENT_FEE_BRL)} por pedido saem da sua carteira.`} />
+      <PageHeader icon={Truck} title="Carteira e envios" subtitle={`Quando você vender na Shopee, o fornecedor recebe o pedido, imprime a etiqueta e despacha. Custo do produto + ${brl(FULFILLMENT_FEE_BRL)} por pedido saem da sua carteira.`} />
 
       <section className="grid gap-3 sm:grid-cols-3">
         <article className="card-surface p-5">

@@ -18,7 +18,6 @@ import {
   Sun,
   Moon,
   Wallet,
-  Truck,
 } from "lucide-react";
 import { memo, useEffect, useState, type ReactNode } from "react";
 
@@ -53,8 +52,7 @@ const producerGroups: { title?: string; items: Item[] }[] = [
     { to: "/fornecedores", label: "Fornecedores", icon: Users },
     { to: "/produtos", label: "Catálogos", icon: ShoppingBag },
     { to: "/produtos-salvos", label: "Produtos Salvos", icon: BookmarkCheck },
-    { to: "/financeiro", label: "Financeiro", icon: Wallet },
-    { to: "/envios", label: "Envio automático", icon: Truck },
+    { to: "/envios", label: "Carteira e envios", icon: Wallet },
   ] },
   { title: "Sistema", items: [
     { to: "/perfil", label: "Meu perfil", icon: UserRound },
