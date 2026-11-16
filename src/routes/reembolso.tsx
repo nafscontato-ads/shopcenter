@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation } from "@tanstack/react-query";
-import { AlertCircle, ArrowLeft, BadgeCheck, CheckCircle2, Clipboard, Clock3, CreditCard, FileCheck2, Landmark, LoaderCircle, LockKeyhole, MessageCircle, SearchCheck, ShieldCheck } from "lucide-react";
+import { AlertCircle, BadgeCheck, CheckCircle2, Clipboard, Clock3, CreditCard, Landmark, LoaderCircle, LockKeyhole, MessageCircle, ShieldCheck } from "lucide-react";
 import { useState, type FormEvent } from "react";
 
 import { PasMark } from "@/components/pas/logo";
@@ -48,7 +48,6 @@ function RefundPage() {
     onSuccess: (res) => { setProtocol(res.protocol); window.scrollTo({ top: 0, behavior: "smooth" }); },
   });
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) => { setForm((f) => ({ ...f, [key]: value })); setErrors((e) => ({ ...e, [key]: undefined })); };
-  const deadline = form.payment === "card" ? "até 2 faturas do cartão" : form.payment === "pix" ? "até 7 dias úteis após a aprovação" : "conforme o método de pagamento";
 
   const onSubmit = (event: FormEvent) => {
     event.preventDefault();
@@ -76,22 +75,9 @@ function RefundPage() {
         {protocol ? (
           <section className="mx-auto max-w-2xl rounded-3xl border border-orange-100 bg-white p-6 shadow-[0_30px_80px_-40px_rgba(234,88,12,0.45)] sm:p-10">
             <div className="mx-auto grid size-16 place-items-center rounded-full bg-orange-500 text-white"><CheckCircle2 className="size-8" /></div>
-            <h1 className="mt-5 text-center text-2xl font-extrabold sm:text-3xl">Solicitação recebida</h1>
-            <p className="mt-2 text-center text-sm text-neutral-600">Guarde o seu protocolo. A equipe Shop Center responde pelo e-mail informado.</p>
-            <div className="mt-6 flex items-center justify-between gap-3 rounded-2xl border-2 border-dashed border-orange-300 bg-orange-50 px-5 py-4">
-              <div><p className="text-[11px] font-bold uppercase tracking-widest text-orange-700">Protocolo</p><p className="text-2xl font-black tabular-nums tracking-wide">{protocol}</p></div>
-              <Button type="button" variant="outline" className="border-orange-200" onClick={() => { void navigator.clipboard?.writeText(protocol); setCopied(true); setTimeout(() => setCopied(false), 1800); }}>{copied ? <BadgeCheck /> : <Clipboard />}{copied ? "Copiado" : "Copiar"}</Button>
-            </div>
-            <ol className="mt-8 space-y-5">
-              {[[FileCheck2, "Solicitação registrada", "Agora", true], [SearchCheck, "Em análise pela equipe", "até 2 dias úteis", true], [Landmark, "Devolução do valor", deadline, false]].map(([Icon, title, when, active], i) => {
-                const I = Icon as typeof FileCheck2;
-                return <li key={i} className="flex gap-4"><span className={cn("grid size-10 shrink-0 place-items-center rounded-full", active ? "bg-orange-500 text-white" : "bg-neutral-100 text-neutral-400")}><I className="size-5" /></span><div><p className="font-bold">{title as string}</p><p className="text-sm text-neutral-500">{when as string}</p></div></li>;
-              })}
-            </ol>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              {support && <Button asChild className="h-12 flex-1 bg-[#25D366] font-bold text-white hover:bg-[#1fb658]"><a href={support} target="_blank" rel="noreferrer"><MessageCircle />Acompanhar no WhatsApp</a></Button>}
-              <Button variant="outline" className="h-12 flex-1 border-orange-200" onClick={() => { setProtocol(null); setForm(initialForm); }}><ArrowLeft />Nova solicitação</Button>
-            </div>
+            <h1 className="mt-5 text-center text-2xl font-extrabold leading-snug sm:text-3xl">Seu reembolso foi processado e agora é só aguardar o prazo de 7 dias!</h1>
+            {support && <Button asChild className="mt-8 h-14 w-full rounded-2xl bg-[#25D366] text-base font-extrabold text-white hover:bg-[#1fb658]"><a href={support} target="_blank" rel="noreferrer"><MessageCircle />Acompanhar no WhatsApp</a></Button>}
+            <p className="mt-6 flex items-center justify-center gap-2 text-xs text-neutral-500">Protocolo <span className="font-mono font-bold text-neutral-700">{protocol}</span><button type="button" className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 font-semibold text-orange-600 hover:bg-orange-50" onClick={() => { void navigator.clipboard?.writeText(protocol); setCopied(true); setTimeout(() => setCopied(false), 1800); }}>{copied ? <BadgeCheck className="size-3.5" /> : <Clipboard className="size-3.5" />}{copied ? "Copiado" : "Copiar"}</button></p>
           </section>
         ) : (
           <div className="grid gap-8 lg:grid-cols-[1fr_340px]">

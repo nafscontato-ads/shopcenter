@@ -9,11 +9,11 @@ import { SupplierSelection } from '@/components/pas/supplier-selection';
 import { BlackFridayDeadline } from '@/components/pas/black-friday-offer';
 import { SupplierOrb } from '@/components/pas/supplier-card';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
-import { supplierDirectory } from '@/lib/supplier-directory';
+import { includedSuppliers, supplierDirectory } from '@/lib/supplier-directory';
 import { brl, type Product } from '@/lib/pas-data';
 import { cn } from '@/lib/utils';
 
-const perks = ['Black Friday: Minipreço e 25 de Março Online grátis', 'Catálogos dos fornecedores liberados', 'Conexão de lojas pela API Shopee', 'Preparação e publicação de anúncios', 'Gestão de produtos e pedidos', 'Estoque e preços da integração', 'Calculadora de margem', 'Suporte e atualizações do Shop Center'];
+const perks = ['Black Friday: fornecedores parceiros grátis', 'Catálogos dos fornecedores liberados', 'Conexão de lojas pela API Shopee', 'Preparação e publicação de anúncios', 'Gestão de produtos e pedidos', 'Estoque e preços da integração', 'Calculadora de margem', 'Suporte e atualizações do Shop Center'];
 const modules = [
   [Store, 'Rede de fornecedores', 'Conheça as opções da rede e a disponibilidade de cada catálogo.'],
   [PackageSearch, 'Catálogos de produtos', 'Consulte fotos, informações e custos antes de escolher.'],
@@ -31,7 +31,7 @@ const steps = [
 ];
 const faq = [
   ['O que é o Shop Center?', 'O Shop Center centraliza catálogos, fornecedores e ferramentas de operação para vendedores. Você encontra produtos, prepara anúncios e acompanha sua loja pela integração Shopee disponível.'],
-  ['Quais fornecedores estão disponíveis?', 'Na Black Friday, Minipreço e 25 de Março Online vêm incluídos grátis em qualquer plano, sem precisar selecionar. Os fornecedores premium constam no diretório com contratação separada. A assinatura do Shop Center não libera automaticamente esses acessos externos.'],
+  ['Quais fornecedores estão disponíveis?', `Na Black Friday, ${includedSuppliers.map((s) => s.name).join(', ')} vêm incluídos grátis em qualquer plano, sem precisar selecionar. Os fornecedores premium constam no diretório com contratação separada. A assinatura do Shop Center não libera automaticamente esses acessos externos.`],
   ['Como funcionam os Catálogos?', 'Os Catálogos reúnem produtos ativos dos fornecedores, com fotos e preço. A quantidade exibida nesta página acompanha os produtos disponíveis no sistema. Depois de confirmar e ativar sua conta, você pode consultar detalhes, salvar produtos e prepará-los para publicação.'],
   ['Preciso comprar estoque próprio?', 'Isso depende da sua operação e das condições do fornecedor escolhido. O Shop Center não fornece estoque nem garante disponibilidade ou cumprimento de pedidos por terceiros.'],
   ['Quais marketplaces são compatíveis?', 'A integração de lojas e publicação disponível atualmente é com a Shopee, pela API oficial. Não prometemos conexão com outros marketplaces que ainda não estejam implementados.'],
@@ -54,8 +54,8 @@ function Heading({ label, title, text, center = false }: { label: string; title:
 function Pricing({ monthlyCheckout, lifetimeCheckout, monthlyPrice, lifetimePrice, early = false }: { monthlyCheckout: string; lifetimeCheckout: string; monthlyPrice: number; lifetimePrice: number; early?: boolean }) {
   const id = early ? 'acesso' : 'planos';
   return <section id={id} className="sc-section sc-pricing"><div className="mx-auto max-w-[1000px] px-5">
-    <Heading center label="Seu acesso ao ecossistema" title="Uma estrutura. Duas formas de começar." text="Escolha o plano e pague direto. Na Black Friday, os 2 fornecedores gratuitos já vêm incluídos."/>
-    <p className="sc-bf-strip mx-auto mt-6 flex w-fit flex-wrap items-center justify-center gap-x-2 gap-y-1 rounded-full px-5 py-2 text-center text-xs font-semibold"><Gift className="size-4" />Black Friday: 2 fornecedores grátis em qualquer plano · disponível até <BlackFridayDeadline className="font-extrabold" /></p>
+    <Heading center label="Seu acesso ao ecossistema" title="Uma estrutura. Duas formas de começar." text="Escolha o plano e pague direto. Na Black Friday, os fornecedores parceiros gratuitos já vêm incluídos."/>
+    <p className="sc-bf-strip mx-auto mt-6 flex w-fit flex-wrap items-center justify-center gap-x-2 gap-y-1 rounded-full px-5 py-2 text-center text-xs font-semibold"><Gift className="size-4" />Black Friday: {includedSuppliers.length} fornecedores grátis em qualquer plano · disponível até <BlackFridayDeadline className="font-extrabold" /></p>
     <div className="mt-12 grid items-stretch gap-6 md:grid-cols-2">{[false, true].map(lifetime => <article key={String(lifetime)} className={cn('sc-plan relative flex flex-col p-7 sm:p-9', lifetime && 'sc-plan-featured')}>
       {lifetime && <span className="sc-plan-ribbon absolute inset-x-0 top-0 py-1.5 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-primary-foreground">Pagamento único · Mais escolhido</span>}
       <div className={cn('flex items-start justify-between', lifetime && 'pt-4')}><div><p className="sc-eyebrow">{lifetime ? 'Vitalício' : 'Mensal'}</p><p className="mt-2 text-sm text-muted-foreground">{lifetime ? 'Acesso de longo prazo ao Shop Center' : 'Flexibilidade para sua operação'}</p></div><Layers3 className="size-5 text-primary"/></div>
@@ -81,7 +81,7 @@ export function SellerSalesPage({ monthlyCheckout, lifetimeCheckout, products, p
   const closeMenu = (event: MouseEvent<HTMLElement>) => event.currentTarget.closest('details')?.removeAttribute('open');
   const figures = [[totalProducts.toLocaleString('pt-BR'), 'produtos nos catálogos'], [String(supplierDirectory.length), 'fornecedores na rede'], ['API', 'oficial da Shopee']];
   return <BrandCtx.Provider value={{ name: brandName, logo: brandLogo }}><div className="pas-seller-landing sc-landing min-h-screen bg-background text-foreground">
-    <div className="sc-topbar"><div className="mx-auto flex max-w-[1240px] items-center justify-center gap-2 px-5 py-2 text-[11px] font-semibold tracking-wide text-primary-foreground"><Gift className="size-3.5 shrink-0"/><span>Aproveite a Black Friday e pegue 2 fornecedores gratuitos! · Disponível até <BlackFridayDeadline className="font-extrabold" /></span></div></div>
+    <div className="sc-topbar"><div className="mx-auto flex max-w-[1240px] items-center justify-center gap-2 px-5 py-2 text-[11px] font-semibold tracking-wide text-primary-foreground"><Gift className="size-3.5 shrink-0"/><span>Aproveite a Black Friday e pegue {includedSuppliers.length} fornecedores gratuitos! · Disponível até <BlackFridayDeadline className="font-extrabold" /></span></div></div>
     <header className="sc-header sticky top-0 z-40"><div className="mx-auto flex h-[72px] max-w-[1240px] items-center gap-6 px-5"><a href="#topo" aria-label="Shop Center início"><Brand/></a><nav className="ml-auto hidden items-center gap-8 text-[13px] font-semibold text-muted-foreground lg:flex">{navLinks.map(([id, label]) => <a key={id} href={`#${id}`}>{label}</a>)}</nav><Button asChild size="sm" className="sc-btn ml-auto hidden h-10 px-5 sm:inline-flex lg:ml-0"><a href="#acesso">Ver planos<ArrowRight/></a></Button><details className="group relative ml-auto sm:ml-0 lg:hidden"><summary aria-label="Abrir menu" className="grid size-10 cursor-pointer list-none place-items-center rounded-full border border-border bg-card"><Menu className="size-4 group-open:hidden"/><X className="hidden size-4 group-open:block"/></summary><nav className="sc-menu absolute right-0 top-12 w-56 p-2">{navLinks.map(([id,label]) => <a key={id} onClick={closeMenu} className="block rounded-lg p-3 text-sm" href={`#${id}`}>{label}</a>)}</nav></details></div></header>
     <main>
       <section id="topo" className="sc-hero relative overflow-hidden"><div className="mx-auto grid max-w-[1240px] items-center gap-14 px-5 pb-20 pt-14 lg:grid-cols-[1.05fr_.95fr] lg:pb-28 lg:pt-20">

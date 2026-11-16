@@ -51,6 +51,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCatalog } from "@/hooks/use-catalog";
 import { useAuth } from "@/lib/auth";
 import { brl, type Product } from "@/lib/pas-data";
+import { uniqueByName } from "@/lib/product-name-key";
 import { normalizeProductImages } from "@/lib/product-images";
 import { resolveShopeeDescription } from "@/lib/shopee-description";
 import { getCatalogProductDetails } from "@/lib/catalog.functions";
@@ -265,11 +266,12 @@ function ShopeeWorkspaceContent() {
   const communityById = useMemo(() => new Map((community.data?.items ?? []).map((item) => [item.productId, item])), [community.data]);
   const basePublishProducts = useMemo(() => {
     const catalogById = new Map(products.map((product) => [product.id, product]));
-    // Only products still active in the catalogue (Minipreço / 25 de Março); retired old items never reappear from saved snapshots.
+    // Only products still in this account's catalogue; retired old items never reappear from saved snapshots.
     const saved = savedProducts
       .map((item) => catalogById.get(item.productId))
       .filter((product): product is Product => Boolean(product));
-    if (!ownerPhotoView) return saved;
+    // One copy per name: the same product saved under two ids (e.g. the Christmas tree) shows once.
+    if (!ownerPhotoView) return uniqueByName(saved);
     const pinned = community.data?.pinned ?? [];
     const withPhotos = (product: Product) => {
       const item = communityById.get(product.id);
@@ -285,7 +287,7 @@ function ShopeeWorkspaceContent() {
       const product = catalogById.get(item.productId);
       if (product && !seen.has(product.id)) { seen.add(product.id); result.push(withPhotos(product)); }
     }
-    return result;
+    return uniqueByName(result);
   }, [communityById, community.data, ownerPhotoView, products, savedProducts]);
   const [refreshingPublish, setRefreshingPublish] = useState(false);
   const refreshPublishList = async () => {

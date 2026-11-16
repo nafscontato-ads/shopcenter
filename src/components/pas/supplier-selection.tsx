@@ -4,26 +4,25 @@ import { Button } from '@/components/ui/button';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { SupplierCard, SupplierOrb, SupplierUnlockDialog, useUnlockDialog } from '@/components/pas/supplier-card';
 import { BlackFridayDeadline } from '@/components/pas/black-friday-offer';
-import { supplierDirectory, supplierPricing } from '@/lib/supplier-directory';
-import { BLACK_FRIDAY_FREE_SUPPLIER_IDS } from '@/lib/black-friday';
+import { includedSuppliers, supplierDirectory, supplierPricing } from '@/lib/supplier-directory';
 import { brl } from '@/lib/pas-data';
 
-const included = supplierDirectory.filter((s) => (BLACK_FRIDAY_FREE_SUPPLIER_IDS as readonly string[]).includes(s.id));
+const included = includedSuppliers;
 
-/** Sales-page supplier section: the two free suppliers come included with any plan; premium ones can be previewed. */
+/** Sales-page supplier section: the free partner suppliers come included with any plan; premium ones can be previewed. */
 export function SupplierSelection({ productCount }: { productCount: number }) {
   const [premiumId, setPremiumId] = useState<string | null>(null);
   const unlock = useUnlockDialog();
   const premium = supplierDirectory.find((s) => s.id === premiumId);
   const premiumPricing = premium ? supplierPricing(premium) : null;
   return <section id="fornecedores" className="seller-section sc-section sc-suppliers border-t border-border"><div className="mx-auto max-w-[1240px] px-5">
-    <p className="seller-kicker sc-eyebrow">Sua rede de fornecedores</p><h2 className="sc-display mt-4 text-[2.1rem] leading-[1.08] sm:text-[2.9rem]">2 fornecedores já incluídos no seu plano.</h2>
-    <p className="mt-4 max-w-2xl text-sm leading-relaxed text-muted-foreground">Na Black Friday, Minipreço e 25 de Março Online vêm gratuitos com qualquer plano. Não precisa selecionar: é só escolher o plano e pagar. Fornecedores premium podem ser desbloqueados à parte.</p>
+    <p className="seller-kicker sc-eyebrow">Sua rede de fornecedores</p><h2 className="sc-display mt-4 text-[2.1rem] leading-[1.08] sm:text-[2.9rem]">{included.length} fornecedores já incluídos no seu plano.</h2>
+    <p className="mt-4 max-w-2xl text-sm leading-relaxed text-muted-foreground">Na Black Friday, nossos fornecedores parceiros vêm gratuitos com qualquer plano. Não precisa selecionar: é só escolher o plano e pagar. Fornecedores premium podem ser desbloqueados à parte.</p>
 
     <div className="sc-bf-included mt-8 grid gap-6 rounded-3xl p-6 sm:p-8 md:grid-cols-[1fr_auto] md:items-center" aria-live="polite">
       <div>
         <span className="sc-bf-badge inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.16em]"><Gift className="size-3.5" />Black Friday</span>
-        <h3 className="sc-display mt-4 text-2xl leading-tight sm:text-3xl">Aproveite a Black Friday e pegue 2 fornecedores gratuitos!</h3>
+        <h3 className="sc-display mt-4 text-2xl leading-tight sm:text-3xl">Aproveite a Black Friday e pegue {included.length} fornecedores gratuitos!</h3>
         <p className="mt-2 text-sm text-muted-foreground">Disponível até <BlackFridayDeadline className="font-bold text-foreground" /> · {productCount.toLocaleString('pt-BR')} produtos nos catálogos.</p>
       </div>
       <ul className="grid gap-3 sm:grid-cols-2 md:grid-cols-1">

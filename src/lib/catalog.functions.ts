@@ -1,15 +1,23 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
-import { requireActiveUser } from "@/lib/access-control";
+import { isOwnerAccount, isPartnerOrOwner, requireActiveUser } from "@/lib/access-control";
 
 import type { Product } from "@/lib/pas-data";
 import { normalizeProductImages } from "@/lib/product-images";
 import { encodeCatalog, type CatalogWire } from "@/lib/catalog-wire";
+import { productNameKey, uniqueByName } from "@/lib/product-name-key";
+import { CATALOG_SUPPLIER_SOURCES, OWNER_LIVE_PRODUCT_NAME_PATTERNS, PARTNER_CATALOG_LIMIT, RETIRED_SUPPLIER_SOURCES } from "@/lib/supplier-directory";
 
 const LIST_COLUMNS =
   "id, name, price, promo_price, commission, rating, reviews_label, category, subcategory, brand, sku, viral_score, primary_image, gallery_images, video_url, url, sold_count, supplier_source, supplier_cost";
 const PAGE = 1000;
+
+/**
+ * Which products the shared catalogue holds. Saved copies built under other rules are rebuilt,
+ * so changing the rules (e.g. the 16/11 supplier change) takes effect on the next deploy.
+ */
+const CATALOG_RULES = "novos-fornecedores-2026-11-16";
 
 async function publicClient() {
   const { createClient } = await import("@supabase/supabase-js");
@@ -76,7 +84,7 @@ let catalogCache: { text: string; at: number } | null = null;
 
 async function loadCatalogText(): Promise<string> {
   const db = await publicClient();
-  const { count, error: countError } = await db.from("products").select("id", { count: "exact", head: true }).eq("status", "active");
+  const { count, error: countError } = await db.from("products").select("id", { count: "exact", head: true }).eq("status", "active").in("supplier_source", CATALOG_SUPPLIER_SOURCES);
   if (countError) throw new Error(countError.message);
   const pages = Math.max(1, Math.ceil((count ?? 0) / PAGE));
   const pageRows: Row[][] = new Array(pages);
@@ -88,6 +96,7 @@ async function loadCatalogText(): Promise<string> {
           .from("products")
           .select(LIST_COLUMNS)
           .eq("status", "active")
+          .in("supplier_source", CATALOG_SUPPLIER_SOURCES)
           .order("viral_score", { ascending: false })
           .order("id")
           .range(index * PAGE, index * PAGE + PAGE - 1),
@@ -100,7 +109,8 @@ async function loadCatalogText(): Promise<string> {
   }
   const rows = pageRows.flat();
   // Plain JSON text: much smaller than the default structured serialization for ~10k rows.
-  return JSON.stringify(encodeCatalog(rows.filter(usable).map(toProduct)) satisfies CatalogWire);
+  // `rules` comes first so a saved copy's rules can be checked without parsing ~10k rows.
+  return JSON.stringify({ rules: CATALOG_RULES, ...encodeCatalog(rows.filter(usable).map(toProduct)) } satisfies CatalogWire);
 }
 
 /**
@@ -110,7 +120,8 @@ async function loadCatalogText(): Promise<string> {
 async function snapshotCatalogText(): Promise<string> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data: snapshot } = await supabaseAdmin.from("catalog_snapshot").select("body, built_at, changed_at").eq("id", "main").maybeSingle();
-  if (snapshot?.body && snapshot.built_at && Date.parse(snapshot.built_at) > Date.parse(snapshot.changed_at)) return snapshot.body;
+  const sameRules = Boolean(snapshot?.body?.startsWith(`{"rules":${JSON.stringify(CATALOG_RULES)},`));
+  if (snapshot?.body && sameRules && snapshot.built_at && Date.parse(snapshot.built_at) > Date.parse(snapshot.changed_at)) return snapshot.body;
   const startedAt = new Date().toISOString();
   const text = await loadCatalogText();
   // built_at is the start time, so a change made during the rebuild still marks this copy outdated.
@@ -134,8 +145,8 @@ export const listCatalogPreview = createServerFn({ method: "GET" }).handler(asyn
   if (previewCache && Date.now() - previewCache.at < CATALOG_TTL_MS) return previewCache.value;
   const db = await publicClient();
   const [{ data, error }, { count }] = await Promise.all([
-    db.from("products").select(LIST_COLUMNS).eq("status", "active").not("primary_image", "is", null).order("viral_score", { ascending: false }).order("id").limit(12),
-    db.from("products").select("id", { count: "exact", head: true }).eq("status", "active").not("primary_image", "is", null),
+    db.from("products").select(LIST_COLUMNS).eq("status", "active").in("supplier_source", CATALOG_SUPPLIER_SOURCES).not("primary_image", "is", null).order("viral_score", { ascending: false }).order("id").limit(12),
+    db.from("products").select("id", { count: "exact", head: true }).eq("status", "active").in("supplier_source", CATALOG_SUPPLIER_SOURCES).not("primary_image", "is", null),
   ]);
   if (error) throw new Error(error.message);
   const value = { products: ((data ?? []) as Row[]).filter(usable).map(toProduct), total: count ?? 0 };
@@ -164,4 +175,70 @@ export const getSupplierLinks = createServerFn({ method: "POST" })
     const { data: rows, error } = await db.from("products").select("id, supplier_source, supplier_url").in("id", data.ids).eq("status", "active").not("supplier_url", "is", null);
     if (error) throw new Error(error.message);
     return Object.fromEntries((rows ?? []).map((row) => [row.id as string, { url: row.supplier_url as string, source: row.supplier_source as string }]));
+  });
+
+/**
+ * Owner only: products of the retired suppliers that the owner keeps for the lives
+ * (the Christmas tree, owner decision 2026-11-16). Never part of the shared catalogue;
+ * every other account gets an empty list.
+ */
+export const listOwnerLiveProducts = createServerFn({ method: "GET" })
+  .middleware([requireActiveUser])
+  .handler(async ({ context }): Promise<Product[]> => {
+    if (!(await isOwnerAccount(context.supabase, context.userId))) return [];
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin
+      .from("products")
+      .select(LIST_COLUMNS)
+      .eq("status", "active")
+      .in("supplier_source", RETIRED_SUPPLIER_SOURCES)
+      .or(OWNER_LIVE_PRODUCT_NAME_PATTERNS.map((pattern) => `name.ilike.${pattern}`).join(","))
+      .order("viral_score", { ascending: false })
+      .limit(20);
+    if (error) throw new Error(error.message);
+    // One copy per name: skip names the owner already has as an owner-exclusive product (pinned in Integração).
+    const { data: exclusive } = await supabaseAdmin.from("products").select("name").eq("status", "owner_exclusive");
+    const seen = new Set((exclusive ?? []).map((row) => productNameKey(row.name)));
+    return uniqueByName(((data ?? []) as unknown as Row[]).filter(usable).map(toProduct), seen);
+  });
+
+// The partner catalogue is the same for every partner, so each server instance keeps the ready text for a while.
+let partnerCatalogCache: { text: string; at: number } | null = null;
+
+/**
+ * Partners and owner only: the retired suppliers' products with photos (up to PARTNER_CATALOG_LIMIT,
+ * best first, one per name), added to Catálogos for them. Customers keep only the shared catalogue.
+ * Returns catalogue wire text; an empty catalogue for everyone else.
+ */
+export const listPartnerCatalog = createServerFn({ method: "GET" })
+  .middleware([requireActiveUser])
+  .handler(async ({ context }): Promise<string> => {
+    if (!(await isPartnerOrOwner(context.supabase, context.userId))) return JSON.stringify(encodeCatalog([]) satisfies CatalogWire);
+    if (partnerCatalogCache && Date.now() - partnerCatalogCache.at < CATALOG_TTL_MS) return partnerCatalogCache.text;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    // A few extra rows cover products dropped as unusable or as same-name replicas.
+    const wanted = Math.ceil(PARTNER_CATALOG_LIMIT * 1.2);
+    const pages = Math.ceil(wanted / PAGE);
+    const results = await Promise.all(
+      Array.from({ length: pages }, (_, index) =>
+        supabaseAdmin
+          .from("products")
+          .select(LIST_COLUMNS)
+          .eq("status", "active")
+          .in("supplier_source", RETIRED_SUPPLIER_SOURCES)
+          .not("primary_image", "is", null)
+          .order("viral_score", { ascending: false })
+          .order("id")
+          .range(index * PAGE, Math.min(index * PAGE + PAGE, wanted) - 1),
+      ),
+    );
+    const rows: Row[] = [];
+    for (const result of results) {
+      if (result.error) throw new Error(result.error.message);
+      rows.push(...((result.data ?? []) as unknown as Row[]));
+    }
+    const products = uniqueByName(rows.filter(usable).map(toProduct)).slice(0, PARTNER_CATALOG_LIMIT);
+    const text = JSON.stringify(encodeCatalog(products) satisfies CatalogWire);
+    partnerCatalogCache = { text, at: Date.now() };
+    return text;
   });

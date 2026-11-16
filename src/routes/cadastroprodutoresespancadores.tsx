@@ -8,6 +8,7 @@ import { PasLogo } from "@/components/pas/logo";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { parseAffiliateCode } from "@/lib/checkouts";
 import { activatePartnerAccount } from "@/lib/partner-signup.functions";
 
 export const Route = createFileRoute("/cadastroprodutoresespancadores")({
@@ -53,6 +54,7 @@ function PartnerSignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [affiliate, setAffiliate] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [confirmationEmail, setConfirmationEmail] = useState<string | null>(null);
@@ -81,6 +83,11 @@ function PartnerSignupPage() {
       toast.error("As senhas não são iguais.");
       return;
     }
+    const affiliateCode = parseAffiliateCode(affiliate);
+    if (affiliate.trim() && !affiliateCode) {
+      toast.error("Não reconheci o link da Applyfy. Cole o link de checkout que tem \"code=\" ou só o seu código de afiliado.");
+      return;
+    }
 
     setBusy(true);
     try {
@@ -88,7 +95,7 @@ function PartnerSignupPage() {
         email: cleanEmail,
         password,
         options: {
-          data: { full_name: cleanName, partner_signup: true },
+          data: { full_name: cleanName, partner_signup: true, ...(affiliateCode ? { affiliate_code: affiliateCode } : {}) },
           emailRedirectTo: window.location.origin,
         },
       });
@@ -108,7 +115,7 @@ function PartnerSignupPage() {
         return;
       }
 
-      await activatePartner({ data: { fullName: cleanName } });
+      await activatePartner({ data: { fullName: cleanName, affiliate: affiliateCode ?? undefined } });
       toast.success("Seu acesso de parceiro ao Shop Center foi criado.");
       await navigate({ to: "/dashboard", replace: true });
     } catch (error) {
@@ -216,6 +223,21 @@ function PartnerSignupPage() {
                 className={inputClass}
                 placeholder="Digite a senha novamente"
               />
+            </label>
+
+            <label className="block">
+              <span className="text-muted-foreground text-xs font-medium">Seu link ou código de afiliado da Applyfy</span>
+              <input
+                type="text"
+                value={affiliate}
+                onChange={(event) => setAffiliate(event.target.value)}
+                maxLength={400}
+                className={inputClass}
+                placeholder="Cole aqui o seu link de checkout da Applyfy"
+              />
+              <span className="text-muted-foreground mt-1 block text-[11px] leading-relaxed">
+                Com ele sua página de vendas já sai pronta, vendendo com o seu código. Se ainda não tiver, pode colar depois no painel.
+              </span>
             </label>
 
             <div className="bg-primary-soft text-foreground flex gap-3 rounded-xl p-3 text-xs leading-relaxed">
