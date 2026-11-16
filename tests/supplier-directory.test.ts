@@ -52,11 +52,11 @@ describe('retired suppliers (owner, 16/11)', () => {
   });
 
   it('keeps only the new partner suppliers in the shared catalogue', () => {
-    expect(CATALOG_SUPPLIER_SOURCES).toEqual(['dona-casa', 'cabelo-chique', 'don-armany', 'talentos-pet']);
+    expect(CATALOG_SUPPLIER_SOURCES).toEqual(['dona-casa', 'cabelo-chique', 'don-armany', 'talentos-pet', 'click-shop']);
   });
 
   it('includes every free partner supplier for free', () => {
-    expect(includedSuppliers.map(s => s.id)).toEqual(['mais-que-distribuidora', 'dona-casa', 'cabelo-chique', 'don-armany', 'talentos-pet']);
+    expect(includedSuppliers.map(s => s.id)).toEqual(['mais-que-distribuidora', 'dona-casa', 'cabelo-chique', 'don-armany', 'talentos-pet', 'click-shop']);
     for (const s of includedSuppliers) expect(supplierPricing(s)).toBeNull();
   });
 });

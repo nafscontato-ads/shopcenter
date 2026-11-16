@@ -58,7 +58,7 @@ import { getCatalogProductDetails } from "@/lib/catalog.functions";
 import { uploadShopeeMedia } from "@/lib/shopee-media";
 import { prepareShopeeImageFile, prepareShopeeImageUrls } from "@/lib/shopee-image-prep";
 import { leafShopeeCategories, programmedShopeeStock, suggestShopeeCategory, type ShopeeCategoryOption } from "@/lib/shopee-product-defaults";
-import { extractVoltageOptions, shopeeAttributeSchema, shopeeVariationSchema, type ShopeeAttribute, type ShopeeVariation } from "@/lib/shopee-publishing";
+import { extractVoltageOptions, packageFactsFromDescription, shopeeAttributeSchema, shopeeVariationSchema, type ShopeeAttribute, type ShopeeVariation } from "@/lib/shopee-publishing";
 import { refreshSavedProducts, useSavedProducts } from "@/lib/saved-products";
 import { analyzeShopeeGallery, archiveShopeeProduct, beginShopeeConnection, disconnectShopeeStore, getShopeeCategoryRequirements, getShopeePublishingOptions, getShopeeWorkspace, syncShopeeStore, getSupplierProductPhotos, improveShopeeCopy, listCommunityPhotoProducts, listMyShopeeProducts, publishShopeeListing, saveShopeeDraft, updateMyShopeeProduct, validateShopeeGallery } from "@/lib/shopee.functions";
 import { customerMessage } from "@/lib/shopee-compliance";
@@ -642,6 +642,7 @@ function ListingEditor({ product, listing, connected, configured, connectionId, 
   const catalogPrice = Number(product?.promoPrice ?? product?.price ?? 0);
   const suggestedSupplierCost = discountedSupplierCost(product);
   const programmedStock = programmedShopeeStock(product?.id ?? listing?.product_id ?? "produto-pas");
+  const supplierPackage = packageFactsFromDescription(product?.description);
   const [form, setForm] = useState({
     title: listing?.title ?? product?.name ?? "",
     description: resolveShopeeDescription(listing?.description, product?.description),
@@ -651,10 +652,10 @@ function ListingEditor({ product, listing, connected, configured, connectionId, 
     condition: (listing?.condition ?? "NEW") as "NEW" | "USED",
     categoryId: String(listing?.category_id ?? ""),
     categoryName: listing?.category_name ?? product?.subcategory ?? product?.category ?? "",
-    weight: String(listing?.weight ?? 0.3),
-    packageLength: String(listing?.package_length ?? 20),
-    packageWidth: String(listing?.package_width ?? 15),
-    packageHeight: String(listing?.package_height ?? 10),
+    weight: String(listing?.weight ?? supplierPackage.weight ?? 0.3),
+    packageLength: String(listing?.package_length ?? supplierPackage.length ?? 20),
+    packageWidth: String(listing?.package_width ?? supplierPackage.width ?? 15),
+    packageHeight: String(listing?.package_height ?? supplierPackage.height ?? 10),
     logisticsId: String((listing?.logistics?.[0] as { logistic_id?: number } | undefined)?.logistic_id ?? ""),
     productCost: String(suggestedSupplierCost || ""),
     targetMargin: "30",

@@ -17,7 +17,7 @@ const PAGE = 1000;
  * Which products the shared catalogue holds. Saved copies built under other rules are rebuilt,
  * so changing the rules (e.g. the 16/11 supplier change) takes effect on the next deploy.
  */
-const CATALOG_RULES = "novos-fornecedores-2026-11-16";
+const CATALOG_RULES = "novos-fornecedores-2026-11-16-click-shop";
 
 async function publicClient() {
   const { createClient } = await import("@supabase/supabase-js");

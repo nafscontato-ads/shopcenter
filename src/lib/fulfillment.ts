@@ -30,6 +30,7 @@ export type ShopeeOrderItem = {
   model_discounted_price?: unknown;
   item_sku?: unknown;
   model_sku?: unknown;
+  model_name?: unknown;
 };
 
 export type ListingLink = { shopee_item_id: number | null; product_id: string };
@@ -59,6 +60,17 @@ export function supplierFor(product: ProductLink, suppliers: SupplierLink[]): st
 }
 
 /** Matches each Shopee order line to the catalogue product the seller published it from. */
+function textOrNull(value: unknown) {
+  const text = typeof value === "string" ? value.trim() : "";
+  return text ? text : null;
+}
+
+/** "Chinelo Pankitos" + "LILAS,33/34" → "Chinelo Pankitos (LILAS,33/34)": the supplier needs color and size. */
+function withModel(name: string, model: unknown) {
+  const variation = textOrNull(model);
+  return variation ? `${name} (${variation})` : name;
+}
+
 export function resolveLines(items: ShopeeOrderItem[], listings: ListingLink[], products: ProductLink[], suppliers: SupplierLink[]): FulfillmentLine[] {
   const productByItem = new Map<number, string>();
   for (const listing of listings) if (listing.shopee_item_id) productByItem.set(Number(listing.shopee_item_id), listing.product_id);
@@ -71,13 +83,13 @@ export function resolveLines(items: ShopeeOrderItem[], listings: ListingLink[], 
     const cost = product?.supplier_cost == null ? null : Number(product.supplier_cost);
     return {
       itemId,
-      name: String(item.item_name ?? product?.name ?? "Produto"),
+      name: withModel(String(item.item_name ?? product?.name ?? "Produto"), item.model_name),
       quantity,
       productId,
       supplierId: product ? supplierFor(product, suppliers) : null,
       unitCost: cost != null && Number.isFinite(cost) && cost > 0 ? cost : null,
       supplierUrl: product?.supplier_url ?? null,
-      sku: product?.sku ?? null,
+      sku: product?.sku ?? textOrNull(item.model_sku) ?? textOrNull(item.item_sku),
     };
   });
 }

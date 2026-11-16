@@ -7,7 +7,7 @@ import type { Database, Json } from "@/integrations/supabase/types";
 import { normalizeProductImages } from "@/lib/product-images";
 import type { Product } from "@/lib/pas-data";
 import { leafShopeeCategories, programmedShopeeStock, suggestShopeeCategory, type ShopeeCategoryOption } from "@/lib/shopee-product-defaults";
-import { buildVariationPayload, extractExplicitProductOptions, findShopeeModelByTier, matchRowsToRemoteModels, normalizeVariationStocks, record, remoteVariationState, sameListingTitle, shopeeAttributeSchema, shopeeVariationSchema } from "@/lib/shopee-publishing";
+import { buildVariationPayload, extractExplicitProductOptions, findShopeeModelByTier, matchRowsToRemoteModels, normalizeVariationStocks, packageFactsFromDescription, record, remoteVariationState, sameListingTitle, shopeeAttributeSchema, shopeeVariationSchema } from "@/lib/shopee-publishing";
 import { availableSizeChart, availableSubmissionAttributes } from "@/lib/shopee-submission";
 import { requireShopeeDescription, shopeeOrderWindows } from "@/lib/shopee-sync";
 import { resolveShopeeDescription } from "@/lib/shopee-description";
@@ -940,7 +940,13 @@ export const publishShopeeListing = createServerFn({ method: "POST" })
       if (listing.category_id !== category.category_id) attributes = [];
       listing.category_id = category.category_id;
       listing.category_name = category.category_path ?? category.display_category_name ?? category.original_category_name ?? "";
-      listing.weight = listing.weight || 0.3;
+      const supplierPackage = packageFactsFromDescription(categoryFacts?.description);
+      listing.weight = listing.weight || supplierPackage.weight || 0.3;
+      if (!listing.package_length && supplierPackage.length) {
+        listing.package_length = supplierPackage.length;
+        listing.package_width = supplierPackage.width;
+        listing.package_height = supplierPackage.height;
+      }
       // Re-check the shop's channels every time: a saved channel may have been switched off since.
       let channels: unknown[] | null = null;
       try {

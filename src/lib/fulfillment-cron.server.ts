@@ -104,3 +104,43 @@ export async function handleShopeePush(payload: Record<string, unknown>) {
   if (!shop) return { ignored: true };
   return pullOrders(String(shop["user_id"]), String(shop["id"]), [orderSn]);
 }
+
+/** Everything the 5-minute worker does: pull orders, fund them, settle Pix recharges, run payouts (if enabled). */
+export async function runAllFulfillmentWork() {
+  const report = await runFulfillmentTick();
+  const { settlePendingRecharges } = await import("@/lib/pix.server");
+  const { runSupplierPayouts } = await import("@/lib/payouts.server");
+  const recharges = await settlePendingRecharges().catch((error: unknown) => { console.error("recharges tick failed", error); return 0; });
+  const payouts = await runSupplierPayouts().catch((error: unknown) => { console.error("payouts tick failed", error); return { paid: 0, failed: 0 }; });
+  return { ok: true, shops: report.length, recharges, payouts, report };
+}
+
+let timerStarted = false;
+let running = false;
+
+/**
+ * Runs the worker inside the app itself every FULFILLMENT_TICK_MINUTES (default 5), so no external cron
+ * is needed. Set FULFILLMENT_TICK_MINUTES=0 to turn it off. Safe to call many times.
+ */
+export function startFulfillmentTimer() {
+  if (timerStarted || typeof setInterval !== "function") return;
+  timerStarted = true;
+  const minutes = Number(process.env["FULFILLMENT_TICK_MINUTES"] ?? "5");
+  if (!Number.isFinite(minutes) || minutes <= 0) return;
+  if (!process.env["SUPABASE_SERVICE_ROLE_KEY"]) return;
+  const run = async () => {
+    if (running) return;
+    running = true;
+    try {
+      const result = await runAllFulfillmentWork();
+      if (result.shops || result.recharges) console.log(`[fulfillment] tick: ${result.shops} loja(s), ${result.recharges} recarga(s)`);
+    } catch (error) {
+      console.error("[fulfillment] tick failed", error);
+    } finally {
+      running = false;
+    }
+  };
+  const timer = setInterval(run, Math.max(1, minutes) * 60_000);
+  (timer as { unref?: () => void }).unref?.();
+  setTimeout(run, 30_000);
+}
