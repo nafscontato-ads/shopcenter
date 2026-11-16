@@ -69,6 +69,7 @@ import { Route as AdminShopeeCheckRouteImport } from './routes/admin.shopee-chec
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as CadastroIndexRouteImport } from './routes/cadastro.index'
 import { Route as CadastroTokenRouteImport } from './routes/cadastro.$token'
+import { Route as ExpedicaoIndexRouteImport } from './routes/expedicao.index'
 import { Route as ExpedicaoTokenRouteImport } from './routes/expedicao.$token'
 import { Route as FornecedorIndexRouteImport } from './routes/fornecedor.index'
 import { Route as FornecedorSlugRouteImport } from './routes/fornecedor.$slug'
@@ -391,6 +392,11 @@ const CadastroTokenRoute = CadastroTokenRouteImport.update({
   path: '/cadastro/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ExpedicaoIndexRoute = ExpedicaoIndexRouteImport.update({
+  id: '/expedicao/',
+  path: '/expedicao/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ExpedicaoTokenRoute = ExpedicaoTokenRouteImport.update({
   id: '/expedicao/$token',
   path: '/expedicao/$token',
@@ -566,6 +572,7 @@ export interface FileRoutesByFullPath {
   '/BLACK/': typeof BLACKIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/cadastro/': typeof CadastroIndexRoute
+  '/expedicao/': typeof ExpedicaoIndexRoute
   '/fornecedor/': typeof FornecedorIndexRoute
   '/influencer/': typeof InfluencerIndexRoute
   '/admin/users/$id': typeof AdminUsersIdRoute
@@ -646,6 +653,7 @@ export interface FileRoutesByTo {
   '/BLACK': typeof BLACKIndexRoute
   '/admin': typeof AdminIndexRoute
   '/cadastro': typeof CadastroIndexRoute
+  '/expedicao': typeof ExpedicaoIndexRoute
   '/fornecedor': typeof FornecedorIndexRoute
   '/influencer': typeof InfluencerIndexRoute
   '/admin/users/$id': typeof AdminUsersIdRoute
@@ -729,6 +737,7 @@ export interface FileRoutesById {
   '/BLACK/': typeof BLACKIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/cadastro/': typeof CadastroIndexRoute
+  '/expedicao/': typeof ExpedicaoIndexRoute
   '/fornecedor/': typeof FornecedorIndexRoute
   '/influencer/': typeof InfluencerIndexRoute
   '/admin/users/$id': typeof AdminUsersIdRoute
@@ -813,6 +822,7 @@ export interface FileRouteTypes {
     | '/BLACK/'
     | '/admin/'
     | '/cadastro/'
+    | '/expedicao/'
     | '/fornecedor/'
     | '/influencer/'
     | '/admin/users/$id'
@@ -893,6 +903,7 @@ export interface FileRouteTypes {
     | '/BLACK'
     | '/admin'
     | '/cadastro'
+    | '/expedicao'
     | '/fornecedor'
     | '/influencer'
     | '/admin/users/$id'
@@ -975,6 +986,7 @@ export interface FileRouteTypes {
     | '/BLACK/'
     | '/admin/'
     | '/cadastro/'
+    | '/expedicao/'
     | '/fornecedor/'
     | '/influencer/'
     | '/admin/users/$id'
@@ -1037,6 +1049,7 @@ export interface RootRouteChildren {
   RCodeRoute: typeof RCodeRoute
   BLACKIndexRoute: typeof BLACKIndexRoute
   CadastroIndexRoute: typeof CadastroIndexRoute
+  ExpedicaoIndexRoute: typeof ExpedicaoIndexRoute
   InfluencerIndexRoute: typeof InfluencerIndexRoute
   ApiPublicSaudeRoute: typeof ApiPublicSaudeRoute
   ApiPublicApplyfyWebhookRoute: typeof ApiPublicApplyfyWebhookRoute
@@ -1472,6 +1485,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CadastroTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/expedicao/': {
+      id: '/expedicao/'
+      path: '/expedicao'
+      fullPath: '/expedicao/'
+      preLoaderRoute: typeof ExpedicaoIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/expedicao/$token': {
       id: '/expedicao/$token'
       path: '/expedicao/$token'
@@ -1736,6 +1756,7 @@ const rootRouteChildren: RootRouteChildren = {
   RCodeRoute: RCodeRoute,
   BLACKIndexRoute: BLACKIndexRoute,
   CadastroIndexRoute: CadastroIndexRoute,
+  ExpedicaoIndexRoute: ExpedicaoIndexRoute,
   InfluencerIndexRoute: InfluencerIndexRoute,
   ApiPublicSaudeRoute: ApiPublicSaudeRoute,
   ApiPublicApplyfyWebhookRoute: ApiPublicApplyfyWebhookRoute,

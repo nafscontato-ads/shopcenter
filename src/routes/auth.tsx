@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -7,6 +8,7 @@ import { InstallAppPrompt } from "@/components/site/install-app-prompt";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { getMySupplier } from "@/lib/fulfillment.functions";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -43,11 +45,17 @@ function AuthPage() {
   const navigate = useNavigate();
   const search = useSearch({ from: "/auth" });
 
+  const mySupplierFn = useServerFn(getMySupplier);
   useEffect(() => {
-    if (!loading && user) {
-      void navigate({ to: search.redirect ?? "/dashboard" });
-    }
-  }, [user, loading, navigate, search.redirect]);
+    if (loading || !user) return;
+    if (search.redirect) { void navigate({ to: search.redirect }); return; }
+    // Suppliers enter through the same screen and land on their shipping panel.
+    let cancelled = false;
+    mySupplierFn()
+      .catch(() => null)
+      .then((supplier) => { if (!cancelled) void navigate({ to: supplier ? "/expedicao" : "/dashboard" }); });
+    return () => { cancelled = true; };
+  }, [user, loading, navigate, search.redirect, mySupplierFn]);
 
   async function sendReset(target: string) {
     const { error } = await supabase.auth.resetPasswordForEmail(target, {

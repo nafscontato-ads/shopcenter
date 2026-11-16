@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import { requireActiveUser } from "@/lib/access-control";
 import { requireAdmin } from "@/lib/admin.functions";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { FulfillmentLine, FulfillmentStatus } from "@/lib/fulfillment";
 
 async function admin(): Promise<SupabaseClient> {
@@ -88,47 +89,130 @@ const tokenInput = z.object({ token: z.string().min(20).max(80) });
 export const getSupplierPanel = createServerFn({ method: "POST" })
   .validator((input: unknown) => tokenInput.parse(input))
   .handler(async ({ data }) => {
-    const { supplierByToken, supplierQueue } = await import("@/lib/fulfillment.server");
-    const supplier = await supplierByToken(data.token);
-    return { supplier: { name: supplier.name }, orders: await supplierQueue(supplier.id) };
+    const { supplierByToken } = await import("@/lib/fulfillment.server");
+    return supplierPanelData(await supplierByToken(data.token));
   });
 
 export const getSupplierLabel = createServerFn({ method: "POST" })
   .validator((input: unknown) => tokenInput.extend({ id: z.string().uuid() }).parse(input))
   .handler(async ({ data }) => {
-    const { supplierByToken, supplierOrder, markLabel } = await import("@/lib/fulfillment.server");
-    const supplier = await supplierByToken(data.token);
-    const order = await supplierOrder(supplier.id, data.id);
-    if (order.status !== "queued") return { ok: false as const, message: order.status === "shipped" ? "Este pedido já foi enviado." : "Este pedido não está liberado para envio." };
-    // Supplier ships only after receiving the Shop Center Pix for this order.
-    if (!order.supplier_paid_at) return { ok: false as const, message: "Aguarde o Pix do Shop Center deste pedido. Assim que pagarmos, a etiqueta libera." };
-    const client = await admin();
-    const { data: shopOrder } = await client.from("shopee_orders").select("status").eq("connection_id", order.connection_id).eq("order_sn", order.order_sn).maybeSingle();
-    const { generateShopeeLabel } = await import("@/lib/shopee.functions");
-    const result = await generateShopeeLabel({
-      userId: order.user_id, connectionId: order.connection_id, orderSn: order.order_sn, status: String(shopOrder?.["status"] ?? "READY_TO_SHIP"), dropoffOnly: true,
-      saveStatus: async (status) => {
-        await client.from("shopee_orders").update({ status }).eq("connection_id", order.connection_id).eq("order_sn", order.order_sn);
-        const { isCancelledStatus, refundOrder } = await import("@/lib/fulfillment.server");
-        if (isCancelledStatus(status)) {
-          await refundOrder(order.user_id, order.id);
-          await client.from("fulfillment_orders").update({ status: "cancelled", shopee_status: status, updated_at: new Date().toISOString() }).eq("id", order.id);
-        }
-      },
-    });
-    if (result.ok) await markLabel(order.id, result.trackingNumber);
-    return result;
+    const { supplierByToken } = await import("@/lib/fulfillment.server");
+    return supplierLabel((await supplierByToken(data.token)).id, data.id);
   });
 
 export const markSupplierShipped = createServerFn({ method: "POST" })
   .validator((input: unknown) => tokenInput.extend({ id: z.string().uuid() }).parse(input))
   .handler(async ({ data }) => {
-    const { supplierByToken, supplierOrder, markShipped } = await import("@/lib/fulfillment.server");
-    const supplier = await supplierByToken(data.token);
-    const order = await supplierOrder(supplier.id, data.id);
-    if (!order.supplier_paid_at) throw new Error("Este pedido ainda não foi pago pelo Shop Center.");
-    return { ok: await markShipped(data.id) };
+    const { supplierByToken } = await import("@/lib/fulfillment.server");
+    return supplierShip((await supplierByToken(data.token)).id, data.id);
   });
+
+/* ------------------------- Supplier with a Shop Center login ------------------------- */
+
+/** The supplier linked to the signed-in account, or null (students, admins). Used by /auth to send suppliers to /expedicao. */
+export const getMySupplier = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supplierByUser } = await import("@/lib/fulfillment.server");
+    const supplier = await supplierByUser(context.userId);
+    return supplier ? { name: supplier.name } : null;
+  });
+
+export const getMySupplierPanel = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supplierByUser } = await import("@/lib/fulfillment.server");
+    const supplier = await supplierByUser(context.userId);
+    if (!supplier) throw new Error("Esta conta não é de fornecedor. Abra o link do painel que o Shop Center te mandou para ligar a sua conta.");
+    return supplierPanelData(supplier);
+  });
+
+export const getMySupplierLabel = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
+  .handler(async ({ context, data }) => {
+    const { supplierByUser } = await import("@/lib/fulfillment.server");
+    const supplier = await supplierByUser(context.userId);
+    if (!supplier) throw new Error("Esta conta não é de fornecedor.");
+    return supplierLabel(supplier.id, data.id);
+  });
+
+export const markMySupplierShipped = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
+  .handler(async ({ context, data }) => {
+    const { supplierByUser } = await import("@/lib/fulfillment.server");
+    const supplier = await supplierByUser(context.userId);
+    if (!supplier) throw new Error("Esta conta não é de fornecedor.");
+    return supplierShip(supplier.id, data.id);
+  });
+
+/** Links the signed-in account to the supplier of the secret link (the link proves who the supplier is). */
+export const linkSupplierAccount = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((input: unknown) => tokenInput.parse(input))
+  .handler(async ({ context, data }) => {
+    const { supplierByToken, linkSupplierUser } = await import("@/lib/fulfillment.server");
+    const supplier = await supplierByToken(data.token);
+    await linkSupplierUser(supplier.id, context.userId);
+    return { ok: true };
+  });
+
+/**
+ * Creates the supplier's Shop Center login from the secret panel link. Only the link holder can do it, the account
+ * gets no student access (no purchase), and a supplier that already has a login must sign in instead.
+ */
+export const createSupplierAccount = createServerFn({ method: "POST" })
+  .validator((input: unknown) => tokenInput.extend({ email: z.string().trim().toLowerCase().email().max(200), password: z.string().min(8).max(72) }).parse(input))
+  .handler(async ({ data }) => {
+    const { supplierByToken, linkSupplierUser } = await import("@/lib/fulfillment.server");
+    const supplier = await supplierByToken(data.token);
+    if (supplier.user_id) throw new Error("Este fornecedor já tem login. Entre em shopcenter.cloud/auth com o e-mail cadastrado.");
+    const client = await admin();
+    const created = await client.auth.admin.createUser({ email: data.email, password: data.password, email_confirm: true, user_metadata: { supplier: supplier.slug, full_name: supplier.name } });
+    if (created.error || !created.data.user) {
+      const exists = /already|registered|exists/i.test(created.error?.message ?? "");
+      throw new Error(exists ? "Esse e-mail já tem conta no Shop Center. Clique em \"Já tenho conta\", entre com ele e depois volte a este link." : "Não foi possível criar o acesso agora. Tente de novo.");
+    }
+    await linkSupplierUser(supplier.id, created.data.user.id);
+    return { ok: true };
+  });
+
+async function supplierPanelData(supplier: { id: string; name: string; user_id?: string | null }) {
+  const { supplierQueue } = await import("@/lib/fulfillment.server");
+  return { supplier: { name: supplier.name, hasLogin: Boolean(supplier.user_id) }, orders: await supplierQueue(supplier.id) };
+}
+
+async function supplierLabel(supplierId: string, id: string) {
+  const { supplierOrder, markLabel } = await import("@/lib/fulfillment.server");
+  const order = await supplierOrder(supplierId, id);
+  if (order.status !== "queued") return { ok: false as const, message: order.status === "shipped" ? "Este pedido já foi enviado." : "Este pedido não está liberado para envio." };
+  // Supplier ships only after receiving the Shop Center Pix for this order.
+  if (!order.supplier_paid_at) return { ok: false as const, message: "Aguarde o Pix do Shop Center deste pedido. Assim que pagarmos, a etiqueta libera." };
+  const client = await admin();
+  const { data: shopOrder } = await client.from("shopee_orders").select("status").eq("connection_id", order.connection_id).eq("order_sn", order.order_sn).maybeSingle();
+  const { generateShopeeLabel } = await import("@/lib/shopee.functions");
+  const result = await generateShopeeLabel({
+    userId: order.user_id, connectionId: order.connection_id, orderSn: order.order_sn, status: String(shopOrder?.["status"] ?? "READY_TO_SHIP"), dropoffOnly: true,
+    saveStatus: async (status) => {
+      await client.from("shopee_orders").update({ status }).eq("connection_id", order.connection_id).eq("order_sn", order.order_sn);
+      const { isCancelledStatus, refundOrder } = await import("@/lib/fulfillment.server");
+      if (isCancelledStatus(status)) {
+        await refundOrder(order.user_id, order.id);
+        await client.from("fulfillment_orders").update({ status: "cancelled", shopee_status: status, updated_at: new Date().toISOString() }).eq("id", order.id);
+      }
+    },
+  });
+  if (result.ok) await markLabel(order.id, result.trackingNumber);
+  return result;
+}
+
+async function supplierShip(supplierId: string, id: string) {
+  const { supplierOrder, markShipped } = await import("@/lib/fulfillment.server");
+  const order = await supplierOrder(supplierId, id);
+  if (!order.supplier_paid_at) throw new Error("Este pedido ainda não foi pago pelo Shop Center.");
+  return { ok: await markShipped(id) };
+}
 
 /* ----------------------------------- Admin ---------------------------------- */
 

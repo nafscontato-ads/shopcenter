@@ -237,14 +237,29 @@ export async function refundOrder(userId: string, fulfillmentId: string) {
   if (order) await client.rpc("fulfillment_bonus_return", { _id: fulfillmentId });
 }
 
-export type SupplierRow = { id: string; name: string; slug: string; whatsapp: string | null };
+export type SupplierRow = { id: string; name: string; slug: string; whatsapp: string | null; user_id?: string | null };
 
 export async function supplierByToken(token: string): Promise<SupplierRow> {
   if (!token || token.length < 20) throw new Error("Link do painel inválido.");
   const client = await db();
-  const { data } = await client.from("suppliers").select("id, name, slug, whatsapp, active").eq("panel_token_hash", hashPanelToken(token)).maybeSingle();
+  const { data } = await client.from("suppliers").select("id, name, slug, whatsapp, active, user_id").eq("panel_token_hash", hashPanelToken(token)).maybeSingle();
   if (!data || !data["active"]) throw new Error("Link do painel inválido ou desativado. Peça um novo ao Shop Center.");
   return data as unknown as SupplierRow;
+}
+
+/** The active supplier whose Shop Center login is this user, if any. */
+export async function supplierByUser(userId: string): Promise<SupplierRow | null> {
+  const client = await db();
+  const { data } = await client.from("suppliers").select("id, name, slug, whatsapp, active, user_id").eq("user_id", userId).eq("active", true).maybeSingle();
+  return (data as unknown as SupplierRow | null) ?? null;
+}
+
+export async function linkSupplierUser(supplierId: string, userId: string) {
+  const client = await db();
+  const { data: other } = await client.from("suppliers").select("id").eq("user_id", userId).neq("id", supplierId).maybeSingle();
+  if (other) throw new Error("Esta conta já está ligada a outro fornecedor.");
+  const { error } = await client.from("suppliers").update({ user_id: userId, updated_at: new Date().toISOString() }).eq("id", supplierId);
+  if (error) throw new Error("Não foi possível ligar a conta agora. Tente de novo.");
 }
 
 export type SupplierQueueItem = {
