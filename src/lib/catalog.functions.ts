@@ -1,12 +1,13 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
-import { isOwnerAccount, requireActiveUser } from "@/lib/access-control";
+import { isOwnerAccount, isPartnerOrOwner, requireActiveUser } from "@/lib/access-control";
 
 import type { Product } from "@/lib/pas-data";
 import { normalizeProductImages } from "@/lib/product-images";
 import { encodeCatalog, type CatalogWire } from "@/lib/catalog-wire";
-import { CATALOG_SUPPLIER_SOURCES, OWNER_LIVE_PRODUCT_NAME_PATTERNS, RETIRED_SUPPLIER_SOURCES } from "@/lib/supplier-directory";
+import { productNameKey, uniqueByName } from "@/lib/product-name-key";
+import { CATALOG_SUPPLIER_SOURCES, OWNER_LIVE_PRODUCT_NAME_PATTERNS, PARTNER_CATALOG_LIMIT, RETIRED_SUPPLIER_SOURCES } from "@/lib/supplier-directory";
 
 const LIST_COLUMNS =
   "id, name, price, promo_price, commission, rating, reviews_label, category, subcategory, brand, sku, viral_score, primary_image, gallery_images, video_url, url, sold_count, supplier_source, supplier_cost";
@@ -195,5 +196,49 @@ export const listOwnerLiveProducts = createServerFn({ method: "GET" })
       .order("viral_score", { ascending: false })
       .limit(20);
     if (error) throw new Error(error.message);
-    return ((data ?? []) as unknown as Row[]).filter(usable).map(toProduct);
+    // One copy per name: skip names the owner already has as an owner-exclusive product (pinned in Integração).
+    const { data: exclusive } = await supabaseAdmin.from("products").select("name").eq("status", "owner_exclusive");
+    const seen = new Set((exclusive ?? []).map((row) => productNameKey(row.name)));
+    return uniqueByName(((data ?? []) as unknown as Row[]).filter(usable).map(toProduct), seen);
+  });
+
+// The partner catalogue is the same for every partner, so each server instance keeps the ready text for a while.
+let partnerCatalogCache: { text: string; at: number } | null = null;
+
+/**
+ * Partners and owner only: the retired suppliers' products with photos (up to PARTNER_CATALOG_LIMIT,
+ * best first, one per name), added to Catálogos for them. Customers keep only the shared catalogue.
+ * Returns catalogue wire text; an empty catalogue for everyone else.
+ */
+export const listPartnerCatalog = createServerFn({ method: "GET" })
+  .middleware([requireActiveUser])
+  .handler(async ({ context }): Promise<string> => {
+    if (!(await isPartnerOrOwner(context.supabase, context.userId))) return JSON.stringify(encodeCatalog([]) satisfies CatalogWire);
+    if (partnerCatalogCache && Date.now() - partnerCatalogCache.at < CATALOG_TTL_MS) return partnerCatalogCache.text;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    // A few extra rows cover products dropped as unusable or as same-name replicas.
+    const wanted = Math.ceil(PARTNER_CATALOG_LIMIT * 1.2);
+    const pages = Math.ceil(wanted / PAGE);
+    const results = await Promise.all(
+      Array.from({ length: pages }, (_, index) =>
+        supabaseAdmin
+          .from("products")
+          .select(LIST_COLUMNS)
+          .eq("status", "active")
+          .in("supplier_source", RETIRED_SUPPLIER_SOURCES)
+          .not("primary_image", "is", null)
+          .order("viral_score", { ascending: false })
+          .order("id")
+          .range(index * PAGE, Math.min(index * PAGE + PAGE, wanted) - 1),
+      ),
+    );
+    const rows: Row[] = [];
+    for (const result of results) {
+      if (result.error) throw new Error(result.error.message);
+      rows.push(...((result.data ?? []) as unknown as Row[]));
+    }
+    const products = uniqueByName(rows.filter(usable).map(toProduct)).slice(0, PARTNER_CATALOG_LIMIT);
+    const text = JSON.stringify(encodeCatalog(products) satisfies CatalogWire);
+    partnerCatalogCache = { text, at: Date.now() };
+    return text;
   });

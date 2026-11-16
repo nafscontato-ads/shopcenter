@@ -4,9 +4,10 @@ import { useEffect, useMemo } from "react";
 
 import { readBrowserCache, writeBrowserCache } from "@/lib/browser-cache";
 import { useAuth } from "@/lib/auth";
-import { listCatalog, listOwnerLiveProducts } from "@/lib/catalog.functions";
+import { listCatalog, listOwnerLiveProducts, listPartnerCatalog } from "@/lib/catalog.functions";
 import { decodeCatalog, type CatalogWire } from "@/lib/catalog-wire";
 import type { Product } from "@/lib/pas-data";
+import { uniqueByName } from "@/lib/product-name-key";
 
 // v2: Minipreço and 25 de Março left the catalogue (16/11); older saved copies are ignored.
 const CACHE_KEY = "catalog-wire-v2";
@@ -15,6 +16,7 @@ const CACHE_KEY = "catalog-wire-v2";
 export function useCatalog() {
   const fetchCatalog = useServerFn(listCatalog);
   const fetchOwnerLive = useServerFn(listOwnerLiveProducts);
+  const fetchPartnerCatalog = useServerFn(listPartnerCatalog);
   const { user } = useAuth();
   const qc = useQueryClient();
   const query = useQuery({
@@ -51,13 +53,29 @@ export function useCatalog() {
     retry: false,
   });
 
+  // Partners and owner only: older supplier products with photos, after the shared catalogue (empty for customers).
+  const partnerCatalog = useQuery({
+    queryKey: ["catalog-partner", user?.id ?? null],
+    queryFn: async () => {
+      try {
+        return decodeCatalog(JSON.parse(await fetchPartnerCatalog({ data: undefined })) as CatalogWire);
+      } catch {
+        return [] as Product[];
+      }
+    },
+    enabled: Boolean(user),
+    staleTime: 10 * 60_000,
+    retry: false,
+  });
+
   const products = useMemo(() => {
     const shared = query.data ?? [];
-    const extra = ownerLive.data ?? [];
-    if (!extra.length) return shared;
-    const ids = new Set(extra.map((product) => product.id));
-    return [...extra, ...shared.filter((product) => !ids.has(product.id))];
-  }, [query.data, ownerLive.data]);
+    const pinned = ownerLive.data ?? [];
+    const extra = partnerCatalog.data ?? [];
+    if (!pinned.length && !extra.length) return shared;
+    // One copy per name across the lists, so no product appears twice.
+    return uniqueByName([...pinned, ...shared, ...extra]);
+  }, [query.data, ownerLive.data, partnerCatalog.data]);
 
   return { products, isLoading: query.isLoading };
 }

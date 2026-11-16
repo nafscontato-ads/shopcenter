@@ -86,5 +86,8 @@ export const CATALOG_SUPPLIER_SOURCES = supplierDirectory.flatMap((supplier) => 
  */
 export const RETIRED_SUPPLIER_SOURCES = ['minipreco', '25demarco'];
 
+/** How many retired-supplier products (with photos) partners and the owner also see in Catálogos; customers never do. */
+export const PARTNER_CATALOG_LIMIT = 3000;
+
 /** Retired-supplier products the owner keeps for the lives (PostgREST ilike patterns on the name). */
 export const OWNER_LIVE_PRODUCT_NAME_PATTERNS = ['*árvore de natal*', '*arvore de natal*'];
