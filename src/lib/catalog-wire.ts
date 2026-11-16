@@ -4,7 +4,7 @@ import type { Product } from "@/lib/pas-data";
  * Compact transport for the full catalogue: rows as tuples and image URLs with
  * their shared host/folder prefix stored once. Keeps ~10k products light.
  */
-export type CatalogWire = { prefixes: string[]; rows: WireRow[] };
+export type CatalogWire = { rules?: string; prefixes: string[]; rows: WireRow[] };
 
 type WireRow = [
   id: string,

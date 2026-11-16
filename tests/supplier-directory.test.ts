@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { BLACK_FRIDAY_FLOOR, supplierDirectory, supplierPricing } from '@/lib/supplier-directory';
+import { BLACK_FRIDAY_FLOOR, CATALOG_SUPPLIER_SOURCES, RETIRED_SUPPLIER_SOURCES, includedSuppliers, supplierDirectory, supplierPricing } from '@/lib/supplier-directory';
 
 const newIds = ['zentry-commerce', 'atlas-supply', 'novasource', 'vexon', 'primestock', 'nexora', 'flexora'];
 const latestIds = ['maxvora', 'upstock', 'nexcell', 'orvex'];
@@ -9,8 +9,7 @@ describe('supplier directory', () => {
     expect(supplierDirectory.some(s => s.id === 'shopee-place' || /shopee place/i.test(s.name))).toBe(false);
   });
 
-  it('opens with Minipreço as the first free supplier', () => {
-    expect(supplierDirectory[0].id).toBe('minipreco');
+  it('opens with a free partner supplier', () => {
     expect(supplierDirectory[0].unlocked).toBe(true);
     expect(supplierPricing(supplierDirectory[0])).toBeNull();
   });
@@ -44,20 +43,20 @@ describe('supplier directory', () => {
   });
 });
 
-describe('Minipreço supplier', () => {
-  it('is free for everyone and opens the Minipreço catalogue', () => {
-    const s = supplierDirectory.find(x => x.id === 'minipreco')!;
-    expect(s.unlocked).toBe(true);
-    expect(supplierPricing(s)).toBeNull();
-    expect(s.catalogSource).toBe('minipreco');
+describe('retired suppliers (owner, 16/11)', () => {
+  it('no longer lists Minipreço or 25 de Março Online', () => {
+    for (const id of RETIRED_SUPPLIER_SOURCES) {
+      expect(supplierDirectory.some(s => s.id === id || s.catalogSource === id)).toBe(false);
+      expect(CATALOG_SUPPLIER_SOURCES).not.toContain(id);
+    }
   });
-});
 
-describe('25 de Março Online supplier', () => {
-  it('is free for everyone and opens the Fornecedor B catalogue', () => {
-    const s = supplierDirectory.find(x => x.id === '25demarco')!;
-    expect(s.unlocked).toBe(true);
-    expect(supplierPricing(s)).toBeNull();
-    expect(s.catalogSource).toBe('25demarco');
+  it('keeps only the new partner suppliers in the shared catalogue', () => {
+    expect(CATALOG_SUPPLIER_SOURCES).toEqual(['dona-casa', 'cabelo-chique', 'don-armany']);
+  });
+
+  it('includes every free partner supplier for free', () => {
+    expect(includedSuppliers.map(s => s.id)).toEqual(['mais-que-distribuidora', 'dona-casa', 'cabelo-chique', 'don-armany', 'talentos-pet']);
+    for (const s of includedSuppliers) expect(supplierPricing(s)).toBeNull();
   });
 });

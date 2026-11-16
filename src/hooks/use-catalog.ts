@@ -1,17 +1,21 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 
 import { readBrowserCache, writeBrowserCache } from "@/lib/browser-cache";
-import { listCatalog } from "@/lib/catalog.functions";
+import { useAuth } from "@/lib/auth";
+import { listCatalog, listOwnerLiveProducts } from "@/lib/catalog.functions";
 import { decodeCatalog, type CatalogWire } from "@/lib/catalog-wire";
 import type { Product } from "@/lib/pas-data";
 
-const CACHE_KEY = "catalog-wire-v1";
+// v2: Minipreço and 25 de Março left the catalogue (16/11); older saved copies are ignored.
+const CACHE_KEY = "catalog-wire-v2";
 
 /** Catálogo real de produtos, compartilhado por Catálogos e Integração. */
 export function useCatalog() {
   const fetchCatalog = useServerFn(listCatalog);
+  const fetchOwnerLive = useServerFn(listOwnerLiveProducts);
+  const { user } = useAuth();
   const qc = useQueryClient();
   const query = useQuery({
     queryKey: ["catalog"],
@@ -38,5 +42,22 @@ export function useCatalog() {
     return () => { cancelled = true; };
   }, [qc]);
 
-  return { products: query.data ?? [], isLoading: query.isLoading };
+  // Owner only: products kept for the lives (empty for everyone else), shown first.
+  const ownerLive = useQuery({
+    queryKey: ["catalog-owner-live", user?.id ?? null],
+    queryFn: async () => fetchOwnerLive({ data: undefined }).catch(() => [] as Product[]),
+    enabled: Boolean(user),
+    staleTime: 10 * 60_000,
+    retry: false,
+  });
+
+  const products = useMemo(() => {
+    const shared = query.data ?? [];
+    const extra = ownerLive.data ?? [];
+    if (!extra.length) return shared;
+    const ids = new Set(extra.map((product) => product.id));
+    return [...extra, ...shared.filter((product) => !ids.has(product.id))];
+  }, [query.data, ownerLive.data]);
+
+  return { products, isLoading: query.isLoading };
 }
