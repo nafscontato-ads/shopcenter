@@ -3,6 +3,7 @@ import {
   BookmarkCheck,
   ChevronLeft,
   Flame,
+  Gauge,
   LayoutDashboard,
   ExternalLink,
   Loader2,
@@ -49,6 +50,7 @@ type Item = { to: string; label: string; icon: typeof Flame };
 const producerGroups: { title?: string; items: Item[] }[] = [
   { title: "Operação", items: [
     { to: "/dashboard", label: "Dashboard de Vendas", icon: LayoutDashboard },
+    { to: "/central", label: "Central do Vendedor", icon: Gauge },
     { to: "/shopee", label: "Integração", icon: Store },
     { to: "/fornecedores", label: "Fornecedores", icon: Users },
     { to: "/produtos", label: "Catálogos", icon: ShoppingBag },

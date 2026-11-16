@@ -15,6 +15,7 @@ import { Route as AfiliadoRouteImport } from './routes/afiliado'
 import { Route as AtivarAcessoRouteImport } from './routes/ativar-acesso'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CadastroprodutoresespancadoresRouteImport } from './routes/cadastroprodutoresespancadores'
+import { Route as CentralRouteImport } from './routes/central'
 import { Route as ClassicaRouteImport } from './routes/classica'
 import { Route as ClienteRouteImport } from './routes/cliente'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
@@ -121,6 +122,11 @@ const CadastroprodutoresespancadoresRoute =
     path: '/cadastroprodutoresespancadores',
     getParentRoute: () => rootRouteImport,
   } as any)
+const CentralRoute = CentralRouteImport.update({
+  id: '/central',
+  path: '/central',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ClassicaRoute = ClassicaRouteImport.update({
   id: '/classica',
   path: '/classica',
@@ -505,6 +511,7 @@ export interface FileRoutesByFullPath {
   '/ativar-acesso': typeof AtivarAcessoRoute
   '/auth': typeof AuthRoute
   '/cadastroprodutoresespancadores': typeof CadastroprodutoresespancadoresRoute
+  '/central': typeof CentralRoute
   '/classica': typeof ClassicaRoute
   '/cliente': typeof ClienteRoute
   '/configuracoes': typeof ConfiguracoesRoute
@@ -586,6 +593,7 @@ export interface FileRoutesByTo {
   '/ativar-acesso': typeof AtivarAcessoRoute
   '/auth': typeof AuthRoute
   '/cadastroprodutoresespancadores': typeof CadastroprodutoresespancadoresRoute
+  '/central': typeof CentralRoute
   '/classica': typeof ClassicaRoute
   '/cliente': typeof ClienteRoute
   '/configuracoes': typeof ConfiguracoesRoute
@@ -668,6 +676,7 @@ export interface FileRoutesById {
   '/ativar-acesso': typeof AtivarAcessoRoute
   '/auth': typeof AuthRoute
   '/cadastroprodutoresespancadores': typeof CadastroprodutoresespancadoresRoute
+  '/central': typeof CentralRoute
   '/classica': typeof ClassicaRoute
   '/cliente': typeof ClienteRoute
   '/configuracoes': typeof ConfiguracoesRoute
@@ -752,6 +761,7 @@ export interface FileRouteTypes {
     | '/ativar-acesso'
     | '/auth'
     | '/cadastroprodutoresespancadores'
+    | '/central'
     | '/classica'
     | '/cliente'
     | '/configuracoes'
@@ -833,6 +843,7 @@ export interface FileRouteTypes {
     | '/ativar-acesso'
     | '/auth'
     | '/cadastroprodutoresespancadores'
+    | '/central'
     | '/classica'
     | '/cliente'
     | '/configuracoes'
@@ -914,6 +925,7 @@ export interface FileRouteTypes {
     | '/ativar-acesso'
     | '/auth'
     | '/cadastroprodutoresespancadores'
+    | '/central'
     | '/classica'
     | '/cliente'
     | '/configuracoes'
@@ -997,6 +1009,7 @@ export interface RootRouteChildren {
   AtivarAcessoRoute: typeof AtivarAcessoRoute
   AuthRoute: typeof AuthRoute
   CadastroprodutoresespancadoresRoute: typeof CadastroprodutoresespancadoresRoute
+  CentralRoute: typeof CentralRoute
   ClassicaRoute: typeof ClassicaRoute
   ClienteRoute: typeof ClienteRoute
   ConfiguracoesRoute: typeof ConfiguracoesRoute
@@ -1092,6 +1105,13 @@ declare module '@tanstack/react-router' {
       path: '/cadastroprodutoresespancadores'
       fullPath: '/cadastroprodutoresespancadores'
       preLoaderRoute: typeof CadastroprodutoresespancadoresRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/central': {
+      id: '/central'
+      path: '/central'
+      fullPath: '/central'
+      preLoaderRoute: typeof CentralRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/classica': {
@@ -1696,6 +1716,7 @@ const rootRouteChildren: RootRouteChildren = {
   AtivarAcessoRoute: AtivarAcessoRoute,
   AuthRoute: AuthRoute,
   CadastroprodutoresespancadoresRoute: CadastroprodutoresespancadoresRoute,
+  CentralRoute: CentralRoute,
   ClassicaRoute: ClassicaRoute,
   ClienteRoute: ClienteRoute,
   ConfiguracoesRoute: ConfiguracoesRoute,
