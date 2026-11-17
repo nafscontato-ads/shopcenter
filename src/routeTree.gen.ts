@@ -45,6 +45,8 @@ import { Route as V2RouteImport } from './routes/v2'
 import { Route as V3RouteImport } from './routes/v3'
 import { Route as VendasTempoRealRouteImport } from './routes/vendas-tempo-real'
 import { Route as VitalicioRouteImport } from './routes/vitalicio'
+import { Route as Up1RouteImport } from './routes/up1'
+import { Route as Down1RouteImport } from './routes/down1'
 import { Route as BLACKIndexRouteImport } from './routes/BLACK.index'
 import { Route as BLACKSlugRouteImport } from './routes/BLACK.$slug'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
@@ -270,6 +272,16 @@ const VendasTempoRealRoute = VendasTempoRealRouteImport.update({
 const VitalicioRoute = VitalicioRouteImport.update({
   id: '/vitalicio',
   path: '/vitalicio',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Up1Route = Up1RouteImport.update({
+  id: '/up1',
+  path: '/up1',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Down1Route = Down1RouteImport.update({
+  id: '/down1',
+  path: '/down1',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BLACKIndexRoute = BLACKIndexRouteImport.update({
@@ -541,6 +553,8 @@ export interface FileRoutesByFullPath {
   '/v3': typeof V3Route
   '/vendas-tempo-real': typeof VendasTempoRealRoute
   '/vitalicio': typeof VitalicioRoute
+  '/up1': typeof Up1Route
+  '/down1': typeof Down1Route
   '/BLACK/$slug': typeof BLACKSlugRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/automatic-sales': typeof AdminAutomaticSalesRoute
@@ -622,6 +636,8 @@ export interface FileRoutesByTo {
   '/v3': typeof V3Route
   '/vendas-tempo-real': typeof VendasTempoRealRoute
   '/vitalicio': typeof VitalicioRoute
+  '/up1': typeof Up1Route
+  '/down1': typeof Down1Route
   '/BLACK/$slug': typeof BLACKSlugRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/automatic-sales': typeof AdminAutomaticSalesRoute
@@ -706,6 +722,8 @@ export interface FileRoutesById {
   '/v3': typeof V3Route
   '/vendas-tempo-real': typeof VendasTempoRealRoute
   '/vitalicio': typeof VitalicioRoute
+  '/up1': typeof Up1Route
+  '/down1': typeof Down1Route
   '/BLACK/$slug': typeof BLACKSlugRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/automatic-sales': typeof AdminAutomaticSalesRoute
@@ -791,6 +809,8 @@ export interface FileRouteTypes {
     | '/v3'
     | '/vendas-tempo-real'
     | '/vitalicio'
+    | '/up1'
+    | '/down1'
     | '/BLACK/$slug'
     | '/admin/analytics'
     | '/admin/automatic-sales'
@@ -872,6 +892,8 @@ export interface FileRouteTypes {
     | '/v3'
     | '/vendas-tempo-real'
     | '/vitalicio'
+    | '/up1'
+    | '/down1'
     | '/BLACK/$slug'
     | '/admin/analytics'
     | '/admin/automatic-sales'
@@ -955,6 +977,8 @@ export interface FileRouteTypes {
     | '/v3'
     | '/vendas-tempo-real'
     | '/vitalicio'
+    | '/up1'
+    | '/down1'
     | '/BLACK/$slug'
     | '/admin/analytics'
     | '/admin/automatic-sales'
@@ -1039,6 +1063,8 @@ export interface RootRouteChildren {
   V3Route: typeof V3Route
   VendasTempoRealRoute: typeof VendasTempoRealRoute
   VitalicioRoute: typeof VitalicioRoute
+  Up1Route: typeof Up1Route
+  Down1Route: typeof Down1Route
   BLACKSlugRoute: typeof BLACKSlugRoute
   CadastroTokenRoute: typeof CadastroTokenRoute
   ExpedicaoTokenRoute: typeof ExpedicaoTokenRoute
@@ -1315,6 +1341,20 @@ declare module '@tanstack/react-router' {
       path: '/vitalicio'
       fullPath: '/vitalicio'
       preLoaderRoute: typeof VitalicioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/up1': {
+      id: '/up1'
+      path: '/up1'
+      fullPath: '/up1'
+      preLoaderRoute: typeof Up1RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/down1': {
+      id: '/down1'
+      path: '/down1'
+      fullPath: '/down1'
+      preLoaderRoute: typeof Down1RouteImport
       parentRoute: typeof rootRouteImport
     }
     '/BLACK/': {
@@ -1746,6 +1786,8 @@ const rootRouteChildren: RootRouteChildren = {
   V3Route: V3Route,
   VendasTempoRealRoute: VendasTempoRealRoute,
   VitalicioRoute: VitalicioRoute,
+  Up1Route: Up1Route,
+  Down1Route: Down1Route,
   BLACKSlugRoute: BLACKSlugRoute,
   CadastroTokenRoute: CadastroTokenRoute,
   ExpedicaoTokenRoute: ExpedicaoTokenRoute,
