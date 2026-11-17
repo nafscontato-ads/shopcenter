@@ -44,8 +44,21 @@ function isH3SwallowedErrorBody(body: string): boolean {
   }
 }
 
+// Background worker (orders → supplier, Pix recharges): runs inside the app, no external cron needed.
+let backgroundStarted = false;
+function startBackgroundWork() {
+  if (backgroundStarted) return;
+  backgroundStarted = true;
+  if (typeof process === "undefined" || process.env["NODE_ENV"] !== "production") return;
+  import("./lib/fulfillment-cron.server")
+    .then((m) => m.startFulfillmentTimer())
+    .catch((error) => console.error("[fulfillment] timer not started", error));
+}
+startBackgroundWork();
+
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
+    startBackgroundWork();
     try {
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);

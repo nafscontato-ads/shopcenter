@@ -16,7 +16,9 @@ export const requireActiveUser = createMiddleware({ type: "function" })
       .maybeSingle();
 
     if (error || !profile || profile.status !== "active") {
-      throw new Error("Acesso não liberado. Fale com o responsável pela sua conta.");
+      throw new Error(profile?.status === "pending"
+        ? "Acesso não liberado: não encontramos compra do Shop Center com o e-mail desta conta. Fale com o suporte."
+        : "Acesso não liberado. Fale com o responsável pela sua conta.");
     }
 
     return next({ context });
@@ -32,4 +34,11 @@ export async function isOwnerAccount(supabase: SupabaseClient<Database>, userId:
     .eq("user_id", userId)
     .maybeSingle();
   return Boolean(data?.is_active && data.role === "super_admin");
+}
+
+/** Owner or an active/approved partner: the accounts that see the partner-only catalogue. */
+export async function isPartnerOrOwner(supabase: SupabaseClient<Database>, userId: string): Promise<boolean> {
+  if (await isOwnerAccount(supabase, userId)) return true;
+  const { data } = await supabase.from("partner_profiles").select("status").eq("user_id", userId).maybeSingle();
+  return data?.status === "active" || data?.status === "approved";
 }

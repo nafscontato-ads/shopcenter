@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
   Area,
   AreaChart,
@@ -28,12 +28,16 @@ import {
   TrendingUp,
   Wallet,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 
 import { AppShell } from "@/components/pas/app-shell";
 import { SalesLiveDashboard } from "@/components/pas/sales-live-dashboard";
 import shopeeSellerLogo from "@/assets/shopee-seller-logo.jpeg.asset.json";
 import { brl } from "@/lib/pas-data";
+import { setMyAffiliateLink } from "@/lib/partner-signup.functions";
 import { initials, useProfile } from "@/lib/profile";
 import {
   HISTORY_START,
@@ -164,7 +168,13 @@ function Dashboard() {
     }));
   }, [result, singleDay]);
 
-  if (loading) {
+  // Students are not partners: the lock card read as "no access", so they go straight to Integração.
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (!loading && !isPartner) void navigate({ to: "/shopee", replace: true });
+  }, [loading, isPartner, navigate]);
+
+  if (loading || !isPartner) {
     return <div className="text-muted-foreground py-20 text-center text-sm">Carregando painel…</div>;
   }
 
@@ -215,6 +225,7 @@ function Dashboard() {
         name={profile?.full_name || "Lucena"}
         avatarUrl={avatarUrl}
       />
+      {access?.role === "partner" && !access.affiliateCode && !access.ownsOfficialOffer && <AffiliateLinkCard />}
       <div className="border-border bg-card mb-4 flex w-full gap-1 rounded-lg border p-1 sm:w-fit">
         <button
           onClick={() => setView("live")}
@@ -614,5 +625,48 @@ function RangeCalendar({
         Clique em um dia para ver só ele, ou em dois dias para um intervalo.
       </p>
     </div>
+  );
+}
+
+/** Parceiro sem checkout: cola o próprio link da Applyfy e a página de vendas dele fica pronta, sem depender do admin. */
+function AffiliateLinkCard() {
+  const save = useServerFn(setMyAffiliateLink);
+  const qc = useQueryClient();
+  const [value, setValue] = useState("");
+  const [busy, setBusy] = useState(false);
+  const submit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setBusy(true);
+    try {
+      await save({ data: { affiliate: value } });
+      toast.success("Pronto. Sua página de vendas já usa o seu link.");
+      await qc.invalidateQueries({ queryKey: ["sales-access"] });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Não foi possível salvar.");
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <form onSubmit={submit} className="border-border bg-card mb-4 rounded-lg border p-4">
+      <p className="text-sm font-bold">Ative sua página de vendas</p>
+      <p className="text-muted-foreground mt-1 text-xs">
+        Cole o seu link de checkout da Applyfy (o que tem "code=") ou só o seu código de afiliado. As vendas pela sua página passam a sair com o seu código.
+      </p>
+      <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+        <input
+          value={value}
+          onChange={(event) => setValue(event.target.value)}
+          required
+          minLength={4}
+          maxLength={400}
+          placeholder="https://checkout.applyfy.com.br/checkout/...?code=..."
+          className="border-border bg-background min-w-0 flex-1 rounded-lg border px-3 py-2 text-sm outline-none"
+        />
+        <button type="submit" disabled={busy} className="bg-primary text-primary-foreground rounded-lg px-4 py-2 text-sm font-semibold disabled:opacity-60">
+          {busy ? "Salvando..." : "Salvar meu link"}
+        </button>
+      </div>
+    </form>
   );
 }

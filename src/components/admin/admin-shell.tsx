@@ -29,6 +29,7 @@ import {
   Wallet,
   X,
   Zap,
+  Truck,
 
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
@@ -55,6 +56,7 @@ const groups: { title: string; items: Item[] }[] = [
       { to: "/admin/shopee-check", label: "Checagem Shopee", icon: ClipboardCheck },
       { to: "/admin/fornecedor-sites", label: "Sites de fornecedor", icon: Store },
       { to: "/admin/sales", label: "Pedidos/Vendas", icon: ShoppingCart },
+      { to: "/admin/refunds", label: "Reembolsos", icon: ClipboardCheck },
       { to: "/admin/creators", label: "Creators", icon: Sparkles },
       { to: "/admin/partners", label: "Parceiros", icon: Handshake },
     ],
@@ -78,6 +80,7 @@ const groups: { title: string; items: Item[] }[] = [
     items: [
       { to: "/admin/health", label: "Saúde da plataforma", icon: Activity },
       { to: "/admin/recharges", label: "Pagamentos / Recarga", icon: Wallet },
+      { to: "/admin/envios", label: "Envio automático", icon: Truck },
       { to: "/admin/costs", label: "Custos de IA", icon: Coins },
       { to: "/admin/settings", label: "Configurações", icon: Settings },
       { to: "/admin/logs", label: "Logs", icon: ScrollText },

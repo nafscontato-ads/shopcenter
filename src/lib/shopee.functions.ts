@@ -7,7 +7,7 @@ import type { Database, Json } from "@/integrations/supabase/types";
 import { normalizeProductImages } from "@/lib/product-images";
 import type { Product } from "@/lib/pas-data";
 import { leafShopeeCategories, programmedShopeeStock, suggestShopeeCategory, type ShopeeCategoryOption } from "@/lib/shopee-product-defaults";
-import { buildVariationPayload, extractExplicitProductOptions, findShopeeModelByTier, matchRowsToRemoteModels, normalizeVariationStocks, record, remoteVariationState, sameListingTitle, shopeeAttributeSchema, shopeeVariationSchema } from "@/lib/shopee-publishing";
+import { buildVariationPayload, extractExplicitProductOptions, findShopeeModelByTier, matchRowsToRemoteModels, normalizeVariationStocks, packageFactsFromDescription, record, remoteVariationState, sameListingTitle, shopeeAttributeSchema, shopeeVariationSchema } from "@/lib/shopee-publishing";
 import { availableSizeChart, availableSubmissionAttributes } from "@/lib/shopee-submission";
 import { requireShopeeDescription, shopeeOrderWindows } from "@/lib/shopee-sync";
 import { resolveShopeeDescription } from "@/lib/shopee-description";
@@ -95,7 +95,7 @@ const BRAZIL_CORREIOS_CHANNEL = {
   enabled: true,
 };
 
-async function getFreshConnection(userId: string, connectionId?: string, options: FreshConnectionOptions = {}) {
+export async function getFreshConnection(userId: string, connectionId?: string, options: FreshConnectionOptions = {}) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data: connection, error } = await supabaseAdmin
     .from("shopee_shop_connections")
@@ -152,7 +152,7 @@ async function getFreshConnection(userId: string, connectionId?: string, options
   return { ...current, access_token: accessToken, refresh_token: refreshToken, token_expires_at: tokenExpiresAt };
 }
 
-async function withFreshConnection<T>(
+export async function withFreshConnection<T>(
   userId: string,
   connectionId: string | undefined,
   operation: (connection: ConnectionCredentials) => Promise<T>,
@@ -336,7 +336,10 @@ export const getShopeeWorkspace = createServerFn({ method: "GET" })
       context.supabase.from("shopee_orders").select("id, connection_id, order_sn, status, total_amount, currency, buyer_label, items, created_time, updated_time, completed_time, synced_at").order("created_time", { ascending: false }).limit(500),
       context.supabase.from("shopee_sync_logs").select("id, connection_id, operation, status, processed_count, changed_count, error_count, message, started_at, finished_at").order("created_at", { ascending: false }).limit(30),
     ]);
-    if (connectionError) throw new Error(connectionError.message);
+    if (connectionError) {
+      console.error("[shopee-workspace] lojas:", connectionError.message, connectionError.details ?? "");
+      throw new Error(`Lojas: ${connectionError.message}`);
+    }
     if (listingsError) throw new Error(listingsError.message);
     // A publish request that died midway (closed tab, timeout) leaves "publishing" forever; release it so the seller can retry.
     const staleBefore = Date.now() - STALE_PUBLISHING_MS;
@@ -364,7 +367,14 @@ export const getShopeeWorkspace = createServerFn({ method: "GET" })
 export const beginShopeeConnection = createServerFn({ method: "POST" })
   .middleware([requireActiveUser])
   .handler(async ({ context }) => {
-    const { buildShopeeAuthUrl, createOAuthState, inspectShopeeCredentials } = await import("@/lib/shopee.server");
+    const { buildShopeeAuthUrl, createOAuthState, inspectShopeeCredentials, MAX_SHOPEE_STORES_PER_USER } = await import("@/lib/shopee.server");
+    {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { count } = await supabaseAdmin.from("shopee_shop_connections").select("id", { count: "exact", head: true }).eq("user_id", context.userId).eq("status", "active");
+      if ((count ?? 0) >= MAX_SHOPEE_STORES_PER_USER) {
+        throw new Error(`Você já conectou ${MAX_SHOPEE_STORES_PER_USER} lojas Shopee, o limite por conta. Desconecte uma para conectar outra.`);
+      }
+    }
     const credentials = await inspectShopeeCredentials();
     if (credentials.status === "sandbox") {
       throw new Error("Este aplicativo Shopee ainda está no ambiente de testes. Ative as credenciais de produção para conectar lojas reais.");
@@ -486,11 +496,14 @@ export const getSupplierProductPhotos = createServerFn({ method: "POST" })
   .middleware([requireActiveUser])
   .validator((input: unknown) => supplierPhotosInput.parse(input))
   .handler(async ({ data, context }) => {
-    const { data: product, error } = await context.supabase
+    // supplier_url não é legível pelo aluno direto no banco; lê no servidor com a mesma regra de antes.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const isOwner = await isOwnerAccount(context.supabase, context.userId);
+    const { data: product, error } = await supabaseAdmin
       .from("products")
       .select("primary_image, gallery_images, url, supplier_source, supplier_url")
       .eq("id", data.productId)
-      .in("status", ["active", OWNER_EXCLUSIVE_STATUS])
+      .in("status", isOwner ? ["active", OWNER_EXCLUSIVE_STATUS] : ["active"])
       .maybeSingle();
     if (error || !product) throw new Error("Produto não encontrado no catálogo.");
 
@@ -522,10 +535,11 @@ export const analyzeShopeeGallery = createServerFn({ method: "POST" })
   .middleware([requireActiveUser])
   .validator((input: unknown) => z.object({ images: z.array(z.string().url()).min(1).max(9) }).parse(input))
   .handler(async ({ data }) => {
-    const key = process.env["LOVABLE_API_KEY"];
+    const { aiChat, aiTextKey } = await import("@/lib/ai-gateway.server");
+    const key = aiTextKey();
     if (!key) throw new Error("A análise com IA não está disponível agora.");
     const images = normalizeProductImages(null, data.images, 9);
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await aiChat({
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
       body: JSON.stringify({ model: "google/gemini-3.8-flash", messages: [{ role: "user", content: [
@@ -685,6 +699,9 @@ export const syncShopeeStore = createServerFn({ method: "POST" })
               raw_summary: { pay_time: order["pay_time"] ?? null } as Json, synced_at: new Date().toISOString(),
             })), { onConflict: "connection_id,order_sn" });
             if (orderSaveError) throw new Error("A Shopee retornou os pedidos, mas o Shop Center não conseguiu salvá-los. Tente sincronizar novamente.");
+            // Automatic fulfillment: hand paid orders of catalogue products to their supplier (never fails the sync).
+            const { ingestOrders } = await import("@/lib/fulfillment.server");
+            await ingestOrders(context.userId, connection.id, details.map((order) => ({ order_sn: String(order["order_sn"]), order_status: String(order["order_status"] ?? ""), item_list: (Array.isArray(order["item_list"]) ? order["item_list"] : []) as never[] }))).catch((error) => console.error("fulfillment ingest failed", error instanceof Error ? error.message : error));
           }
         }
       } catch (error) {
@@ -736,9 +753,10 @@ export const improveShopeeCopy = createServerFn({ method: "POST" })
   .middleware([requireActiveUser])
   .validator((input: unknown) => z.object({ title: z.string().min(3).max(120), description: z.string().max(3000), facts: z.string().max(4000), mode: z.enum(["title", "description", "both"]) }).parse(input))
   .handler(async ({ data }) => {
-    const key = process.env["LOVABLE_API_KEY"];
+    const { aiChat, aiTextKey } = await import("@/lib/ai-gateway.server");
+    const key = aiTextKey();
     if (!key) throw new Error("A otimização com IA não está disponível agora.");
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", { method: "POST", headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" }, body: JSON.stringify({ model: "openai/gpt-5.6-sol", messages: [{ role: "user", content: `Otimize um anúncio Shopee em português. Use SOMENTE os fatos fornecidos; não invente materiais, medidas, benefícios ou garantias. Responda apenas JSON {"title":"...","description":"...","suggestions":["..."]}. Modo: ${data.mode}. Título atual: ${data.title}. Descrição atual: ${data.description}. Fatos confirmados: ${data.facts}` }] }) });
+    const response = await aiChat({ method: "POST", headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" }, body: JSON.stringify({ model: "openai/gpt-5.6-sol", messages: [{ role: "user", content: `Otimize um anúncio Shopee em português. Use SOMENTE os fatos fornecidos; não invente materiais, medidas, benefícios ou garantias. Responda apenas JSON {"title":"...","description":"...","suggestions":["..."]}. Modo: ${data.mode}. Título atual: ${data.title}. Descrição atual: ${data.description}. Fatos confirmados: ${data.facts}` }] }) });
     if (!response.ok) throw new Error("Não foi possível otimizar o anúncio agora.");
     const result = await response.json() as { choices?: Array<{ message?: { content?: string } }> };
     const raw = result.choices?.[0]?.message?.content ?? "";
@@ -922,7 +940,13 @@ export const publishShopeeListing = createServerFn({ method: "POST" })
       if (listing.category_id !== category.category_id) attributes = [];
       listing.category_id = category.category_id;
       listing.category_name = category.category_path ?? category.display_category_name ?? category.original_category_name ?? "";
-      listing.weight = listing.weight || 0.3;
+      const supplierPackage = packageFactsFromDescription(categoryFacts?.description);
+      listing.weight = listing.weight || supplierPackage.weight || 0.3;
+      if (!listing.package_length && supplierPackage.length) {
+        listing.package_length = supplierPackage.length;
+        listing.package_width = supplierPackage.width;
+        listing.package_height = supplierPackage.height;
+      }
       // Re-check the shop's channels every time: a saved channel may have been switched off since.
       let channels: unknown[] | null = null;
       try {
@@ -1303,25 +1327,38 @@ export const getShopeeShippingLabel = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { data: order } = await context.supabase.from("shopee_orders").select("order_sn, status").eq("connection_id", data.connectionId).eq("order_sn", data.orderSn).maybeSingle();
     if (!order) throw new Error("Pedido não encontrado nesta loja. Sincronize os pedidos e tente de novo.");
+    return generateShopeeLabel({
+      userId: context.userId, connectionId: data.connectionId, orderSn: data.orderSn, status: order.status,
+      saveStatus: async (status) => { await context.supabase.from("shopee_orders").update({ status }).eq("connection_id", data.connectionId).eq("order_sn", data.orderSn); },
+    });
+  });
+
+/**
+ * Arranges shipment if needed and returns the Shopee label PDF of one order. Shared by the seller
+ * orders list and the supplier panel (automatic fulfillment), which prints labels for the seller's shop.
+ */
+export async function generateShopeeLabel(input: { userId: string; connectionId: string; orderSn: string; status: string; saveStatus: (status: string) => Promise<void>; dropoffOnly?: boolean }) {
     const { LABEL_STATUSES, labelBlock, labelErrorMessage, labelType, planShipment } = await import("@/lib/shopee-shipping");
-    if (!LABEL_STATUSES.has(order.status)) throw new Error("A etiqueta só fica disponível para pedidos pagos que ainda não foram enviados.");
-    return withFreshConnection(context.userId, data.connectionId, async (connection) => {
+    if (!LABEL_STATUSES.has(input.status)) throw new Error("A etiqueta só fica disponível para pedidos pagos que ainda não foram enviados.");
+    return withFreshConnection(input.userId, input.connectionId, async (connection) => {
       const shopee = await import("@/lib/shopee.server");
       const credentials = { shopId: Number(connection.shop_id), accessToken: connection.access_token };
       const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
       // Shopee's own current state wins over our last sync (the buyer may have cancelled since).
-      const live = await shopee.getShopeeOrderPackage(credentials, data.orderSn).catch(() => null);
+      const live = await shopee.getShopeeOrderPackage(credentials, input.orderSn).catch(() => null);
       const block = live ? labelBlock(live) : null;
       if (block) {
-        if (block.status) await context.supabase.from("shopee_orders").update({ status: block.status }).eq("connection_id", data.connectionId).eq("order_sn", data.orderSn);
+        if (block.status) await input.saveStatus(block.status);
         return { ok: false as const, message: block.message };
       }
 
-      let arranged = order.status !== "READY_TO_SHIP";
+      let arranged = input.status !== "READY_TO_SHIP";
       if (!arranged) {
-        const plan = planShipment(data.orderSn, await shopee.getShopeeShippingParameter(credentials, data.orderSn));
+        const plan = planShipment(input.orderSn, await shopee.getShopeeShippingParameter(credentials, input.orderSn));
         if (plan.kind === "manual") return { ok: false as const, message: plan.reason };
+        // A supplier ships from their own address, so a pickup at the seller's address would be wrong.
+        if (input.dropoffOnly && plan.method !== "dropoff") return { ok: false as const, message: "Esta loja só tem coleta no endereço do vendedor. Ative a postagem em agência (drop-off) na Central do Vendedor para o fornecedor poder despachar." };
         try {
           await shopee.shipShopeeOrder(credentials, plan.body);
         } catch (error) {
@@ -1329,20 +1366,20 @@ export const getShopeeShippingLabel = createServerFn({ method: "POST" })
           if (!/already|shipped|processed|arranged/i.test(error instanceof Error ? error.message : "")) throw error;
         }
         arranged = true;
-        await context.supabase.from("shopee_orders").update({ status: "PROCESSED" }).eq("connection_id", data.connectionId).eq("order_sn", data.orderSn);
+        await input.saveStatus("PROCESSED");
       }
 
       let trackingNumber = "";
       for (let attempt = 0; attempt < 6 && !trackingNumber; attempt += 1) {
         if (attempt) await wait(1500);
-        const tracking = await shopee.getShopeeTrackingNumber(credentials, data.orderSn).catch(() => ({}));
+        const tracking = await shopee.getShopeeTrackingNumber(credentials, input.orderSn).catch(() => ({}));
         trackingNumber = String(((tracking as Record<string, unknown>)["response"] as Record<string, unknown> | undefined)?.["tracking_number"] ?? "");
       }
       if (!trackingNumber) return { ok: false as const, pending: true, message: "Envio organizado. A Shopee ainda está gerando o rastreio; tente baixar a etiqueta em 1 minuto." };
 
-      const documentType = labelType(await shopee.getShopeeShippingDocumentParameter(credentials, data.orderSn));
+      const documentType = labelType(await shopee.getShopeeShippingDocumentParameter(credentials, input.orderSn));
       try {
-        await shopee.createShopeeShippingDocument(credentials, { order_sn: data.orderSn, tracking_number: trackingNumber, shipping_document_type: documentType });
+        await shopee.createShopeeShippingDocument(credentials, { order_sn: input.orderSn, tracking_number: trackingNumber, shipping_document_type: documentType });
       } catch (error) {
         const raw = error instanceof Error ? error.message : "";
         // Creating twice is harmless; keep going to the download.
@@ -1350,16 +1387,16 @@ export const getShopeeShippingLabel = createServerFn({ method: "POST" })
       }
       for (let attempt = 0; attempt < 8; attempt += 1) {
         if (attempt) await wait(1500);
-        const result = await shopee.getShopeeShippingDocumentResult(credentials, data.orderSn, documentType);
+        const result = await shopee.getShopeeShippingDocumentResult(credentials, input.orderSn, documentType);
         const first = ((result["response"] as Record<string, unknown> | undefined)?.["result_list"] as Record<string, unknown>[] | undefined)?.[0];
         const status = String(first?.["status"] ?? "");
         if (status === "FAILED") return { ok: false as const, message: "A Shopee não conseguiu gerar a etiqueta deste pedido. Tente pela Central do Vendedor." };
         if (status !== "READY") continue;
-        const pdf = await shopee.downloadShopeeShippingDocument(credentials, data.orderSn, documentType);
+        const pdf = await shopee.downloadShopeeShippingDocument(credentials, input.orderSn, documentType);
         let binary = "";
         for (let i = 0; i < pdf.length; i += 0x8000) binary += String.fromCharCode(...pdf.subarray(i, i + 0x8000));
-        return { ok: true as const, trackingNumber, fileName: `etiqueta-shopee-${data.orderSn}.pdf`, pdfBase64: btoa(binary) };
+        return { ok: true as const, trackingNumber, fileName: `etiqueta-shopee-${input.orderSn}.pdf`, pdfBase64: btoa(binary) };
       }
       return { ok: false as const, pending: true, message: "Envio organizado. A etiqueta ainda está sendo gerada pela Shopee; tente baixar de novo em 1 minuto." };
     });
-  });
+}

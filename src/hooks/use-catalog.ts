@@ -1,17 +1,23 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 
 import { readBrowserCache, writeBrowserCache } from "@/lib/browser-cache";
-import { listCatalog } from "@/lib/catalog.functions";
+import { useAuth } from "@/lib/auth";
+import { listCatalog, listOwnerLiveProducts, listPartnerCatalog } from "@/lib/catalog.functions";
 import { decodeCatalog, type CatalogWire } from "@/lib/catalog-wire";
 import type { Product } from "@/lib/pas-data";
+import { uniqueByName } from "@/lib/product-name-key";
 
-const CACHE_KEY = "catalog-wire-v1";
+// v2: Minipreço and 25 de Março left the catalogue (16/11); older saved copies are ignored.
+const CACHE_KEY = "catalog-wire-v2";
 
 /** Catálogo real de produtos, compartilhado por Catálogos e Integração. */
 export function useCatalog() {
   const fetchCatalog = useServerFn(listCatalog);
+  const fetchOwnerLive = useServerFn(listOwnerLiveProducts);
+  const fetchPartnerCatalog = useServerFn(listPartnerCatalog);
+  const { user } = useAuth();
   const qc = useQueryClient();
   const query = useQuery({
     queryKey: ["catalog"],
@@ -38,5 +44,38 @@ export function useCatalog() {
     return () => { cancelled = true; };
   }, [qc]);
 
-  return { products: query.data ?? [], isLoading: query.isLoading };
+  // Owner only: products kept for the lives (empty for everyone else), shown first.
+  const ownerLive = useQuery({
+    queryKey: ["catalog-owner-live", user?.id ?? null],
+    queryFn: async () => fetchOwnerLive({ data: undefined }).catch(() => [] as Product[]),
+    enabled: Boolean(user),
+    staleTime: 10 * 60_000,
+    retry: false,
+  });
+
+  // Partners and owner only: older supplier products with photos, after the shared catalogue (empty for customers).
+  const partnerCatalog = useQuery({
+    queryKey: ["catalog-partner", user?.id ?? null],
+    queryFn: async () => {
+      try {
+        return decodeCatalog(JSON.parse(await fetchPartnerCatalog({ data: undefined })) as CatalogWire);
+      } catch {
+        return [] as Product[];
+      }
+    },
+    enabled: Boolean(user),
+    staleTime: 10 * 60_000,
+    retry: false,
+  });
+
+  const products = useMemo(() => {
+    const shared = query.data ?? [];
+    const pinned = ownerLive.data ?? [];
+    const extra = partnerCatalog.data ?? [];
+    if (!pinned.length && !extra.length) return shared;
+    // One copy per name across the lists, so no product appears twice.
+    return uniqueByName([...pinned, ...shared, ...extra]);
+  }, [query.data, ownerLive.data, partnerCatalog.data]);
+
+  return { products, isLoading: query.isLoading };
 }

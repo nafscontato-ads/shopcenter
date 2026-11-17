@@ -303,3 +303,24 @@ export function sameListingTitle(a: string, b: string) {
   const [shorter, longer] = left.length <= right.length ? [left, right] : [right, left];
   return shorter.length >= 20 && longer.startsWith(shorter);
 }
+
+/**
+ * Reads the supplier's real weight and box from the catalogue description lines
+ * "Peso com embalagem: 0,35 kg" and "Embalagem: 20 x 15 x 9 cm" (written by the supplier imports),
+ * so the listing starts with the right freight data instead of the 0.3 kg / 20x15x10 default.
+ */
+export function packageFactsFromDescription(description: string | null | undefined) {
+  const text = String(description ?? "");
+  const num = (value: string) => Number(value.replace(",", "."));
+  const weightMatch = /peso(?:\s+com\s+embalagem)?\s*:\s*(\d+(?:[.,]\d+)?)\s*(kg|g)\b/i.exec(text);
+  let weight: number | null = null;
+  if (weightMatch) {
+    const value = num(weightMatch[1]!);
+    weight = weightMatch[2]!.toLowerCase() === "g" ? value / 1000 : value;
+    if (!(weight > 0 && weight <= 1000)) weight = null;
+  }
+  const boxMatch = /embalagem\s*:\s*(\d+(?:[.,]\d+)?)\s*x\s*(\d+(?:[.,]\d+)?)\s*x\s*(\d+(?:[.,]\d+)?)\s*cm/i.exec(text);
+  const box = boxMatch ? [num(boxMatch[1]!), num(boxMatch[2]!), num(boxMatch[3]!)] : null;
+  const validBox = box && box.every((value) => value > 0 && value <= 300) ? box : null;
+  return { weight, length: validBox?.[0] ?? null, width: validBox?.[1] ?? null, height: validBox?.[2] ?? null };
+}

@@ -1,0 +1,6 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "buildCommand": "(node scripts/fetch-lovable-assets.mjs || true) && NITRO_PRESET=vercel vite build",
+  "outputDirectory": ".vercel/output"
+}

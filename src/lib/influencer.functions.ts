@@ -17,7 +17,6 @@ async function guard<T>(userId: string, route: string, run: () => Promise<T>): P
   }
 }
 
-const GATEWAY = "https://ai.gateway.lovable.dev/v1";
 const MODEL_STANDARD = "gemini-2.5-flash-image";
 const MODEL_MAX = "gemini-3-pro-image-preview";
 const TEXT_MODEL = "openai/gpt-5.6-sol";
@@ -25,7 +24,7 @@ const TEXT_MODEL = "openai/gpt-5.6-sol";
 const dnaSchema = z.record(z.string(), z.any());
 
 function apiKey() {
-  const key = process.env["LOVABLE_API_KEY"];
+  const key = (process.env["OPENROUTER_API_KEY"] ?? "").trim() || process.env["LOVABLE_API_KEY"];
   if (!key) throw new Error("A geração de imagens não está configurada.");
   return key;
 }
@@ -179,7 +178,7 @@ Responda SOMENTE com JSON válido, sem markdown, com estas chaves:
 presentation ("Feminina" ou "Masculina"), apparent_age_range (ex: "25–30"), skin_tone (Muito clara|Clara|Morena clara|Morena|Morena escura|Negra), hair_color (Preto|Castanho escuro|Castanho|Loiro escuro|Loiro|Ruivo|Colorido), hair_length (Muito curto|Curto|Médio|Longo|Muito longo), hair_texture (Liso|Ondulado|Cacheado|Crespo), hair_style, eye_color (Castanho escuro|Castanho|Mel|Verde|Azul|Cinza), face_shape (Oval|Redondo|Quadrado|Coração|Alongado), facial_features (array), body_type (Slim|Atlético|Curvilíneo|Musculoso|Natural|Plus size), clothing_style, accessories (array), makeup, photography_style, lighting, environment, composition, mood.
 Use null em qualquer campo que não puder ser identificado com segurança. Nunca invente.`;
 
-    const res = await fetch(`${GATEWAY}/chat/completions`, {
+    const res = await (await import("@/lib/ai-gateway.server")).aiChat({
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey()}`, "Content-Type": "application/json" },
       body: JSON.stringify({

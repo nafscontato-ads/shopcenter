@@ -1,0 +1,9 @@
+node_modules
+.output
+.vercel
+.wrangler
+.tanstack
+.git
+.env
+.env.*
+!.env.example

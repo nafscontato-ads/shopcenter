@@ -11,30 +11,40 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as AfiliadoRouteImport } from './routes/afiliado'
 import { Route as AtivarAcessoRouteImport } from './routes/ativar-acesso'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CadastroprodutoresespancadoresRouteImport } from './routes/cadastroprodutoresespancadores'
+import { Route as ClassicaRouteImport } from './routes/classica'
+import { Route as ClienteRouteImport } from './routes/cliente'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as Dy4ki0hRouteImport } from './routes/dy4ki0h'
+import { Route as EnviosRouteImport } from './routes/envios'
 import { Route as FacebookRouteImport } from './routes/facebook'
 import { Route as FinanceiroRouteImport } from './routes/financeiro'
 import { Route as FornecedorRouteImport } from './routes/fornecedor'
 import { Route as FornecedoresRouteImport } from './routes/fornecedores'
 import { Route as LoglogRouteImport } from './routes/loglog'
 import { Route as MarketplacesRouteImport } from './routes/marketplaces'
+import { Route as MensalRouteImport } from './routes/mensal'
+import { Route as ObrigadoRouteImport } from './routes/obrigado'
 import { Route as PerfilRouteImport } from './routes/perfil'
 import { Route as PersonalizarRouteImport } from './routes/personalizar'
 import { Route as ProdutosRouteImport } from './routes/produtos'
 import { Route as ProdutosSalvosRouteImport } from './routes/produtos-salvos'
 import { Route as PromocaoRouteImport } from './routes/promocao'
+import { Route as ReembolsoRouteImport } from './routes/reembolso'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RoadmapShopeeRouteImport } from './routes/roadmap-shopee'
 import { Route as RoadmapTiktokRouteImport } from './routes/roadmap-tiktok'
+import { Route as SejaFornecedorRouteImport } from './routes/seja-fornecedor'
 import { Route as ShopeeRouteImport } from './routes/shopee'
 import { Route as StudioRouteImport } from './routes/studio'
 import { Route as V2RouteImport } from './routes/v2'
 import { Route as V3RouteImport } from './routes/v3'
 import { Route as VendasTempoRealRouteImport } from './routes/vendas-tempo-real'
+import { Route as VitalicioRouteImport } from './routes/vitalicio'
 import { Route as BLACKIndexRouteImport } from './routes/BLACK.index'
 import { Route as BLACKSlugRouteImport } from './routes/BLACK.$slug'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
@@ -43,6 +53,7 @@ import { Route as AdminAutomaticSalesRouteImport } from './routes/admin.automati
 import { Route as AdminCostsRouteImport } from './routes/admin.costs'
 import { Route as AdminCouponsRouteImport } from './routes/admin.coupons'
 import { Route as AdminCreatorsRouteImport } from './routes/admin.creators'
+import { Route as AdminEnviosRouteImport } from './routes/admin.envios'
 import { Route as AdminFornecedorSitesRouteImport } from './routes/admin.fornecedor-sites'
 import { Route as AdminHealthRouteImport } from './routes/admin.health'
 import { Route as AdminLaunchesRouteImport } from './routes/admin.launches'
@@ -51,18 +62,34 @@ import { Route as AdminPartnersRouteImport } from './routes/admin.partners'
 import { Route as AdminProductsRouteImport } from './routes/admin.products'
 import { Route as AdminPromotionsRouteImport } from './routes/admin.promotions'
 import { Route as AdminRechargesRouteImport } from './routes/admin.recharges'
+import { Route as AdminRefundsRouteImport } from './routes/admin.refunds'
 import { Route as AdminSalesRouteImport } from './routes/admin.sales'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminShopeeCheckRouteImport } from './routes/admin.shopee-check'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
+import { Route as CadastroIndexRouteImport } from './routes/cadastro.index'
+import { Route as CadastroTokenRouteImport } from './routes/cadastro.$token'
+import { Route as ExpedicaoIndexRouteImport } from './routes/expedicao.index'
+import { Route as ExpedicaoTokenRouteImport } from './routes/expedicao.$token'
 import { Route as FornecedorIndexRouteImport } from './routes/fornecedor.index'
 import { Route as FornecedorSlugRouteImport } from './routes/fornecedor.$slug'
 import { Route as InfluencerIndexRouteImport } from './routes/influencer.index'
 import { Route as InfluencerIdRouteImport } from './routes/influencer.$id'
 import { Route as InfluencerImagemRouteImport } from './routes/influencer.imagem'
 import { Route as InfluencerNovoRouteImport } from './routes/influencer.novo'
+import { Route as PainelReembolsosTokenRouteImport } from './routes/painel-reembolsos.$token'
+import { Route as RCodeRouteImport } from './routes/r.$code'
 import { Route as AdminUsersIdRouteImport } from './routes/admin.users.$id'
+import { Route as ApiPublicSaudeRouteImport } from './routes/api.public.saude'
+import { Route as ApiPublicApplyfyWebhookRouteImport } from './routes/api.public.applyfy.webhook'
+import { Route as ApiPublicFulfillmentTickRouteImport } from './routes/api.public.fulfillment.tick'
+import { Route as ApiPublicMercadolivreCallbackRouteImport } from './routes/api.public.mercadolivre.callback'
+import { Route as ApiPublicMercadolivreNotificacoesRouteImport } from './routes/api.public.mercadolivre.notificacoes'
+import { Route as ApiPublicPagamentosAsaasRouteImport } from './routes/api.public.pagamentos.asaas'
+import { Route as ApiPublicPagamentosMercadopagoRouteImport } from './routes/api.public.pagamentos.mercadopago'
 import { Route as ApiPublicShopeeCallbackRouteImport } from './routes/api.public.shopee.callback'
+import { Route as ApiPublicShopeePushRouteImport } from './routes/api.public.shopee.push'
+import { Route as ApiPublicMarketplacesProviderCallbackRouteImport } from './routes/api.public.marketplaces.$provider.callback'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -72,6 +99,11 @@ const IndexRoute = IndexRouteImport.update({
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AfiliadoRoute = AfiliadoRouteImport.update({
+  id: '/afiliado',
+  path: '/afiliado',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AtivarAcessoRoute = AtivarAcessoRouteImport.update({
@@ -90,6 +122,16 @@ const CadastroprodutoresespancadoresRoute =
     path: '/cadastroprodutoresespancadores',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ClassicaRoute = ClassicaRouteImport.update({
+  id: '/classica',
+  path: '/classica',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClienteRoute = ClienteRouteImport.update({
+  id: '/cliente',
+  path: '/cliente',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ConfiguracoesRoute = ConfiguracoesRouteImport.update({
   id: '/configuracoes',
   path: '/configuracoes',
@@ -98,6 +140,16 @@ const ConfiguracoesRoute = ConfiguracoesRouteImport.update({
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Dy4ki0hRoute = Dy4ki0hRouteImport.update({
+  id: '/dy4ki0h',
+  path: '/dy4ki0h',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EnviosRoute = EnviosRouteImport.update({
+  id: '/envios',
+  path: '/envios',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FacebookRoute = FacebookRouteImport.update({
@@ -130,6 +182,16 @@ const MarketplacesRoute = MarketplacesRouteImport.update({
   path: '/marketplaces',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MensalRoute = MensalRouteImport.update({
+  id: '/mensal',
+  path: '/mensal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ObrigadoRoute = ObrigadoRouteImport.update({
+  id: '/obrigado',
+  path: '/obrigado',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PerfilRoute = PerfilRouteImport.update({
   id: '/perfil',
   path: '/perfil',
@@ -155,6 +217,11 @@ const PromocaoRoute = PromocaoRouteImport.update({
   path: '/promocao',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ReembolsoRoute = ReembolsoRouteImport.update({
+  id: '/reembolso',
+  path: '/reembolso',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
@@ -168,6 +235,11 @@ const RoadmapShopeeRoute = RoadmapShopeeRouteImport.update({
 const RoadmapTiktokRoute = RoadmapTiktokRouteImport.update({
   id: '/roadmap-tiktok',
   path: '/roadmap-tiktok',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SejaFornecedorRoute = SejaFornecedorRouteImport.update({
+  id: '/seja-fornecedor',
+  path: '/seja-fornecedor',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ShopeeRoute = ShopeeRouteImport.update({
@@ -193,6 +265,11 @@ const V3Route = V3RouteImport.update({
 const VendasTempoRealRoute = VendasTempoRealRouteImport.update({
   id: '/vendas-tempo-real',
   path: '/vendas-tempo-real',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VitalicioRoute = VitalicioRouteImport.update({
+  id: '/vitalicio',
+  path: '/vitalicio',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BLACKIndexRoute = BLACKIndexRouteImport.update({
@@ -235,6 +312,11 @@ const AdminCreatorsRoute = AdminCreatorsRouteImport.update({
   path: '/creators',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminEnviosRoute = AdminEnviosRouteImport.update({
+  id: '/envios',
+  path: '/envios',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminFornecedorSitesRoute = AdminFornecedorSitesRouteImport.update({
   id: '/fornecedor-sites',
   path: '/fornecedor-sites',
@@ -275,6 +357,11 @@ const AdminRechargesRoute = AdminRechargesRouteImport.update({
   path: '/recharges',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminRefundsRoute = AdminRefundsRouteImport.update({
+  id: '/refunds',
+  path: '/refunds',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminSalesRoute = AdminSalesRouteImport.update({
   id: '/sales',
   path: '/sales',
@@ -294,6 +381,26 @@ const AdminUsersRoute = AdminUsersRouteImport.update({
   id: '/users',
   path: '/users',
   getParentRoute: () => AdminRoute,
+} as any)
+const CadastroIndexRoute = CadastroIndexRouteImport.update({
+  id: '/cadastro/',
+  path: '/cadastro/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CadastroTokenRoute = CadastroTokenRouteImport.update({
+  id: '/cadastro/$token',
+  path: '/cadastro/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExpedicaoIndexRoute = ExpedicaoIndexRouteImport.update({
+  id: '/expedicao/',
+  path: '/expedicao/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExpedicaoTokenRoute = ExpedicaoTokenRouteImport.update({
+  id: '/expedicao/$token',
+  path: '/expedicao/$token',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const FornecedorIndexRoute = FornecedorIndexRouteImport.update({
   id: '/',
@@ -325,50 +432,122 @@ const InfluencerNovoRoute = InfluencerNovoRouteImport.update({
   path: '/influencer/novo',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PainelReembolsosTokenRoute = PainelReembolsosTokenRouteImport.update({
+  id: '/painel-reembolsos/$token',
+  path: '/painel-reembolsos/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RCodeRoute = RCodeRouteImport.update({
+  id: '/r/$code',
+  path: '/r/$code',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminUsersIdRoute = AdminUsersIdRouteImport.update({
   id: '/$id',
   path: '/$id',
   getParentRoute: () => AdminUsersRoute,
 } as any)
+const ApiPublicSaudeRoute = ApiPublicSaudeRouteImport.update({
+  id: '/api/public/saude',
+  path: '/api/public/saude',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicApplyfyWebhookRoute = ApiPublicApplyfyWebhookRouteImport.update({
+  id: '/api/public/applyfy/webhook',
+  path: '/api/public/applyfy/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicFulfillmentTickRoute =
+  ApiPublicFulfillmentTickRouteImport.update({
+    id: '/api/public/fulfillment/tick',
+    path: '/api/public/fulfillment/tick',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicMercadolivreCallbackRoute =
+  ApiPublicMercadolivreCallbackRouteImport.update({
+    id: '/api/public/mercadolivre/callback',
+    path: '/api/public/mercadolivre/callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicMercadolivreNotificacoesRoute =
+  ApiPublicMercadolivreNotificacoesRouteImport.update({
+    id: '/api/public/mercadolivre/notificacoes',
+    path: '/api/public/mercadolivre/notificacoes',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicPagamentosAsaasRoute =
+  ApiPublicPagamentosAsaasRouteImport.update({
+    id: '/api/public/pagamentos/asaas',
+    path: '/api/public/pagamentos/asaas',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicPagamentosMercadopagoRoute =
+  ApiPublicPagamentosMercadopagoRouteImport.update({
+    id: '/api/public/pagamentos/mercadopago',
+    path: '/api/public/pagamentos/mercadopago',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicShopeeCallbackRoute = ApiPublicShopeeCallbackRouteImport.update({
   id: '/api/public/shopee/callback',
   path: '/api/public/shopee/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicShopeePushRoute = ApiPublicShopeePushRouteImport.update({
+  id: '/api/public/shopee/push',
+  path: '/api/public/shopee/push',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicMarketplacesProviderCallbackRoute =
+  ApiPublicMarketplacesProviderCallbackRouteImport.update({
+    id: '/api/public/marketplaces/$provider/callback',
+    path: '/api/public/marketplaces/$provider/callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/afiliado': typeof AfiliadoRoute
   '/ativar-acesso': typeof AtivarAcessoRoute
   '/auth': typeof AuthRoute
   '/cadastroprodutoresespancadores': typeof CadastroprodutoresespancadoresRoute
+  '/classica': typeof ClassicaRoute
+  '/cliente': typeof ClienteRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/dashboard': typeof DashboardRoute
+  '/dy4ki0h': typeof Dy4ki0hRoute
+  '/envios': typeof EnviosRoute
   '/facebook': typeof FacebookRoute
   '/financeiro': typeof FinanceiroRoute
   '/fornecedor': typeof FornecedorRouteWithChildren
   '/fornecedores': typeof FornecedoresRoute
   '/loglog': typeof LoglogRoute
   '/marketplaces': typeof MarketplacesRoute
+  '/mensal': typeof MensalRoute
+  '/obrigado': typeof ObrigadoRoute
   '/perfil': typeof PerfilRoute
   '/personalizar': typeof PersonalizarRoute
   '/produtos': typeof ProdutosRoute
   '/produtos-salvos': typeof ProdutosSalvosRoute
   '/promocao': typeof PromocaoRoute
+  '/reembolso': typeof ReembolsoRoute
   '/reset-password': typeof ResetPasswordRoute
   '/roadmap-shopee': typeof RoadmapShopeeRoute
   '/roadmap-tiktok': typeof RoadmapTiktokRoute
+  '/seja-fornecedor': typeof SejaFornecedorRoute
   '/shopee': typeof ShopeeRoute
   '/studio': typeof StudioRoute
   '/v2': typeof V2Route
   '/v3': typeof V3Route
   '/vendas-tempo-real': typeof VendasTempoRealRoute
+  '/vitalicio': typeof VitalicioRoute
   '/BLACK/$slug': typeof BLACKSlugRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/automatic-sales': typeof AdminAutomaticSalesRoute
   '/admin/costs': typeof AdminCostsRoute
   '/admin/coupons': typeof AdminCouponsRoute
   '/admin/creators': typeof AdminCreatorsRoute
+  '/admin/envios': typeof AdminEnviosRoute
   '/admin/fornecedor-sites': typeof AdminFornecedorSitesRoute
   '/admin/health': typeof AdminHealthRoute
   '/admin/launches': typeof AdminLaunchesRoute
@@ -377,52 +556,79 @@ export interface FileRoutesByFullPath {
   '/admin/products': typeof AdminProductsRoute
   '/admin/promotions': typeof AdminPromotionsRoute
   '/admin/recharges': typeof AdminRechargesRoute
+  '/admin/refunds': typeof AdminRefundsRoute
   '/admin/sales': typeof AdminSalesRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/shopee-check': typeof AdminShopeeCheckRoute
   '/admin/users': typeof AdminUsersRouteWithChildren
+  '/cadastro/$token': typeof CadastroTokenRoute
+  '/expedicao/$token': typeof ExpedicaoTokenRoute
   '/fornecedor/$slug': typeof FornecedorSlugRoute
   '/influencer/$id': typeof InfluencerIdRoute
   '/influencer/imagem': typeof InfluencerImagemRoute
   '/influencer/novo': typeof InfluencerNovoRoute
+  '/painel-reembolsos/$token': typeof PainelReembolsosTokenRoute
+  '/r/$code': typeof RCodeRoute
   '/BLACK/': typeof BLACKIndexRoute
   '/admin/': typeof AdminIndexRoute
+  '/cadastro/': typeof CadastroIndexRoute
+  '/expedicao/': typeof ExpedicaoIndexRoute
   '/fornecedor/': typeof FornecedorIndexRoute
   '/influencer/': typeof InfluencerIndexRoute
   '/admin/users/$id': typeof AdminUsersIdRoute
+  '/api/public/saude': typeof ApiPublicSaudeRoute
+  '/api/public/applyfy/webhook': typeof ApiPublicApplyfyWebhookRoute
+  '/api/public/fulfillment/tick': typeof ApiPublicFulfillmentTickRoute
+  '/api/public/mercadolivre/callback': typeof ApiPublicMercadolivreCallbackRoute
+  '/api/public/mercadolivre/notificacoes': typeof ApiPublicMercadolivreNotificacoesRoute
+  '/api/public/pagamentos/asaas': typeof ApiPublicPagamentosAsaasRoute
+  '/api/public/pagamentos/mercadopago': typeof ApiPublicPagamentosMercadopagoRoute
   '/api/public/shopee/callback': typeof ApiPublicShopeeCallbackRoute
+  '/api/public/shopee/push': typeof ApiPublicShopeePushRoute
+  '/api/public/marketplaces/$provider/callback': typeof ApiPublicMarketplacesProviderCallbackRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/afiliado': typeof AfiliadoRoute
   '/ativar-acesso': typeof AtivarAcessoRoute
   '/auth': typeof AuthRoute
   '/cadastroprodutoresespancadores': typeof CadastroprodutoresespancadoresRoute
+  '/classica': typeof ClassicaRoute
+  '/cliente': typeof ClienteRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/dashboard': typeof DashboardRoute
+  '/dy4ki0h': typeof Dy4ki0hRoute
+  '/envios': typeof EnviosRoute
   '/facebook': typeof FacebookRoute
   '/financeiro': typeof FinanceiroRoute
   '/fornecedores': typeof FornecedoresRoute
   '/loglog': typeof LoglogRoute
   '/marketplaces': typeof MarketplacesRoute
+  '/mensal': typeof MensalRoute
+  '/obrigado': typeof ObrigadoRoute
   '/perfil': typeof PerfilRoute
   '/personalizar': typeof PersonalizarRoute
   '/produtos': typeof ProdutosRoute
   '/produtos-salvos': typeof ProdutosSalvosRoute
   '/promocao': typeof PromocaoRoute
+  '/reembolso': typeof ReembolsoRoute
   '/reset-password': typeof ResetPasswordRoute
   '/roadmap-shopee': typeof RoadmapShopeeRoute
   '/roadmap-tiktok': typeof RoadmapTiktokRoute
+  '/seja-fornecedor': typeof SejaFornecedorRoute
   '/shopee': typeof ShopeeRoute
   '/studio': typeof StudioRoute
   '/v2': typeof V2Route
   '/v3': typeof V3Route
   '/vendas-tempo-real': typeof VendasTempoRealRoute
+  '/vitalicio': typeof VitalicioRoute
   '/BLACK/$slug': typeof BLACKSlugRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/automatic-sales': typeof AdminAutomaticSalesRoute
   '/admin/costs': typeof AdminCostsRoute
   '/admin/coupons': typeof AdminCouponsRoute
   '/admin/creators': typeof AdminCreatorsRoute
+  '/admin/envios': typeof AdminEnviosRoute
   '/admin/fornecedor-sites': typeof AdminFornecedorSitesRoute
   '/admin/health': typeof AdminHealthRoute
   '/admin/launches': typeof AdminLaunchesRoute
@@ -431,55 +637,82 @@ export interface FileRoutesByTo {
   '/admin/products': typeof AdminProductsRoute
   '/admin/promotions': typeof AdminPromotionsRoute
   '/admin/recharges': typeof AdminRechargesRoute
+  '/admin/refunds': typeof AdminRefundsRoute
   '/admin/sales': typeof AdminSalesRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/shopee-check': typeof AdminShopeeCheckRoute
   '/admin/users': typeof AdminUsersRouteWithChildren
+  '/cadastro/$token': typeof CadastroTokenRoute
+  '/expedicao/$token': typeof ExpedicaoTokenRoute
   '/fornecedor/$slug': typeof FornecedorSlugRoute
   '/influencer/$id': typeof InfluencerIdRoute
   '/influencer/imagem': typeof InfluencerImagemRoute
   '/influencer/novo': typeof InfluencerNovoRoute
+  '/painel-reembolsos/$token': typeof PainelReembolsosTokenRoute
+  '/r/$code': typeof RCodeRoute
   '/BLACK': typeof BLACKIndexRoute
   '/admin': typeof AdminIndexRoute
+  '/cadastro': typeof CadastroIndexRoute
+  '/expedicao': typeof ExpedicaoIndexRoute
   '/fornecedor': typeof FornecedorIndexRoute
   '/influencer': typeof InfluencerIndexRoute
   '/admin/users/$id': typeof AdminUsersIdRoute
+  '/api/public/saude': typeof ApiPublicSaudeRoute
+  '/api/public/applyfy/webhook': typeof ApiPublicApplyfyWebhookRoute
+  '/api/public/fulfillment/tick': typeof ApiPublicFulfillmentTickRoute
+  '/api/public/mercadolivre/callback': typeof ApiPublicMercadolivreCallbackRoute
+  '/api/public/mercadolivre/notificacoes': typeof ApiPublicMercadolivreNotificacoesRoute
+  '/api/public/pagamentos/asaas': typeof ApiPublicPagamentosAsaasRoute
+  '/api/public/pagamentos/mercadopago': typeof ApiPublicPagamentosMercadopagoRoute
   '/api/public/shopee/callback': typeof ApiPublicShopeeCallbackRoute
+  '/api/public/shopee/push': typeof ApiPublicShopeePushRoute
+  '/api/public/marketplaces/$provider/callback': typeof ApiPublicMarketplacesProviderCallbackRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/afiliado': typeof AfiliadoRoute
   '/ativar-acesso': typeof AtivarAcessoRoute
   '/auth': typeof AuthRoute
   '/cadastroprodutoresespancadores': typeof CadastroprodutoresespancadoresRoute
+  '/classica': typeof ClassicaRoute
+  '/cliente': typeof ClienteRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/dashboard': typeof DashboardRoute
+  '/dy4ki0h': typeof Dy4ki0hRoute
+  '/envios': typeof EnviosRoute
   '/facebook': typeof FacebookRoute
   '/financeiro': typeof FinanceiroRoute
   '/fornecedor': typeof FornecedorRouteWithChildren
   '/fornecedores': typeof FornecedoresRoute
   '/loglog': typeof LoglogRoute
   '/marketplaces': typeof MarketplacesRoute
+  '/mensal': typeof MensalRoute
+  '/obrigado': typeof ObrigadoRoute
   '/perfil': typeof PerfilRoute
   '/personalizar': typeof PersonalizarRoute
   '/produtos': typeof ProdutosRoute
   '/produtos-salvos': typeof ProdutosSalvosRoute
   '/promocao': typeof PromocaoRoute
+  '/reembolso': typeof ReembolsoRoute
   '/reset-password': typeof ResetPasswordRoute
   '/roadmap-shopee': typeof RoadmapShopeeRoute
   '/roadmap-tiktok': typeof RoadmapTiktokRoute
+  '/seja-fornecedor': typeof SejaFornecedorRoute
   '/shopee': typeof ShopeeRoute
   '/studio': typeof StudioRoute
   '/v2': typeof V2Route
   '/v3': typeof V3Route
   '/vendas-tempo-real': typeof VendasTempoRealRoute
+  '/vitalicio': typeof VitalicioRoute
   '/BLACK/$slug': typeof BLACKSlugRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/automatic-sales': typeof AdminAutomaticSalesRoute
   '/admin/costs': typeof AdminCostsRoute
   '/admin/coupons': typeof AdminCouponsRoute
   '/admin/creators': typeof AdminCreatorsRoute
+  '/admin/envios': typeof AdminEnviosRoute
   '/admin/fornecedor-sites': typeof AdminFornecedorSitesRoute
   '/admin/health': typeof AdminHealthRoute
   '/admin/launches': typeof AdminLaunchesRoute
@@ -488,56 +721,83 @@ export interface FileRoutesById {
   '/admin/products': typeof AdminProductsRoute
   '/admin/promotions': typeof AdminPromotionsRoute
   '/admin/recharges': typeof AdminRechargesRoute
+  '/admin/refunds': typeof AdminRefundsRoute
   '/admin/sales': typeof AdminSalesRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/shopee-check': typeof AdminShopeeCheckRoute
   '/admin/users': typeof AdminUsersRouteWithChildren
+  '/cadastro/$token': typeof CadastroTokenRoute
+  '/expedicao/$token': typeof ExpedicaoTokenRoute
   '/fornecedor/$slug': typeof FornecedorSlugRoute
   '/influencer/$id': typeof InfluencerIdRoute
   '/influencer/imagem': typeof InfluencerImagemRoute
   '/influencer/novo': typeof InfluencerNovoRoute
+  '/painel-reembolsos/$token': typeof PainelReembolsosTokenRoute
+  '/r/$code': typeof RCodeRoute
   '/BLACK/': typeof BLACKIndexRoute
   '/admin/': typeof AdminIndexRoute
+  '/cadastro/': typeof CadastroIndexRoute
+  '/expedicao/': typeof ExpedicaoIndexRoute
   '/fornecedor/': typeof FornecedorIndexRoute
   '/influencer/': typeof InfluencerIndexRoute
   '/admin/users/$id': typeof AdminUsersIdRoute
+  '/api/public/saude': typeof ApiPublicSaudeRoute
+  '/api/public/applyfy/webhook': typeof ApiPublicApplyfyWebhookRoute
+  '/api/public/fulfillment/tick': typeof ApiPublicFulfillmentTickRoute
+  '/api/public/mercadolivre/callback': typeof ApiPublicMercadolivreCallbackRoute
+  '/api/public/mercadolivre/notificacoes': typeof ApiPublicMercadolivreNotificacoesRoute
+  '/api/public/pagamentos/asaas': typeof ApiPublicPagamentosAsaasRoute
+  '/api/public/pagamentos/mercadopago': typeof ApiPublicPagamentosMercadopagoRoute
   '/api/public/shopee/callback': typeof ApiPublicShopeeCallbackRoute
+  '/api/public/shopee/push': typeof ApiPublicShopeePushRoute
+  '/api/public/marketplaces/$provider/callback': typeof ApiPublicMarketplacesProviderCallbackRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/admin'
+    | '/afiliado'
     | '/ativar-acesso'
     | '/auth'
     | '/cadastroprodutoresespancadores'
+    | '/classica'
+    | '/cliente'
     | '/configuracoes'
     | '/dashboard'
+    | '/dy4ki0h'
+    | '/envios'
     | '/facebook'
     | '/financeiro'
     | '/fornecedor'
     | '/fornecedores'
     | '/loglog'
     | '/marketplaces'
+    | '/mensal'
+    | '/obrigado'
     | '/perfil'
     | '/personalizar'
     | '/produtos'
     | '/produtos-salvos'
     | '/promocao'
+    | '/reembolso'
     | '/reset-password'
     | '/roadmap-shopee'
     | '/roadmap-tiktok'
+    | '/seja-fornecedor'
     | '/shopee'
     | '/studio'
     | '/v2'
     | '/v3'
     | '/vendas-tempo-real'
+    | '/vitalicio'
     | '/BLACK/$slug'
     | '/admin/analytics'
     | '/admin/automatic-sales'
     | '/admin/costs'
     | '/admin/coupons'
     | '/admin/creators'
+    | '/admin/envios'
     | '/admin/fornecedor-sites'
     | '/admin/health'
     | '/admin/launches'
@@ -546,52 +806,79 @@ export interface FileRouteTypes {
     | '/admin/products'
     | '/admin/promotions'
     | '/admin/recharges'
+    | '/admin/refunds'
     | '/admin/sales'
     | '/admin/settings'
     | '/admin/shopee-check'
     | '/admin/users'
+    | '/cadastro/$token'
+    | '/expedicao/$token'
     | '/fornecedor/$slug'
     | '/influencer/$id'
     | '/influencer/imagem'
     | '/influencer/novo'
+    | '/painel-reembolsos/$token'
+    | '/r/$code'
     | '/BLACK/'
     | '/admin/'
+    | '/cadastro/'
+    | '/expedicao/'
     | '/fornecedor/'
     | '/influencer/'
     | '/admin/users/$id'
+    | '/api/public/saude'
+    | '/api/public/applyfy/webhook'
+    | '/api/public/fulfillment/tick'
+    | '/api/public/mercadolivre/callback'
+    | '/api/public/mercadolivre/notificacoes'
+    | '/api/public/pagamentos/asaas'
+    | '/api/public/pagamentos/mercadopago'
     | '/api/public/shopee/callback'
+    | '/api/public/shopee/push'
+    | '/api/public/marketplaces/$provider/callback'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/afiliado'
     | '/ativar-acesso'
     | '/auth'
     | '/cadastroprodutoresespancadores'
+    | '/classica'
+    | '/cliente'
     | '/configuracoes'
     | '/dashboard'
+    | '/dy4ki0h'
+    | '/envios'
     | '/facebook'
     | '/financeiro'
     | '/fornecedores'
     | '/loglog'
     | '/marketplaces'
+    | '/mensal'
+    | '/obrigado'
     | '/perfil'
     | '/personalizar'
     | '/produtos'
     | '/produtos-salvos'
     | '/promocao'
+    | '/reembolso'
     | '/reset-password'
     | '/roadmap-shopee'
     | '/roadmap-tiktok'
+    | '/seja-fornecedor'
     | '/shopee'
     | '/studio'
     | '/v2'
     | '/v3'
     | '/vendas-tempo-real'
+    | '/vitalicio'
     | '/BLACK/$slug'
     | '/admin/analytics'
     | '/admin/automatic-sales'
     | '/admin/costs'
     | '/admin/coupons'
     | '/admin/creators'
+    | '/admin/envios'
     | '/admin/fornecedor-sites'
     | '/admin/health'
     | '/admin/launches'
@@ -600,54 +887,81 @@ export interface FileRouteTypes {
     | '/admin/products'
     | '/admin/promotions'
     | '/admin/recharges'
+    | '/admin/refunds'
     | '/admin/sales'
     | '/admin/settings'
     | '/admin/shopee-check'
     | '/admin/users'
+    | '/cadastro/$token'
+    | '/expedicao/$token'
     | '/fornecedor/$slug'
     | '/influencer/$id'
     | '/influencer/imagem'
     | '/influencer/novo'
+    | '/painel-reembolsos/$token'
+    | '/r/$code'
     | '/BLACK'
     | '/admin'
+    | '/cadastro'
+    | '/expedicao'
     | '/fornecedor'
     | '/influencer'
     | '/admin/users/$id'
+    | '/api/public/saude'
+    | '/api/public/applyfy/webhook'
+    | '/api/public/fulfillment/tick'
+    | '/api/public/mercadolivre/callback'
+    | '/api/public/mercadolivre/notificacoes'
+    | '/api/public/pagamentos/asaas'
+    | '/api/public/pagamentos/mercadopago'
     | '/api/public/shopee/callback'
+    | '/api/public/shopee/push'
+    | '/api/public/marketplaces/$provider/callback'
   id:
     | '__root__'
     | '/'
     | '/admin'
+    | '/afiliado'
     | '/ativar-acesso'
     | '/auth'
     | '/cadastroprodutoresespancadores'
+    | '/classica'
+    | '/cliente'
     | '/configuracoes'
     | '/dashboard'
+    | '/dy4ki0h'
+    | '/envios'
     | '/facebook'
     | '/financeiro'
     | '/fornecedor'
     | '/fornecedores'
     | '/loglog'
     | '/marketplaces'
+    | '/mensal'
+    | '/obrigado'
     | '/perfil'
     | '/personalizar'
     | '/produtos'
     | '/produtos-salvos'
     | '/promocao'
+    | '/reembolso'
     | '/reset-password'
     | '/roadmap-shopee'
     | '/roadmap-tiktok'
+    | '/seja-fornecedor'
     | '/shopee'
     | '/studio'
     | '/v2'
     | '/v3'
     | '/vendas-tempo-real'
+    | '/vitalicio'
     | '/BLACK/$slug'
     | '/admin/analytics'
     | '/admin/automatic-sales'
     | '/admin/costs'
     | '/admin/coupons'
     | '/admin/creators'
+    | '/admin/envios'
     | '/admin/fornecedor-sites'
     | '/admin/health'
     | '/admin/launches'
@@ -656,56 +970,97 @@ export interface FileRouteTypes {
     | '/admin/products'
     | '/admin/promotions'
     | '/admin/recharges'
+    | '/admin/refunds'
     | '/admin/sales'
     | '/admin/settings'
     | '/admin/shopee-check'
     | '/admin/users'
+    | '/cadastro/$token'
+    | '/expedicao/$token'
     | '/fornecedor/$slug'
     | '/influencer/$id'
     | '/influencer/imagem'
     | '/influencer/novo'
+    | '/painel-reembolsos/$token'
+    | '/r/$code'
     | '/BLACK/'
     | '/admin/'
+    | '/cadastro/'
+    | '/expedicao/'
     | '/fornecedor/'
     | '/influencer/'
     | '/admin/users/$id'
+    | '/api/public/saude'
+    | '/api/public/applyfy/webhook'
+    | '/api/public/fulfillment/tick'
+    | '/api/public/mercadolivre/callback'
+    | '/api/public/mercadolivre/notificacoes'
+    | '/api/public/pagamentos/asaas'
+    | '/api/public/pagamentos/mercadopago'
     | '/api/public/shopee/callback'
+    | '/api/public/shopee/push'
+    | '/api/public/marketplaces/$provider/callback'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
+  AfiliadoRoute: typeof AfiliadoRoute
   AtivarAcessoRoute: typeof AtivarAcessoRoute
   AuthRoute: typeof AuthRoute
   CadastroprodutoresespancadoresRoute: typeof CadastroprodutoresespancadoresRoute
+  ClassicaRoute: typeof ClassicaRoute
+  ClienteRoute: typeof ClienteRoute
   ConfiguracoesRoute: typeof ConfiguracoesRoute
   DashboardRoute: typeof DashboardRoute
+  Dy4ki0hRoute: typeof Dy4ki0hRoute
+  EnviosRoute: typeof EnviosRoute
   FacebookRoute: typeof FacebookRoute
   FinanceiroRoute: typeof FinanceiroRoute
   FornecedorRoute: typeof FornecedorRouteWithChildren
   FornecedoresRoute: typeof FornecedoresRoute
   LoglogRoute: typeof LoglogRoute
   MarketplacesRoute: typeof MarketplacesRoute
+  MensalRoute: typeof MensalRoute
+  ObrigadoRoute: typeof ObrigadoRoute
   PerfilRoute: typeof PerfilRoute
   PersonalizarRoute: typeof PersonalizarRoute
   ProdutosRoute: typeof ProdutosRoute
   ProdutosSalvosRoute: typeof ProdutosSalvosRoute
   PromocaoRoute: typeof PromocaoRoute
+  ReembolsoRoute: typeof ReembolsoRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   RoadmapShopeeRoute: typeof RoadmapShopeeRoute
   RoadmapTiktokRoute: typeof RoadmapTiktokRoute
+  SejaFornecedorRoute: typeof SejaFornecedorRoute
   ShopeeRoute: typeof ShopeeRoute
   StudioRoute: typeof StudioRoute
   V2Route: typeof V2Route
   V3Route: typeof V3Route
   VendasTempoRealRoute: typeof VendasTempoRealRoute
+  VitalicioRoute: typeof VitalicioRoute
   BLACKSlugRoute: typeof BLACKSlugRoute
+  CadastroTokenRoute: typeof CadastroTokenRoute
+  ExpedicaoTokenRoute: typeof ExpedicaoTokenRoute
   InfluencerIdRoute: typeof InfluencerIdRoute
   InfluencerImagemRoute: typeof InfluencerImagemRoute
   InfluencerNovoRoute: typeof InfluencerNovoRoute
+  PainelReembolsosTokenRoute: typeof PainelReembolsosTokenRoute
+  RCodeRoute: typeof RCodeRoute
   BLACKIndexRoute: typeof BLACKIndexRoute
+  CadastroIndexRoute: typeof CadastroIndexRoute
+  ExpedicaoIndexRoute: typeof ExpedicaoIndexRoute
   InfluencerIndexRoute: typeof InfluencerIndexRoute
+  ApiPublicSaudeRoute: typeof ApiPublicSaudeRoute
+  ApiPublicApplyfyWebhookRoute: typeof ApiPublicApplyfyWebhookRoute
+  ApiPublicFulfillmentTickRoute: typeof ApiPublicFulfillmentTickRoute
+  ApiPublicMercadolivreCallbackRoute: typeof ApiPublicMercadolivreCallbackRoute
+  ApiPublicMercadolivreNotificacoesRoute: typeof ApiPublicMercadolivreNotificacoesRoute
+  ApiPublicPagamentosAsaasRoute: typeof ApiPublicPagamentosAsaasRoute
+  ApiPublicPagamentosMercadopagoRoute: typeof ApiPublicPagamentosMercadopagoRoute
   ApiPublicShopeeCallbackRoute: typeof ApiPublicShopeeCallbackRoute
+  ApiPublicShopeePushRoute: typeof ApiPublicShopeePushRoute
+  ApiPublicMarketplacesProviderCallbackRoute: typeof ApiPublicMarketplacesProviderCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -722,6 +1077,13 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/afiliado': {
+      id: '/afiliado'
+      path: '/afiliado'
+      fullPath: '/afiliado'
+      preLoaderRoute: typeof AfiliadoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/ativar-acesso': {
@@ -745,6 +1107,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CadastroprodutoresespancadoresRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/classica': {
+      id: '/classica'
+      path: '/classica'
+      fullPath: '/classica'
+      preLoaderRoute: typeof ClassicaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cliente': {
+      id: '/cliente'
+      path: '/cliente'
+      fullPath: '/cliente'
+      preLoaderRoute: typeof ClienteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/configuracoes': {
       id: '/configuracoes'
       path: '/configuracoes'
@@ -757,6 +1133,20 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dy4ki0h': {
+      id: '/dy4ki0h'
+      path: '/dy4ki0h'
+      fullPath: '/dy4ki0h'
+      preLoaderRoute: typeof Dy4ki0hRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/envios': {
+      id: '/envios'
+      path: '/envios'
+      fullPath: '/envios'
+      preLoaderRoute: typeof EnviosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/facebook': {
@@ -801,6 +1191,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MarketplacesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/mensal': {
+      id: '/mensal'
+      path: '/mensal'
+      fullPath: '/mensal'
+      preLoaderRoute: typeof MensalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/obrigado': {
+      id: '/obrigado'
+      path: '/obrigado'
+      fullPath: '/obrigado'
+      preLoaderRoute: typeof ObrigadoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/perfil': {
       id: '/perfil'
       path: '/perfil'
@@ -836,6 +1240,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PromocaoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reembolso': {
+      id: '/reembolso'
+      path: '/reembolso'
+      fullPath: '/reembolso'
+      preLoaderRoute: typeof ReembolsoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reset-password': {
       id: '/reset-password'
       path: '/reset-password'
@@ -855,6 +1266,13 @@ declare module '@tanstack/react-router' {
       path: '/roadmap-tiktok'
       fullPath: '/roadmap-tiktok'
       preLoaderRoute: typeof RoadmapTiktokRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/seja-fornecedor': {
+      id: '/seja-fornecedor'
+      path: '/seja-fornecedor'
+      fullPath: '/seja-fornecedor'
+      preLoaderRoute: typeof SejaFornecedorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/shopee': {
@@ -890,6 +1308,13 @@ declare module '@tanstack/react-router' {
       path: '/vendas-tempo-real'
       fullPath: '/vendas-tempo-real'
       preLoaderRoute: typeof VendasTempoRealRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vitalicio': {
+      id: '/vitalicio'
+      path: '/vitalicio'
+      fullPath: '/vitalicio'
+      preLoaderRoute: typeof VitalicioRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/BLACK/': {
@@ -948,6 +1373,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCreatorsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/envios': {
+      id: '/admin/envios'
+      path: '/envios'
+      fullPath: '/admin/envios'
+      preLoaderRoute: typeof AdminEnviosRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/fornecedor-sites': {
       id: '/admin/fornecedor-sites'
       path: '/fornecedor-sites'
@@ -1004,6 +1436,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminRechargesRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/refunds': {
+      id: '/admin/refunds'
+      path: '/refunds'
+      fullPath: '/admin/refunds'
+      preLoaderRoute: typeof AdminRefundsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/sales': {
       id: '/admin/sales'
       path: '/sales'
@@ -1031,6 +1470,34 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/users'
       preLoaderRoute: typeof AdminUsersRouteImport
       parentRoute: typeof AdminRoute
+    }
+    '/cadastro/': {
+      id: '/cadastro/'
+      path: '/cadastro'
+      fullPath: '/cadastro/'
+      preLoaderRoute: typeof CadastroIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cadastro/$token': {
+      id: '/cadastro/$token'
+      path: '/cadastro/$token'
+      fullPath: '/cadastro/$token'
+      preLoaderRoute: typeof CadastroTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/expedicao/': {
+      id: '/expedicao/'
+      path: '/expedicao'
+      fullPath: '/expedicao/'
+      preLoaderRoute: typeof ExpedicaoIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/expedicao/$token': {
+      id: '/expedicao/$token'
+      path: '/expedicao/$token'
+      fullPath: '/expedicao/$token'
+      preLoaderRoute: typeof ExpedicaoTokenRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/fornecedor/': {
       id: '/fornecedor/'
@@ -1074,6 +1541,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InfluencerNovoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/painel-reembolsos/$token': {
+      id: '/painel-reembolsos/$token'
+      path: '/painel-reembolsos/$token'
+      fullPath: '/painel-reembolsos/$token'
+      preLoaderRoute: typeof PainelReembolsosTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/r/$code': {
+      id: '/r/$code'
+      path: '/r/$code'
+      fullPath: '/r/$code'
+      preLoaderRoute: typeof RCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/users/$id': {
       id: '/admin/users/$id'
       path: '/$id'
@@ -1081,11 +1562,74 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminUsersIdRouteImport
       parentRoute: typeof AdminUsersRoute
     }
+    '/api/public/saude': {
+      id: '/api/public/saude'
+      path: '/api/public/saude'
+      fullPath: '/api/public/saude'
+      preLoaderRoute: typeof ApiPublicSaudeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/applyfy/webhook': {
+      id: '/api/public/applyfy/webhook'
+      path: '/api/public/applyfy/webhook'
+      fullPath: '/api/public/applyfy/webhook'
+      preLoaderRoute: typeof ApiPublicApplyfyWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/fulfillment/tick': {
+      id: '/api/public/fulfillment/tick'
+      path: '/api/public/fulfillment/tick'
+      fullPath: '/api/public/fulfillment/tick'
+      preLoaderRoute: typeof ApiPublicFulfillmentTickRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/mercadolivre/callback': {
+      id: '/api/public/mercadolivre/callback'
+      path: '/api/public/mercadolivre/callback'
+      fullPath: '/api/public/mercadolivre/callback'
+      preLoaderRoute: typeof ApiPublicMercadolivreCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/mercadolivre/notificacoes': {
+      id: '/api/public/mercadolivre/notificacoes'
+      path: '/api/public/mercadolivre/notificacoes'
+      fullPath: '/api/public/mercadolivre/notificacoes'
+      preLoaderRoute: typeof ApiPublicMercadolivreNotificacoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/pagamentos/asaas': {
+      id: '/api/public/pagamentos/asaas'
+      path: '/api/public/pagamentos/asaas'
+      fullPath: '/api/public/pagamentos/asaas'
+      preLoaderRoute: typeof ApiPublicPagamentosAsaasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/pagamentos/mercadopago': {
+      id: '/api/public/pagamentos/mercadopago'
+      path: '/api/public/pagamentos/mercadopago'
+      fullPath: '/api/public/pagamentos/mercadopago'
+      preLoaderRoute: typeof ApiPublicPagamentosMercadopagoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/shopee/callback': {
       id: '/api/public/shopee/callback'
       path: '/api/public/shopee/callback'
       fullPath: '/api/public/shopee/callback'
       preLoaderRoute: typeof ApiPublicShopeeCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/shopee/push': {
+      id: '/api/public/shopee/push'
+      path: '/api/public/shopee/push'
+      fullPath: '/api/public/shopee/push'
+      preLoaderRoute: typeof ApiPublicShopeePushRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/marketplaces/$provider/callback': {
+      id: '/api/public/marketplaces/$provider/callback'
+      path: '/api/public/marketplaces/$provider/callback'
+      fullPath: '/api/public/marketplaces/$provider/callback'
+      preLoaderRoute: typeof ApiPublicMarketplacesProviderCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -1109,6 +1653,7 @@ interface AdminRouteChildren {
   AdminCostsRoute: typeof AdminCostsRoute
   AdminCouponsRoute: typeof AdminCouponsRoute
   AdminCreatorsRoute: typeof AdminCreatorsRoute
+  AdminEnviosRoute: typeof AdminEnviosRoute
   AdminFornecedorSitesRoute: typeof AdminFornecedorSitesRoute
   AdminHealthRoute: typeof AdminHealthRoute
   AdminLaunchesRoute: typeof AdminLaunchesRoute
@@ -1117,6 +1662,7 @@ interface AdminRouteChildren {
   AdminProductsRoute: typeof AdminProductsRoute
   AdminPromotionsRoute: typeof AdminPromotionsRoute
   AdminRechargesRoute: typeof AdminRechargesRoute
+  AdminRefundsRoute: typeof AdminRefundsRoute
   AdminSalesRoute: typeof AdminSalesRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminShopeeCheckRoute: typeof AdminShopeeCheckRoute
@@ -1130,6 +1676,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminCostsRoute: AdminCostsRoute,
   AdminCouponsRoute: AdminCouponsRoute,
   AdminCreatorsRoute: AdminCreatorsRoute,
+  AdminEnviosRoute: AdminEnviosRoute,
   AdminFornecedorSitesRoute: AdminFornecedorSitesRoute,
   AdminHealthRoute: AdminHealthRoute,
   AdminLaunchesRoute: AdminLaunchesRoute,
@@ -1138,6 +1685,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminProductsRoute: AdminProductsRoute,
   AdminPromotionsRoute: AdminPromotionsRoute,
   AdminRechargesRoute: AdminRechargesRoute,
+  AdminRefundsRoute: AdminRefundsRoute,
   AdminSalesRoute: AdminSalesRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminShopeeCheckRoute: AdminShopeeCheckRoute,
@@ -1164,37 +1712,64 @@ const FornecedorRouteWithChildren = FornecedorRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
+  AfiliadoRoute: AfiliadoRoute,
   AtivarAcessoRoute: AtivarAcessoRoute,
   AuthRoute: AuthRoute,
   CadastroprodutoresespancadoresRoute: CadastroprodutoresespancadoresRoute,
+  ClassicaRoute: ClassicaRoute,
+  ClienteRoute: ClienteRoute,
   ConfiguracoesRoute: ConfiguracoesRoute,
   DashboardRoute: DashboardRoute,
+  Dy4ki0hRoute: Dy4ki0hRoute,
+  EnviosRoute: EnviosRoute,
   FacebookRoute: FacebookRoute,
   FinanceiroRoute: FinanceiroRoute,
   FornecedorRoute: FornecedorRouteWithChildren,
   FornecedoresRoute: FornecedoresRoute,
   LoglogRoute: LoglogRoute,
   MarketplacesRoute: MarketplacesRoute,
+  MensalRoute: MensalRoute,
+  ObrigadoRoute: ObrigadoRoute,
   PerfilRoute: PerfilRoute,
   PersonalizarRoute: PersonalizarRoute,
   ProdutosRoute: ProdutosRoute,
   ProdutosSalvosRoute: ProdutosSalvosRoute,
   PromocaoRoute: PromocaoRoute,
+  ReembolsoRoute: ReembolsoRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   RoadmapShopeeRoute: RoadmapShopeeRoute,
   RoadmapTiktokRoute: RoadmapTiktokRoute,
+  SejaFornecedorRoute: SejaFornecedorRoute,
   ShopeeRoute: ShopeeRoute,
   StudioRoute: StudioRoute,
   V2Route: V2Route,
   V3Route: V3Route,
   VendasTempoRealRoute: VendasTempoRealRoute,
+  VitalicioRoute: VitalicioRoute,
   BLACKSlugRoute: BLACKSlugRoute,
+  CadastroTokenRoute: CadastroTokenRoute,
+  ExpedicaoTokenRoute: ExpedicaoTokenRoute,
   InfluencerIdRoute: InfluencerIdRoute,
   InfluencerImagemRoute: InfluencerImagemRoute,
   InfluencerNovoRoute: InfluencerNovoRoute,
+  PainelReembolsosTokenRoute: PainelReembolsosTokenRoute,
+  RCodeRoute: RCodeRoute,
   BLACKIndexRoute: BLACKIndexRoute,
+  CadastroIndexRoute: CadastroIndexRoute,
+  ExpedicaoIndexRoute: ExpedicaoIndexRoute,
   InfluencerIndexRoute: InfluencerIndexRoute,
+  ApiPublicSaudeRoute: ApiPublicSaudeRoute,
+  ApiPublicApplyfyWebhookRoute: ApiPublicApplyfyWebhookRoute,
+  ApiPublicFulfillmentTickRoute: ApiPublicFulfillmentTickRoute,
+  ApiPublicMercadolivreCallbackRoute: ApiPublicMercadolivreCallbackRoute,
+  ApiPublicMercadolivreNotificacoesRoute:
+    ApiPublicMercadolivreNotificacoesRoute,
+  ApiPublicPagamentosAsaasRoute: ApiPublicPagamentosAsaasRoute,
+  ApiPublicPagamentosMercadopagoRoute: ApiPublicPagamentosMercadopagoRoute,
   ApiPublicShopeeCallbackRoute: ApiPublicShopeeCallbackRoute,
+  ApiPublicShopeePushRoute: ApiPublicShopeePushRoute,
+  ApiPublicMarketplacesProviderCallbackRoute:
+    ApiPublicMarketplacesProviderCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

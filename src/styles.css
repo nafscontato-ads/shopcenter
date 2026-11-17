@@ -19,6 +19,13 @@
  */
 
 @theme inline {
+  /* Página pós-compra (/obrigado): cores "ink" e laranja claro, definidas só dentro de .pos-compra */
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-foreground: var(--ink-foreground);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-border: var(--ink-border);
+  --color-primary-light: var(--primary-light);
   --font-sans: "Plus Jakarta Sans", "Inter", ui-sans-serif, system-ui, sans-serif;
 
   --radius-sm: calc(var(--radius) - 4px);
@@ -409,6 +416,27 @@
 
 html {
   scroll-behavior: smooth;
+}
+
+/* App fixo no celular: sem zoom de pinça, sem arrastar a tela pro lado, sem elástico. */
+html,
+body {
+  max-width: 100%;
+  overflow-x: clip;
+  overscroll-behavior: none;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+html {
+  touch-action: pan-x pan-y;
+}
+@media (max-width: 767px) {
+  /* Campo com letra menor que 16px faz o iPhone dar zoom ao focar. */
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
 }
 
 /* Landing PAS: identidade comercial quente, isolada das áreas internas. */
@@ -1064,3 +1092,107 @@ html {
 .sc-bf-supplier { background: oklch(1 0 0 / 6%); border: 1px solid oklch(1 0 0 / 12%); }
 .sc-bf-strip { background: oklch(0.2 0.012 40); color: oklch(0.97 0.006 70); }
 .sc-bf-strip svg { color: oklch(0.88 0.16 90); }
+
+/* ------------------------------------------------------------------ */
+/* Landing 3D (Shop Center): etiquetas flutuantes com profundidade      */
+/* ------------------------------------------------------------------ */
+.sc3d-hero { --mx: 0; --my: 0; --sy: 0; }
+.sc3d-scene { perspective: 1100px; transform-style: preserve-3d; }
+.sc3d-stage { transform-style: preserve-3d; transform: rotateX(calc(var(--my) * -14deg)) rotateY(calc(var(--mx) * 18deg)); transition: transform 0.25s ease-out; }
+.sc3d-tilt { transform: rotateX(calc(var(--my) * -8deg)) rotateY(calc(var(--mx) * 10deg)) translateY(calc(var(--sy) * -40px)); transition: transform 0.25s ease-out; transform-style: preserve-3d; }
+.sc3d-chip {
+  transform: translate3d(calc(var(--mx) * var(--z) * -0.35), calc(var(--my) * var(--z) * -0.35 + var(--sy) * var(--z) * -0.6), var(--z)) rotate(var(--r));
+  animation: sc3d-float 6s ease-in-out infinite;
+  animation-delay: var(--d, 0s);
+  will-change: transform;
+}
+@keyframes sc3d-float {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -12px; }
+}
+.sc3d-phone { animation: sc3d-bob 7s ease-in-out infinite; }
+@keyframes sc3d-bob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -10px; } }
+.sc3d-notif { animation: sc3d-in 0.45s cubic-bezier(.2,.9,.3,1.3) both; }
+@keyframes sc3d-in { from { opacity: 0; transform: translateY(-14px) scale(.96); } to { opacity: 1; transform: none; } }
+.sc3d-card { transition: transform .35s ease, box-shadow .35s ease; }
+.sc3d-card:hover { transform: translateY(-6px) rotateX(3deg); }
+@media (prefers-reduced-motion: reduce) {
+  .sc3d-chip, .sc3d-phone, .sc3d-notif { animation: none; }
+  .sc3d-stage, .sc3d-tilt, .sc3d-chip { transform: none; }
+}
+
+/* Carrossel de marketplaces na página de vendas */
+.sc3d-marquee { -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); }
+.sc3d-marquee-track { display: flex; width: max-content; gap: 1.25rem; padding: 0.5rem 0; animation: sc3d-marquee 32s linear infinite; }
+.sc3d-marquee:hover .sc3d-marquee-track { animation-play-state: paused; }
+@keyframes sc3d-marquee { from { transform: translateX(0); } to { transform: translateX(calc(-50% - 0.625rem)); } }
+@media (prefers-reduced-motion: reduce) { .sc3d-marquee-track { animation: none; flex-wrap: wrap; justify-content: center; width: auto; } .sc3d-marquee-track > [aria-hidden="true"] { display: none; } }
+
+/* ---- Página pós-compra (/obrigado e /obrigado-ai) ----
+ * Visual claro do funil antigo (sistemapasia), preso a .pos-compra para não mudar o resto do site. */
+.pos-compra {
+  --primary: oklch(0.642 0.203 33.1);
+  --primary-glow: oklch(0.704 0.192 37.1);
+  --primary-light: oklch(0.755 0.151 38.3);
+  --primary-soft: oklch(0.642 0.203 33.1 / 8%);
+  --primary-foreground: oklch(1 0 0);
+  --background: oklch(0.976 0 0);
+  --foreground: oklch(0.178 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.178 0 0);
+  --muted: oklch(0.955 0 0);
+  --muted-foreground: oklch(0.569 0 0);
+  --accent: oklch(0.642 0.203 33.1 / 8%);
+  --accent-foreground: oklch(0.642 0.203 33.1);
+  --success: oklch(0.66 0.16 150);
+  --border: oklch(0.92 0 0);
+  --input: oklch(0.9 0 0);
+  --ring: oklch(0.642 0.203 33.1);
+  --ink: oklch(0.178 0 0);
+  --ink-2: oklch(0.222 0 0);
+  --ink-foreground: oklch(0.98 0 0);
+  --ink-muted: oklch(0.7 0 0);
+  --ink-border: oklch(1 0 0 / 9%);
+  --pc-gradient-primary: linear-gradient(135deg, var(--primary) 0%, var(--primary-glow) 60%, var(--primary-light) 100%);
+  --pc-gradient-soft: radial-gradient(120% 80% at 50% 0%, oklch(0.642 0.203 33.1 / 10%) 0%, transparent 60%);
+  --pc-gradient-ink: radial-gradient(90% 70% at 50% 0%, oklch(0.642 0.203 33.1 / 22%) 0%, transparent 60%), linear-gradient(180deg, var(--ink-2) 0%, var(--ink) 100%);
+  --pc-shadow-card: 0 1px 2px oklch(0 0 0 / 4%), 0 8px 24px -12px oklch(0 0 0 / 12%);
+  --pc-shadow-lift: 0 2px 4px oklch(0 0 0 / 4%), 0 18px 40px -16px oklch(0 0 0 / 22%);
+  --pc-shadow-glow: 0 10px 30px -10px oklch(0.642 0.203 33.1 / 55%);
+  --pc-shadow-glow-strong: 0 16px 44px -12px oklch(0.642 0.203 33.1 / 70%);
+  color-scheme: light;
+  font-family: "Plus Jakarta Sans", "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+.pos-compra * { border-color: var(--border); }
+@utility bg-gradient-primary { background-image: var(--pc-gradient-primary); }
+@utility bg-gradient-soft { background-image: var(--pc-gradient-soft); }
+@utility bg-gradient-ink { background-image: var(--pc-gradient-ink); }
+@utility text-gradient-primary { background-image: var(--pc-gradient-primary); -webkit-background-clip: text; background-clip: text; color: transparent; }
+@utility shadow-card { box-shadow: var(--pc-shadow-card); }
+@utility shadow-lift { box-shadow: var(--pc-shadow-lift); }
+@utility shadow-glow { box-shadow: var(--pc-shadow-glow); }
+@utility shadow-glow-strong { box-shadow: var(--pc-shadow-glow-strong); }
+@utility bg-grid-ink {
+  background-image: linear-gradient(var(--ink-border) 1px, transparent 1px), linear-gradient(90deg, var(--ink-border) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+@keyframes pc-check-pop { 0% { transform: scale(0.4); opacity: 0; } 60% { transform: scale(1.08); opacity: 1; } 100% { transform: scale(1); } }
+@keyframes pc-ring-pulse { 0% { transform: scale(0.9); opacity: 0.6; } 100% { transform: scale(1.8); opacity: 0; } }
+@keyframes pc-draw-check { to { stroke-dashoffset: 0; } }
+@keyframes pc-orbit { to { transform: rotate(360deg); } }
+@keyframes pc-scan { 0% { transform: translateY(-100%); } 100% { transform: translateY(400%); } }
+@keyframes pc-shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+@utility animate-check-pop { animation: pc-check-pop 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.2) both; }
+@utility animate-ring-pulse { animation: pc-ring-pulse 2s ease-out infinite; }
+@utility animate-draw-check { stroke-dasharray: 48; stroke-dashoffset: 48; animation: pc-draw-check 0.5s 0.35s ease-out forwards; }
+@utility animate-orbit { animation: pc-orbit 2.4s linear infinite; }
+@utility animate-orbit-slow { animation: pc-orbit 6s linear infinite reverse; }
+@utility animate-scan { animation: pc-scan 2.2s ease-in-out infinite; }
+@utility animate-shimmer {
+  background-image: linear-gradient(90deg, transparent 0%, oklch(1 0 0 / 35%) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: pc-shimmer 2.4s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pos-compra *, .pos-compra *::before, .pos-compra *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}
