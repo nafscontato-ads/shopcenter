@@ -28,3 +28,11 @@ export function whatsappLink(message = "Olá! Vim pelo site do Shop Center e pre
   if (!company.whatsapp) return "";
   return `https://wa.me/${company.whatsapp}?text=${encodeURIComponent(message)}`;
 }
+
+/** Número de suporte para mostrar na tela, ex.: (98) 92002-2965. */
+export function whatsappDisplay() {
+  const digits = company.whatsapp.startsWith("55") && company.whatsapp.length >= 12 ? company.whatsapp.slice(2) : company.whatsapp;
+  if (digits.length === 11) return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+  if (digits.length === 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+  return digits;
+}

@@ -4,7 +4,7 @@ import { ArrowRight, BadgeCheck, Clock, Bell, Boxes, Calculator, Check, ChevronD
 import { PasMark } from "@/components/pas/logo";
 import { ThumbImg } from "@/components/pas/thumb-img";
 import { WhatsAppButton } from "@/components/site/whatsapp-button";
-import { company, whatsappLink } from "@/lib/company";
+import { company, whatsappDisplay, whatsappLink } from "@/lib/company";
 import { marketplaces as marketplaceList } from "@/lib/marketplaces";
 import { brl, type Product } from "@/lib/pas-data";
 import { cn } from "@/lib/utils";
@@ -415,7 +415,7 @@ export function Landing3D({ products, productCount, monthlyCheckout, lifetimeChe
       <footer className="border-t border-orange-100 bg-[#fffaf5]">
         <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:px-6 md:grid-cols-3">
           <div><div className="flex items-center gap-2.5"><PasMark className="size-9" /><span className="text-lg font-black">Shop<span className="text-orange-500">Center</span></span></div><p className="mt-4 max-w-xs text-xs leading-relaxed text-neutral-500">Sistema de logística e gestão para vendedores de marketplaces. Shopee, Mercado Livre, TikTok Shop, Amazon e Magalu são marcas de seus donos.</p></div>
-          <div className="text-sm"><p className="font-black">Atendimento</p><ul className="mt-3 space-y-2 text-neutral-600">{support && <li><a href={support} target="_blank" rel="noreferrer">WhatsApp de suporte</a></li>}{company.instagram && <li><a href={`https://instagram.com/${company.instagram}`} target="_blank" rel="noreferrer">@{company.instagram}</a></li>}{company.email && <li><a href={`mailto:${company.email}`}>{company.email}</a></li>}<li><a href="/reembolso">Solicitar reembolso</a></li><li><a href="/auth">Área do cliente</a></li></ul></div>
+          <div className="text-sm"><p className="font-black">Atendimento</p><ul className="mt-3 space-y-2 text-neutral-600">{support && <li><a href={support} target="_blank" rel="noreferrer" className="font-semibold text-neutral-800 hover:text-orange-600">WhatsApp de suporte: {whatsappDisplay()}</a></li>}{company.instagram && <li><a href={`https://instagram.com/${company.instagram}`} target="_blank" rel="noreferrer">@{company.instagram}</a></li>}{company.email && <li><a href={`mailto:${company.email}`}>{company.email}</a></li>}<li><a href="/reembolso">Solicitar reembolso</a></li><li><a href="/auth">Área do cliente</a></li></ul></div>
           <div className="text-xs leading-relaxed text-neutral-500"><p className="text-sm font-black text-neutral-900">Empresa</p><p className="mt-3">{company.legalName || company.brand}</p>{company.cnpj && <p>CNPJ {company.cnpj}</p>}{company.owners && <p>Responsáveis: {company.owners}</p>}{company.city && <p>{company.city}</p>}<p className="mt-3">© {new Date().getFullYear()} Shop Center. O Shop Center não garante vendas ou lucro.</p></div>
         </div>
       </footer>
